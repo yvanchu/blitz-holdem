@@ -27,11 +27,13 @@ export function useSocket(_roomId: string) {
     isConnecting.current = true;
 
     const connect = () => {
-      // In development, connect directly to server; in production, use same host
-      const isDev = import.meta.env.DEV;
-      const wsHost = isDev ? 'localhost:3001' : window.location.host;
-      const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-      const wsUrl = `${protocol}//${wsHost}/ws`;
+      // WebSocket URL configuration:
+      // - In development: connect to localhost:3001
+      // - In production: use VITE_WS_URL env var, or fallback to same host
+      const wsUrl = import.meta.env.VITE_WS_URL 
+        || (import.meta.env.DEV 
+          ? 'ws://localhost:3001/ws' 
+          : `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/ws`);
 
       console.log('Connecting to WebSocket:', wsUrl);
       const ws = new WebSocket(wsUrl);
