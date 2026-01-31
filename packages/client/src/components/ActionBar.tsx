@@ -1,11 +1,10 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import {
   useGameStore,
   selectYourPlayer,
   selectIsYourTurn,
   selectToCall,
   selectValidActions,
-  selectOpponentPlayer,
 } from '../store/gameStore';
 import type { ActionType, C2SMessage } from '@blitz-holdem/common';
 
@@ -16,7 +15,6 @@ interface ActionBarProps {
 export default function ActionBar({ send }: ActionBarProps) {
   const { minRaise, currentBet, pot } = useGameStore();
   const yourPlayer = useGameStore(selectYourPlayer);
-  const opponent = useGameStore(selectOpponentPlayer);
   const isYourTurn = useGameStore(selectIsYourTurn);
   const toCall = useGameStore(selectToCall);
   const validActions = useGameStore(selectValidActions);
@@ -25,20 +23,17 @@ export default function ActionBar({ send }: ActionBarProps) {
   const [showRaisePanel, setShowRaisePanel] = useState(false);
   const [inputValue, setInputValue] = useState('');
   const [hasUserModified, setHasUserModified] = useState(false);
+  const [autoAllIn, setAutoAllIn] = useState(false);
 
-  // Calculate effective stack - limited by opponent's remaining stack
-  const opponentEffectiveStack = opponent
-    ? Math.round(opponent.timeBank + opponent.currentBet)
-    : Infinity;
-  const yourCurrentBet = yourPlayer?.currentBet ?? 0;
-  const maxEffectiveBet = Math.round(opponentEffectiveStack - yourCurrentBet);
+  // Track if we've already sent the auto all-in for this turn
+  const autoAllInSentRef = useRef(false);
 
   // Minimum raise amount: need to call first, then raise by at least minRaise
   // Total amount to put in = toCall + minRaise (the raise portion)
   const minBetAmount = toCall + minRaise;
 
-  // Max bet is capped by both your stack and effective stack
-  const maxBet = yourPlayer ? Math.min(yourPlayer.timeBank, maxEffectiveBet) : 0;
+  // Max bet is your entire time bank (excess vs opponent will be refunded)
+  const maxBet = yourPlayer?.timeBank ?? 0;
 
   // Only reset bet amount when it's a new betting action (not every tick)
   // Reset when: raise panel opens, or when minBetAmount increases beyond current bet
@@ -56,6 +51,25 @@ export default function ActionBar({ send }: ActionBarProps) {
       setHasUserModified(false);
     }
   }, [showRaisePanel]);
+
+  // Reset auto all-in sent flag when it's no longer our turn
+  useEffect(() => {
+    if (!isYourTurn) {
+      autoAllInSentRef.current = false;
+    }
+  }, [isYourTurn]);
+
+  // Auto all-in: immediately send all-in action when it becomes our turn
+  useEffect(() => {
+    if (autoAllIn && isYourTurn && validActions.length > 0 && !autoAllInSentRef.current) {
+      autoAllInSentRef.current = true;
+      // Small delay to ensure the action is processed
+      const timer = setTimeout(() => {
+        send({ type: 'ACTION', action: 'all-in' });
+      }, 50);
+      return () => clearTimeout(timer);
+    }
+  }, [autoAllIn, isYourTurn, validActions, send]);
 
   const sendAction = useCallback(
     (action: ActionType, amount?: number) => {
@@ -219,6 +233,36 @@ export default function ActionBar({ send }: ActionBarProps) {
 
       {/* Main buttons */}
       <div className="px-4 py-3">
+        {/* Auto All-In checkbox */}
+        <div className="max-w-lg mx-auto mb-3">
+          <label
+            className={`
+              flex items-center gap-2 cursor-pointer select-none
+              px-3 py-2 rounded-lg border-2 transition-all
+              ${
+                autoAllIn
+                  ? 'border-yellow-500 bg-yellow-500/20 text-yellow-400'
+                  : 'border-gray-600 text-gray-400 hover:border-gray-500'
+              }
+            `}
+          >
+            <input
+              type="checkbox"
+              checked={autoAllIn}
+              onChange={(e) => setAutoAllIn(e.target.checked)}
+              className="w-4 h-4 accent-yellow-500"
+            />
+            <span className="text-sm font-medium">
+              Auto All-In
+              {autoAllIn && (
+                <span className="ml-2 text-xs text-yellow-500/80">
+                  (Will go all-in on your turn)
+                </span>
+              )}
+            </span>
+          </label>
+        </div>
+
         <div className="max-w-lg mx-auto grid grid-cols-4 gap-2">
           {/* CALL button */}
           <button
@@ -234,7 +278,7 @@ export default function ActionBar({ send }: ActionBarProps) {
               }
             `}
           >
-            {canCall ? `Call ${toCall}s` : 'Call'}
+            {canCall ? `Call ${Math.min(toCall, yourPlayer?.timeBank ?? 0)}s` : 'Call'}
           </button>
 
           {/* BET/RAISE button */}
@@ -264,7 +308,11 @@ export default function ActionBar({ send }: ActionBarProps) {
               }
             `}
           >
-            {showRaisePanel ? `${isBet ? 'Bet' : 'Raise'} ${betAmount}s` : isBet ? 'Bet' : 'Raise'}
+            {showRaisePanel
+              ? `${isBet ? 'Bet' : 'Raise to'} ${(yourPlayer?.currentBet ?? 0) + betAmount}s`
+              : isBet
+                ? 'Bet'
+                : 'Raise'}
           </button>
 
           {/* CHECK button */}

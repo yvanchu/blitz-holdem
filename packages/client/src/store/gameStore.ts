@@ -140,7 +140,8 @@ export const selectValidActions = (state: GameState): ActionType[] => {
   const actions: ActionType[] = ['fold'];
 
   if (toCall === 0) actions.push('check');
-  if (toCall > 0 && player.timeBank >= toCall) actions.push('call');
+  // Allow call if there's a bet and player has any time (partial calls allowed vs all-in)
+  if (toCall > 0 && player.timeBank > 0) actions.push('call');
   if (player.timeBank >= toCall + state.minRaise) {
     actions.push(state.currentBet === 0 ? 'bet' : 'raise');
   }

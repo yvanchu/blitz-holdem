@@ -161,7 +161,7 @@ function handleMessage(message: S2CMessage) {
 
     case 'ACTION_CONFIRM':
       store.updatePlayers(message.players);
-      store.setRoomState({ pot: message.pot });
+      store.setRoomState({ pot: message.pot, currentBet: message.currentBet });
       store.syncServerTime(message.serverTime);
       break;
 
@@ -174,6 +174,13 @@ function handleMessage(message: S2CMessage) {
     case 'RESULT':
       store.setResult(message.result, message.revealedCards, message.communityCards);
       store.updatePlayers(message.players);
+      store.syncServerTime(message.serverTime);
+      break;
+
+    case 'PLAYERS_UPDATE':
+      // Full player state update (used after refunds)
+      store.updatePlayers(message.players);
+      store.setRoomState({ pot: message.pot });
       store.syncServerTime(message.serverTime);
       break;
 

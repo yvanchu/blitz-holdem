@@ -119,6 +119,7 @@ export interface S2C_ActionConfirm {
   action: Action['type'];
   amount: number;
   pot: number;
+  currentBet: number;
   players: [PlayerPublic, PlayerPublic];
   serverTime: number;
 }
@@ -179,6 +180,13 @@ export interface S2C_PlayerUpdated {
   seatIndex: 0 | 1;
 }
 
+export interface S2C_PlayersUpdate {
+  type: 'PLAYERS_UPDATE';
+  players: [PlayerPublic, PlayerPublic];
+  pot: number;
+  serverTime: number;
+}
+
 export type S2CMessage =
   | S2C_RoomState
   | S2C_HandStart
@@ -192,4 +200,5 @@ export type S2CMessage =
   | S2C_PlayerJoined
   | S2C_PlayerLeft
   | S2C_SettingsUpdated
-  | S2C_PlayerUpdated;
+  | S2C_PlayerUpdated
+  | S2C_PlayersUpdate;

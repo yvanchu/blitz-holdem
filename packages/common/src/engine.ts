@@ -189,7 +189,9 @@ export function getValidActions(state: TableState): ActionType[] {
     actions.push('check');
   }
 
-  if (toCall > 0 && canAfford(player, toCall)) {
+  // Allow call if there's a bet to call and player has any time
+  // (partial calls are allowed when facing an all-in for more than you have)
+  if (toCall > 0 && player.timeBank > 0) {
     actions.push('call');
   }
 
@@ -215,8 +217,6 @@ export function applyAction(state: TableState, action: Action, deck: Card[]): Ac
 
   const playerIndex = state.activePlayerIndex;
   const player = state.players[playerIndex];
-  const opponentIndex: 0 | 1 = playerIndex === 0 ? 1 : 0;
-  const opponent = state.players[opponentIndex];
 
   if (!player || player.id !== action.playerId) {
     throw new Error("Not this player's turn");
@@ -230,9 +230,6 @@ export function applyAction(state: TableState, action: Action, deck: Card[]): Ac
   if (!validActions.includes(action.type)) {
     throw new Error(`Invalid action: ${action.type}`);
   }
-
-  // Calculate effective stack - we can only bet up to opponent's remaining stack + their current bet
-  const opponentEffectiveStack = opponent ? opponent.timeBank + opponent.currentBet : Infinity;
 
   const updatedPlayers: [Player | null, Player | null] = [...state.players];
   let pot = state.pot;
@@ -267,11 +264,8 @@ export function applyAction(state: TableState, action: Action, deck: Card[]): Ac
       let amount = Math.round(action.amount ?? 0);
       const toCall = currentBet - player.currentBet;
 
-      // Cap at effective stack (opponent can only match up to their remaining stack)
-      const maxEffectiveBet = Math.round(opponentEffectiveStack - player.currentBet);
-      if (amount > maxEffectiveBet) {
-        amount = Math.min(amount, player.timeBank, maxEffectiveBet);
-      }
+      // Cap at player's time bank
+      amount = Math.min(amount, player.timeBank);
 
       const raiseAmount = amount - toCall;
 
@@ -293,18 +287,12 @@ export function applyAction(state: TableState, action: Action, deck: Card[]): Ac
     }
 
     case 'all-in': {
-      // Cap all-in to effective stack
-      const maxEffectiveBet = Math.round(opponentEffectiveStack - player.currentBet);
-      const allInAmount = Math.round(Math.min(player.timeBank, maxEffectiveBet));
+      // Go all-in with entire time bank - excess will be refunded before runout
+      const allInAmount = Math.round(player.timeBank);
 
       updatedPlayer = commitSeconds(updatedPlayer, allInAmount);
       pot += allInAmount;
-
-      // If we couldn't commit everything due to effective stack, we're not technically all-in
-      // but effectively capped at opponent's stack
-      if (updatedPlayer.timeBank === 0 || allInAmount >= maxEffectiveBet) {
-        updatedPlayer.isAllIn = true;
-      }
+      updatedPlayer.isAllIn = true;
 
       if (updatedPlayer.currentBet > currentBet) {
         const raiseAmount = updatedPlayer.currentBet - currentBet;
@@ -343,6 +331,7 @@ export function applyAction(state: TableState, action: Action, deck: Card[]): Ac
 
   // Check if betting round is complete
   if (isBettingRoundComplete(newState)) {
+    // Server will handle pacing for all-in runouts
     return advanceStreet(newState, deck);
   }
 
@@ -369,6 +358,11 @@ function isBettingRoundComplete(state: TableState): boolean {
   if (p0.isAllIn && p1.hasActedThisStreet && p1.currentBet >= p0.currentBet) return true;
   if (p1.isAllIn && p0.hasActedThisStreet && p0.currentBet >= p1.currentBet) return true;
 
+  // Special case: all-in for less than opponent's existing bet (no action needed)
+  // This happens when a player times out and goes all-in for less than the BB
+  if (p0.isAllIn && p0.currentBet <= p1.currentBet) return true;
+  if (p1.isAllIn && p1.currentBet <= p0.currentBet) return true;
+
   // Both have acted this street and bets are equal
   if (p0.hasActedThisStreet && p1.hasActedThisStreet && p0.currentBet === p1.currentBet) {
     return true;
@@ -377,13 +371,47 @@ function isBettingRoundComplete(state: TableState): boolean {
   return false;
 }
 
+// Refund uncalled bet when one player is all-in for less
+function refundUncalledBet(state: TableState): TableState {
+  const p0 = state.players[0];
+  const p1 = state.players[1];
+  if (!p0 || !p1) return state;
+
+  // Find the smaller bet (the effective amount both players are risking)
+  const minBet = Math.min(p0.currentBet, p1.currentBet);
+  let pot = state.pot;
+
+  let newP0 = p0;
+  let newP1 = p1;
+
+  // Refund any excess to each player
+  if (p0.currentBet > minBet) {
+    const refund = p0.currentBet - minBet;
+    newP0 = { ...p0, timeBank: p0.timeBank + refund, currentBet: minBet };
+    pot -= refund;
+  }
+  if (p1.currentBet > minBet) {
+    const refund = p1.currentBet - minBet;
+    newP1 = { ...p1, timeBank: p1.timeBank + refund, currentBet: minBet };
+    pot -= refund;
+  }
+
+  return {
+    ...state,
+    players: [newP0, newP1],
+    pot: Math.round(pot),
+  };
+}
+
 // ─────────────────────────────────────────────────────────────
 // Street Advancement
 // ─────────────────────────────────────────────────────────────
 
 export function advanceStreet(state: TableState, deck: Card[]): ActionResult {
-  const p0 = state.players[0]!;
-  const p1 = state.players[1]!;
+  // Refund any uncalled bet before advancing (handles all-in for less scenarios)
+  const refundedState = refundUncalledBet(state);
+  const p0 = refundedState.players[0]!;
+  const p1 = refundedState.players[1]!;
 
   // In heads-up, if either player is all-in, run out remaining streets
   // (the non-all-in player can only check - no betting possible)
@@ -399,7 +427,7 @@ export function advanceStreet(state: TableState, deck: Card[]): ActionResult {
   let newCommunityCards: Card[];
   let remainingDeck = deck;
 
-  switch (state.street) {
+  switch (refundedState.street) {
     case 'preflop': {
       newStreet = 'flop';
       const [flop, remaining] = dealCards(remainingDeck, 3);
@@ -410,45 +438,42 @@ export function advanceStreet(state: TableState, deck: Card[]): ActionResult {
     case 'flop': {
       newStreet = 'turn';
       const [turn, remaining] = dealCards(remainingDeck, 1);
-      newCommunityCards = [...state.communityCards, ...turn];
+      newCommunityCards = [...refundedState.communityCards, ...turn];
       remainingDeck = remaining;
       break;
     }
     case 'turn': {
       newStreet = 'river';
       const [river, remaining] = dealCards(remainingDeck, 1);
-      newCommunityCards = [...state.communityCards, ...river];
+      newCommunityCards = [...refundedState.communityCards, ...river];
       remainingDeck = remaining;
       break;
     }
     case 'river': {
       // Go to showdown
-      return resolveShowdown({ ...state, players: resetPlayers }, remainingDeck);
+      return resolveShowdown({ ...refundedState, players: resetPlayers }, remainingDeck);
     }
     default:
-      throw new Error(`Invalid street: ${state.street}`);
+      throw new Error(`Invalid street: ${refundedState.street}`);
   }
 
   // In heads-up post-flop, BB acts first (non-dealer)
-  const activePlayerIndex: 0 | 1 = state.dealerIndex === 0 ? 1 : 0;
+  const activePlayerIndex: 0 | 1 = refundedState.dealerIndex === 0 ? 1 : 0;
 
   const newState: TableState = {
-    ...state,
+    ...refundedState,
     players: resetPlayers,
     street: newStreet,
     communityCards: newCommunityCards,
     currentBet: 0,
-    minRaise: state.settings.bigBlind,
+    minRaise: refundedState.settings.bigBlind,
     activePlayerIndex: oneOrBothAllIn ? null : activePlayerIndex,
     // Reset aggressor when advancing to a new street - it will be set if someone bets/raises
     lastAggressorIndex: null,
   };
 
-  // If one or both all-in, continue to next street automatically (runout)
-  if (oneOrBothAllIn) {
-    return advanceStreet(newState, remainingDeck);
-  }
-
+  // Always return after one street - server handles the pacing for all-in runouts
+  // The server will check if both players are all-in and call runOutHand with delays
   return { state: newState, deck: remainingDeck };
 }
 

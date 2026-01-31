@@ -1,0 +1,5 @@
+#!/usr/bin/env sh
+
+# Lightweight pre-commit: just type check
+echo "🔍 Running quick type check..."
+pnpm typecheck

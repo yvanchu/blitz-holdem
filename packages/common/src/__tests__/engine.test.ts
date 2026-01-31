@@ -58,15 +58,13 @@ describe('Engine - Effective Stack Limiting', () => {
       expect(updatedPlayer.timeBank).toBeGreaterThanOrEqual(0);
     });
 
-    it('should not allow bet larger than opponent can match', () => {
+    it('should allow bets larger than opponent can match (excess refunded later)', () => {
       const { state, deck } = setupGame(200, 30);
 
       const activeIndex = state.activePlayerIndex!;
       const activePlayer = state.players[activeIndex]!;
-      const opponentIndex: 0 | 1 = activeIndex === 0 ? 1 : 0;
-      const opponent = state.players[opponentIndex]!;
 
-      // Try to raise a large amount
+      // Raise a large amount - should be allowed (capped to own time bank)
       const result = applyAction(
         state,
         {
@@ -80,8 +78,9 @@ describe('Engine - Effective Stack Limiting', () => {
 
       const updatedPlayer = result.state.players[activeIndex]!;
 
-      // Bet should be capped at opponent's effective stack
-      expect(updatedPlayer.currentBet).toBeLessThanOrEqual(opponent.timeBank + opponent.currentBet);
+      // Bet should be allowed (excess will be refunded before runout)
+      expect(updatedPlayer.currentBet).toBe(101); // 1 (SB already bet) + 100 raise
+      expect(updatedPlayer.timeBank).toBe(99); // 200 - 101
     });
   });
 

@@ -144,13 +144,35 @@ export class TableController {
             this.startNewHand();
           }
         }, 6000); // 6 seconds for players to review showdown
-      } else if (this.state.street !== 'preflop' || this.state.communityCards.length > 0) {
-        // New street
-        this.broadcastStreet();
-      }
+      } else {
+        // Check if we need to run out the hand (all-in situation)
+        const p0 = this.state.players[0];
+        const p1 = this.state.players[1];
+        const needsRunout =
+          p0 &&
+          p1 &&
+          (p0.isAllIn || p1.isAllIn) &&
+          !p0.folded &&
+          !p1.folded &&
+          this.state.activePlayerIndex === null;
 
-      // Broadcast turn change
-      this.broadcastTurn();
+        if (needsRunout) {
+          // Send full player state update so clients see any refund that happened
+          // (the engine's advanceStreet already did the refund internally)
+          this.broadcastPlayersUpdate();
+          
+          // Run out remaining streets with delays
+          // The first street (flop) was already dealt by the engine, but we delay before showing it
+          this.runOutHand();
+        } else if (this.state.street !== 'preflop' || this.state.communityCards.length > 0) {
+          // New street (normal case)
+          this.broadcastStreet();
+          this.broadcastTurn();
+        } else {
+          // Just broadcast turn change
+          this.broadcastTurn();
+        }
+      }
 
       return { success: true };
     } catch (err) {
@@ -372,6 +394,36 @@ export class TableController {
     }
   }
 
+  private refundUncalledBet() {
+    // When one player is all-in for less, refund the excess to the other player
+    const p0 = this.state.players[0];
+    const p1 = this.state.players[1];
+    if (!p0 || !p1) return;
+
+    // Find the smaller bet (the effective amount both players are risking)
+    const minBet = Math.min(p0.currentBet, p1.currentBet);
+
+    // Refund any excess to each player
+    if (p0.currentBet > minBet) {
+      const refund = p0.currentBet - minBet;
+      p0.timeBank += refund;
+      p0.currentBet = minBet;
+      this.state.pot -= refund;
+      console.log(`Refunded ${refund}s to ${p0.alias} (uncalled bet)`);
+    }
+    if (p1.currentBet > minBet) {
+      const refund = p1.currentBet - minBet;
+      p1.timeBank += refund;
+      p1.currentBet = minBet;
+      this.state.pot -= refund;
+      console.log(`Refunded ${refund}s to ${p1.alias} (uncalled bet)`);
+    }
+
+    // Sync players
+    this.state.players[0] = p0;
+    this.state.players[1] = p1;
+  }
+
   private checkAndAdvanceAfterTimeout() {
     const p0 = this.state.players[0];
     const p1 = this.state.players[1];
@@ -383,7 +435,17 @@ export class TableController {
       (p0.isAllIn && p1.hasActedThisStreet && p1.currentBet >= p0.currentBet) ||
       (p1.isAllIn && p0.hasActedThisStreet && p0.currentBet >= p1.currentBet);
 
-    if (bothAllIn || oneAllInOtherActed) {
+    // Special case: if all-in player's bet is <= opponent's current bet, no action needed
+    // (opponent has already covered the all-in amount)
+    const allInCoveredByOpponent =
+      (p0.isAllIn && p1.currentBet >= p0.currentBet) ||
+      (p1.isAllIn && p0.currentBet >= p1.currentBet);
+
+    if (bothAllIn || oneAllInOtherActed || allInCoveredByOpponent) {
+      // Refund any uncalled bet and broadcast to players
+      this.refundUncalledBet();
+      this.syncPlayers();
+      this.broadcastPlayersUpdate();
       // Run out the hand to showdown
       this.runOutHand();
     } else {
@@ -396,27 +458,60 @@ export class TableController {
         this.state.activePlayerIndex = nextPlayerIndex;
         this.broadcastTurn();
       } else {
-        // Other player can't act either, run out the hand
+        // Other player can't act either, refund and run out the hand
+        this.refundUncalledBet();
+        this.syncPlayers();
+        this.broadcastPlayersUpdate();
         this.runOutHand();
       }
     }
   }
 
   private runOutHand() {
-    // Advance through all streets to showdown
-    while (this.state.street !== 'showdown' && this.state.isHandInProgress) {
+    const RUNOUT_DELAY_MS = 3000; // 3 seconds between each street
+
+    // Note: Refund is already handled by engine's advanceStreet before we get here
+    // The caller (handleAction or checkAndAdvanceAfterTimeout) broadcasts player updates
+
+    // Check if we already have community cards to show (engine dealt first street)
+    const hasInitialStreet = this.state.communityCards.length > 0;
+
+    const showCurrentStreetAndContinue = () => {
+      if (this.state.street === 'showdown' || !this.state.isHandInProgress) {
+        return;
+      }
+
+      // Broadcast the current street (if we have community cards)
+      if (this.state.communityCards.length > 0) {
+        this.broadcastStreet();
+      }
+
+      // If we're at river, we need to advance to showdown
+      if (this.state.street === 'river') {
+        setTimeout(advanceToShowdown, RUNOUT_DELAY_MS);
+      } else {
+        // Schedule next street advancement
+        setTimeout(advanceOneStreet, RUNOUT_DELAY_MS);
+      }
+    };
+
+    const advanceOneStreet = () => {
+      if (this.state.street === 'showdown' || !this.state.isHandInProgress) {
+        return;
+      }
+
       try {
+        // Advance one street at a time
         const result = advanceStreet(this.state, this.deck);
         this.state = result.state;
         this.deck = result.deck;
 
         if (result.handResult) {
-          // Hand ended (showdown)
+          // Hand ended (showdown from river)
           this.syncPlayers();
           this.broadcastResult(result.handResult);
           this.stopTickLoop();
 
-          // Auto-start next hand after delay
           setTimeout(() => {
             if (this.canContinue()) {
               this.startNewHand();
@@ -424,13 +519,48 @@ export class TableController {
           }, 6000);
           return;
         } else {
-          // Broadcast the new street
+          // Broadcast the new street, then schedule next
           this.broadcastStreet();
+          
+          if (this.state.street === 'river') {
+            setTimeout(advanceToShowdown, RUNOUT_DELAY_MS);
+          } else {
+            setTimeout(advanceOneStreet, RUNOUT_DELAY_MS);
+          }
         }
       } catch (err) {
         console.error('Error running out hand:', err);
-        break;
       }
+    };
+
+    const advanceToShowdown = () => {
+      try {
+        const result = advanceStreet(this.state, this.deck);
+        this.state = result.state;
+        this.deck = result.deck;
+
+        if (result.handResult) {
+          this.syncPlayers();
+          this.broadcastResult(result.handResult);
+          this.stopTickLoop();
+
+          setTimeout(() => {
+            if (this.canContinue()) {
+              this.startNewHand();
+            }
+          }, 6000);
+        }
+      } catch (err) {
+        console.error('Error advancing to showdown:', err);
+      }
+    };
+
+    // Start the runout sequence after initial delay
+    // If we already have a street dealt (flop), show it first
+    if (hasInitialStreet) {
+      setTimeout(showCurrentStreetAndContinue, RUNOUT_DELAY_MS);
+    } else {
+      setTimeout(advanceOneStreet, RUNOUT_DELAY_MS);
     }
   }
 
@@ -574,6 +704,21 @@ export class TableController {
     });
   }
 
+  private broadcastPlayersUpdate() {
+    // Send full player state to all clients (used after refunds)
+    for (const [pid] of this.players) {
+      this.send(pid, {
+        type: 'PLAYERS_UPDATE',
+        players: [
+          this.toPublicPlayer(this.state.players[0], pid)!,
+          this.toPublicPlayer(this.state.players[1], pid)!,
+        ],
+        pot: this.state.pot,
+        serverTime: Date.now(),
+      });
+    }
+  }
+
   private broadcastAction(playerId: string, action: ActionType, amount: number) {
     for (const [pid] of this.players) {
       this.send(pid, {
@@ -582,6 +727,7 @@ export class TableController {
         action,
         amount,
         pot: this.state.pot,
+        currentBet: this.state.currentBet,
         players: [
           this.toPublicPlayer(this.state.players[0], pid)!,
           this.toPublicPlayer(this.state.players[1], pid)!,
