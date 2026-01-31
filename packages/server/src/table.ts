@@ -621,6 +621,7 @@ export class TableController {
           seat0: result.showdown ? (p0?.holeCards ?? null) : null,
           seat1: result.showdown ? (p1?.holeCards ?? null) : null,
         },
+        communityCards: this.state.communityCards,
         serverTime: Date.now(),
       });
     }

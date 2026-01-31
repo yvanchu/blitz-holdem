@@ -385,8 +385,9 @@ export function advanceStreet(state: TableState, deck: Card[]): ActionResult {
   const p0 = state.players[0]!;
   const p1 = state.players[1]!;
 
-  // Both all-in - run out remaining streets
-  const bothAllIn = p0.isAllIn && p1.isAllIn;
+  // In heads-up, if either player is all-in, run out remaining streets
+  // (the non-all-in player can only check - no betting possible)
+  const oneOrBothAllIn = p0.isAllIn || p1.isAllIn;
 
   // Reset current bets and hasActed for new street
   const resetPlayers: [Player, Player] = [
@@ -438,13 +439,13 @@ export function advanceStreet(state: TableState, deck: Card[]): ActionResult {
     communityCards: newCommunityCards,
     currentBet: 0,
     minRaise: state.settings.bigBlind,
-    activePlayerIndex: bothAllIn ? null : activePlayerIndex,
+    activePlayerIndex: oneOrBothAllIn ? null : activePlayerIndex,
     // Reset aggressor when advancing to a new street - it will be set if someone bets/raises
     lastAggressorIndex: null,
   };
 
-  // If both all-in, continue to next street automatically
-  if (bothAllIn) {
+  // If one or both all-in, continue to next street automatically (runout)
+  if (oneOrBothAllIn) {
     return advanceStreet(newState, remainingDeck);
   }
 

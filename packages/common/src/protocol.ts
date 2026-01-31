@@ -136,6 +136,7 @@ export interface S2C_Result {
   type: 'RESULT';
   result: HandResult;
   players: [PlayerPublic, PlayerPublic];
+  communityCards: Card[];
   revealedCards: {
     seat0: [Card, Card] | null;
     seat1: [Card, Card] | null;

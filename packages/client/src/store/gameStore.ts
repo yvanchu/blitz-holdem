@@ -46,7 +46,8 @@ interface GameState {
   setActivePlayer: (index: 0 | 1 | null) => void;
   setResult: (
     result: HandResult,
-    revealedCards: { seat0: [Card, Card] | null; seat1: [Card, Card] | null }
+    revealedCards: { seat0: [Card, Card] | null; seat1: [Card, Card] | null },
+    communityCards: Card[]
   ) => void;
   clearResult: () => void;
   syncServerTime: (serverTime: number) => void;
@@ -95,7 +96,7 @@ export const useGameStore = create<GameState>((set) => ({
 
   setActivePlayer: (index) => set({ activePlayerIndex: index }),
 
-  setResult: (result, revealedCards) => set({ result, revealedCards, isHandInProgress: false }),
+  setResult: (result, revealedCards, communityCards) => set({ result, revealedCards, communityCards, isHandInProgress: false }),
 
   clearResult: () => set({ result: null, revealedCards: null }),
 

@@ -24,6 +24,7 @@ export default function ActionBar({ send }: ActionBarProps) {
   const [betAmount, setBetAmount] = useState(minRaise);
   const [showRaisePanel, setShowRaisePanel] = useState(false);
   const [inputValue, setInputValue] = useState('');
+  const [hasUserModified, setHasUserModified] = useState(false);
 
   // Calculate effective stack - limited by opponent's remaining stack
   const opponentEffectiveStack = opponent
@@ -32,18 +33,29 @@ export default function ActionBar({ send }: ActionBarProps) {
   const yourCurrentBet = yourPlayer?.currentBet ?? 0;
   const maxEffectiveBet = Math.round(opponentEffectiveStack - yourCurrentBet);
 
-  // Minimum bet/raise amount
-  const minBetAmount = Math.max(minRaise, toCall + minRaise);
+  // Minimum raise amount: need to call first, then raise by at least minRaise
+  // Total amount to put in = toCall + minRaise (the raise portion)
+  const minBetAmount = toCall + minRaise;
 
   // Max bet is capped by both your stack and effective stack
   const maxBet = yourPlayer ? Math.min(yourPlayer.timeBank, maxEffectiveBet) : 0;
 
-  // Update bet amount when minRaise changes
+  // Only reset bet amount when it's a new betting action (not every tick)
+  // Reset when: raise panel opens, or when minBetAmount increases beyond current bet
   useEffect(() => {
-    const clampedMin = Math.min(minBetAmount, maxBet);
-    setBetAmount(clampedMin);
-    setInputValue(String(clampedMin));
-  }, [minBetAmount, maxBet]);
+    if (!hasUserModified || betAmount < minBetAmount) {
+      const clampedMin = Math.min(minBetAmount, maxBet);
+      setBetAmount(clampedMin);
+      setInputValue(String(clampedMin));
+    }
+  }, [minBetAmount]);
+
+  // Reset user modified flag when raise panel closes
+  useEffect(() => {
+    if (!showRaisePanel) {
+      setHasUserModified(false);
+    }
+  }, [showRaisePanel]);
 
   const sendAction = useCallback(
     (action: ActionType, amount?: number) => {
@@ -108,6 +120,7 @@ export default function ActionBar({ send }: ActionBarProps) {
   // Handle input change for exact amount
   const handleInputChange = (value: string) => {
     setInputValue(value);
+    setHasUserModified(true);
     const num = parseInt(value);
     if (!isNaN(num) && num >= minBetAmount && num <= maxBet) {
       setBetAmount(num);
@@ -116,6 +129,7 @@ export default function ActionBar({ send }: ActionBarProps) {
 
   // Handle preset button clicks
   const setPreset = (amount: number) => {
+    setHasUserModified(true);
     const clamped = Math.min(maxBet, Math.max(minBetAmount, Math.floor(amount)));
     setBetAmount(clamped);
     setInputValue(String(clamped));
@@ -136,6 +150,7 @@ export default function ActionBar({ send }: ActionBarProps) {
                 value={betAmount}
                 onChange={(e) => {
                   const val = Number(e.target.value);
+                  setHasUserModified(true);
                   setBetAmount(val);
                   setInputValue(String(val));
                 }}

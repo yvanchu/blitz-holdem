@@ -172,7 +172,7 @@ function handleMessage(message: S2CMessage) {
       break;
 
     case 'RESULT':
-      store.setResult(message.result, message.revealedCards);
+      store.setResult(message.result, message.revealedCards, message.communityCards);
       store.updatePlayers(message.players);
       store.syncServerTime(message.serverTime);
       break;
