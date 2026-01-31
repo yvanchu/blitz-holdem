@@ -1,0 +1,127 @@
+<!doctype html>
+<html>
+  <head>
+    <title>WebSocket Test</title>
+    <style>
+      body {
+        font-family: sans-serif;
+        padding: 20px;
+        background: #1a1a1a;
+        color: white;
+      }
+      #log {
+        background: #333;
+        padding: 10px;
+        height: 300px;
+        overflow-y: auto;
+        font-family: monospace;
+        font-size: 12px;
+      }
+      button {
+        padding: 10px 20px;
+        margin: 5px;
+        cursor: pointer;
+      }
+      .error {
+        color: #ff6b6b;
+      }
+      .success {
+        color: #69db7c;
+      }
+      .info {
+        color: #74c0fc;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Blitz Hold'em - WebSocket Test</h1>
+    <div>
+      <button onclick="connect()">Connect to WS</button>
+      <button onclick="createRoom()">Create Room</button>
+      <button onclick="joinRoom()">Join Room</button>
+      <button onclick="disconnect()">Disconnect</button>
+    </div>
+    <div id="log"></div>
+
+    <script>
+      let ws = null;
+      let currentRoomId = null;
+
+      function log(msg, type = 'info') {
+        const div = document.getElementById('log');
+        const time = new Date().toLocaleTimeString();
+        div.innerHTML += `<div class="${type}">[${time}] ${msg}</div>`;
+        div.scrollTop = div.scrollHeight;
+      }
+
+      async function createRoom() {
+        try {
+          log('Creating room...');
+          const res = await fetch('http://localhost:3001/api/rooms', { method: 'POST' });
+          const data = await res.json();
+          currentRoomId = data.roomId;
+          log(`Room created: ${data.roomId}`, 'success');
+        } catch (err) {
+          log(`Failed to create room: ${err.message}`, 'error');
+        }
+      }
+
+      function connect() {
+        if (ws && ws.readyState === WebSocket.OPEN) {
+          log('Already connected', 'info');
+          return;
+        }
+
+        const url = 'ws://localhost:3001/ws';
+        log(`Connecting to ${url}...`);
+
+        try {
+          ws = new WebSocket(url);
+
+          ws.onopen = () => {
+            log('WebSocket CONNECTED!', 'success');
+          };
+
+          ws.onmessage = (event) => {
+            log(`Received: ${event.data}`, 'info');
+          };
+
+          ws.onerror = (event) => {
+            log(`WebSocket ERROR: ${JSON.stringify(event)}`, 'error');
+          };
+
+          ws.onclose = (event) => {
+            log(`WebSocket CLOSED: code=${event.code} reason=${event.reason}`, 'error');
+          };
+        } catch (err) {
+          log(`Failed to create WebSocket: ${err.message}`, 'error');
+        }
+      }
+
+      function joinRoom() {
+        if (!ws || ws.readyState !== WebSocket.OPEN) {
+          log('Not connected!', 'error');
+          return;
+        }
+        if (!currentRoomId) {
+          log('No room created!', 'error');
+          return;
+        }
+        const msg = JSON.stringify({ type: 'JOIN', roomId: currentRoomId, alias: 'TestPlayer' });
+        log(`Sending: ${msg}`);
+        ws.send(msg);
+      }
+
+      function disconnect() {
+        if (ws) {
+          ws.close();
+          ws = null;
+          log('Disconnected', 'info');
+        }
+      }
+
+      // Auto-connect on load
+      log('Page loaded. Click "Connect to WS" to test the WebSocket connection.');
+    </script>
+  </body>
+</html>

@@ -1,0 +1,54 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+}
+
+/* Card styling */
+.card {
+  @apply bg-white text-gray-900 rounded-lg shadow-lg flex items-center justify-center font-bold;
+  width: 60px;
+  height: 84px;
+}
+
+.card.red {
+  @apply text-red-600;
+}
+
+.card.black {
+  @apply text-gray-900;
+}
+
+.card.hidden {
+  @apply bg-gradient-to-br from-blue-800 to-blue-900 text-transparent;
+  background-image: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 5px,
+    rgba(255, 255, 255, 0.1) 5px,
+    rgba(255, 255, 255, 0.1) 10px
+  );
+}
+
+/* Timer animations */
+.timer-warning {
+  @apply text-yellow-400 animate-pulse;
+}
+
+.timer-critical {
+  @apply text-red-500 animate-pulse-fast;
+}
+
+/* Mobile safe area for bottom navigation */
+.safe-area-bottom {
+  padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+}
+
+/* Ensure viewport accounts for mobile chrome */
+@supports (padding: env(safe-area-inset-bottom)) {
+  .safe-area-bottom {
+    padding-bottom: calc(0.75rem + env(safe-area-inset-bottom));
+  }
+}
