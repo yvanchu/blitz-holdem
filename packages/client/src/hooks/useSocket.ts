@@ -30,9 +30,10 @@ export function useSocket(_roomId: string) {
       // WebSocket URL configuration:
       // - In development: connect to localhost:3001
       // - In production: use VITE_WS_URL env var, or fallback to same host
-      const wsUrl = import.meta.env.VITE_WS_URL 
-        || (import.meta.env.DEV 
-          ? 'ws://localhost:3001/ws' 
+      const wsUrl =
+        import.meta.env.VITE_WS_URL ||
+        (import.meta.env.DEV
+          ? 'ws://localhost:3001/ws'
           : `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/ws`);
 
       console.log('Connecting to WebSocket:', wsUrl);
@@ -176,7 +177,7 @@ function handleMessage(message: S2CMessage) {
       store.syncServerTime(message.serverTime);
       break;
 
-    case 'PLAYER_JOINED':
+    case 'PLAYER_JOINED': {
       // Update players array
       const joinPlayers = [...useGameStore.getState().players] as [
         typeof message.player | null,
@@ -185,6 +186,7 @@ function handleMessage(message: S2CMessage) {
       joinPlayers[message.seatIndex] = message.player;
       store.updatePlayers(joinPlayers);
       break;
+    }
 
     case 'PLAYER_LEFT': {
       const currentPlayers = useGameStore.getState().players;
@@ -200,12 +202,13 @@ function handleMessage(message: S2CMessage) {
       console.error('Server error:', message.code, message.message);
       break;
 
-    case 'PONG':
+    case 'PONG': {
       // Calculate RTT
       const rtt = Date.now() - message.clientTime;
       console.debug('RTT:', rtt, 'ms');
       store.syncServerTime(message.serverTime);
       break;
+    }
 
     case 'SETTINGS_UPDATED':
       store.setRoomState({ settings: message.settings });

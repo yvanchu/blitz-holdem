@@ -234,7 +234,7 @@ export function applyAction(state: TableState, action: Action, deck: Card[]): Ac
   // Calculate effective stack - we can only bet up to opponent's remaining stack + their current bet
   const opponentEffectiveStack = opponent ? opponent.timeBank + opponent.currentBet : Infinity;
 
-  let updatedPlayers: [Player | null, Player | null] = [...state.players];
+  const updatedPlayers: [Player | null, Player | null] = [...state.players];
   let pot = state.pot;
   let currentBet = state.currentBet;
   let minRaise = state.minRaise;
@@ -324,7 +324,7 @@ export function applyAction(state: TableState, action: Action, deck: Card[]): Ac
   // Round pot to avoid floating point issues
   pot = Math.round(pot);
 
-  let newState: TableState = {
+  const newState: TableState = {
     ...state,
     players: updatedPlayers,
     pot,

@@ -1,12 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import {
-  createInitialState,
-  addPlayer,
-  startHand,
-  applyAction,
-  getValidActions,
-  advanceStreet,
-} from '../engine';
+import { createInitialState, addPlayer, startHand, applyAction, getValidActions } from '../engine';
 import type { Player, TableState, Card } from '../types';
 
 // Helper to create a test player

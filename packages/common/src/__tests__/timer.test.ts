@@ -103,7 +103,8 @@ describe('Timer utilities', () => {
 
     it('should handle large pots without floating point issues', () => {
       const player = createPlayer({ timeBank: 0 });
-      const result = awardPot(player, 558.97599999999997);
+      // Use a number that would cause floating point issues
+      const result = awardPot(player, 558.976);
 
       expect(result.timeBank).toBe(559); // Should round
     });
