@@ -2,10 +2,10 @@
   "$schema": "https://railway.app/railway.schema.json",
   "build": {
     "builder": "NIXPACKS",
-    "buildCommand": "pnpm install && pnpm --filter @blitz-holdem/common run typecheck && pnpm --filter @blitz-holdem/server run build"
+    "buildCommand": "pnpm install && pnpm --filter @blitz-holdem/common run typecheck && pnpm --filter @blitz-holdem/server run typecheck"
   },
   "deploy": {
-    "startCommand": "node packages/server/dist/index.js",
+    "startCommand": "pnpm --filter @blitz-holdem/server run start",
     "healthcheckPath": "/health",
     "healthcheckTimeout": 30,
     "restartPolicyType": "ON_FAILURE",

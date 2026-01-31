@@ -160,7 +160,7 @@ export class TableController {
           // Send full player state update so clients see any refund that happened
           // (the engine's advanceStreet already did the refund internally)
           this.broadcastPlayersUpdate();
-          
+
           // Run out remaining streets with delays
           // The first street (flop) was already dealt by the engine, but we delay before showing it
           this.runOutHand();
@@ -521,7 +521,7 @@ export class TableController {
         } else {
           // Broadcast the new street, then schedule next
           this.broadcastStreet();
-          
+
           if (this.state.street === 'river') {
             setTimeout(advanceToShowdown, RUNOUT_DELAY_MS);
           } else {

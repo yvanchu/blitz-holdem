@@ -96,7 +96,8 @@ export const useGameStore = create<GameState>((set) => ({
 
   setActivePlayer: (index) => set({ activePlayerIndex: index }),
 
-  setResult: (result, revealedCards, communityCards) => set({ result, revealedCards, communityCards, isHandInProgress: false }),
+  setResult: (result, revealedCards, communityCards) =>
+    set({ result, revealedCards, communityCards, isHandInProgress: false }),
 
   clearResult: () => set({ result: null, revealedCards: null }),
 
