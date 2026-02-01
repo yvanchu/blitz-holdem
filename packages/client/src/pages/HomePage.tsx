@@ -1,6 +1,11 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+// API URL configuration:
+// - In development: use relative path (Vite proxy handles it)
+// - In production: use VITE_API_URL env var pointing to server
+const API_BASE = import.meta.env.VITE_API_URL || '';
+
 export default function HomePage() {
   const [isCreating, setIsCreating] = useState(false);
   const [alias, setAlias] = useState('');
@@ -9,7 +14,7 @@ export default function HomePage() {
   const createTable = async () => {
     setIsCreating(true);
     try {
-      const res = await fetch('/api/rooms', { method: 'POST' });
+      const res = await fetch(`${API_BASE}/api/rooms`, { method: 'POST' });
       const data = await res.json();
       // Store alias in session
       sessionStorage.setItem('playerAlias', alias || 'Player');
