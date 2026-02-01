@@ -584,13 +584,29 @@ export class TableController {
     }
   }
 
+  // Check if we're in an all-in showdown situation where all cards should be revealed
+  private isAllInShowdown(): boolean {
+    const p0 = this.state.players[0];
+    const p1 = this.state.players[1];
+    if (!p0 || !p1) return false;
+    if (p0.folded || p1.folded) return false;
+    // At least one player is all-in and bets are equal (opponent has called)
+    return (
+      (p0.isAllIn || p1.isAllIn) &&
+      p0.currentBet === p1.currentBet &&
+      this.state.isHandInProgress
+    );
+  }
+
   private toPublicPlayer(player: Player | null, forPlayerId?: string): PlayerPublic | null {
     if (!player) return null;
+    // Show hole cards if: it's your own hand, OR we're in all-in showdown
+    const showCards = player.id === forPlayerId || this.isAllInShowdown();
     return {
       id: player.id,
       alias: player.alias,
       timeBank: Math.round(player.timeBank),
-      holeCards: player.id === forPlayerId ? player.holeCards : null,
+      holeCards: showCards ? player.holeCards : null,
       currentBet: player.currentBet,
       folded: player.folded,
       isAllIn: player.isAllIn,
