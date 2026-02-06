@@ -210,13 +210,13 @@ export default function ActionBar({ send }: ActionBarProps) {
                     onClick={() => setPreset(currentBet + Math.floor(pot / 3))}
                     className="px-1 py-1.5 sm:py-2 text-[10px] sm:text-xs bg-gray-700 hover:bg-gray-600 text-white rounded font-medium uppercase"
                   >
-                    1/3 Pot
+                    33%
                   </button>
                   <button
                     onClick={() => setPreset(currentBet + Math.floor((pot * 3) / 4))}
                     className="px-1 py-1.5 sm:py-2 text-[10px] sm:text-xs bg-gray-700 hover:bg-gray-600 text-white rounded font-medium uppercase"
                   >
-                    3/4 Pot
+                    75%
                   </button>
                   <button
                     onClick={() => setPreset(currentBet + pot)}
@@ -228,7 +228,7 @@ export default function ActionBar({ send }: ActionBarProps) {
                     onClick={() => setPreset(currentBet + Math.floor((pot * 3) / 2))}
                     className="px-1 py-1.5 sm:py-2 text-[10px] sm:text-xs bg-gray-700 hover:bg-gray-600 text-white rounded font-medium uppercase"
                   >
-                    3/2 Pot
+                    150%
                   </button>
                   <button
                     onClick={() => setPreset(maxTotalBet)}
