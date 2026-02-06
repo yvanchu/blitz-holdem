@@ -1,272 +1,277 @@
-# Blitz Hold'em - UI Design Brief for Figma Make
+# Blitz Hold'em - UX Design Principles
 
-## App Concept
+## Product Philosophy
 
-**Blitz Hold'em** is a heads-up (1v1) No-Limit Texas Hold'em poker game where **time is the currency**. Instead of chips, players bet seconds from their "time bank" (starting at 60s). When your time bank hits zero, you lose. This creates intense, fast-paced gameplay where every second counts.
-
----
-
-## Task
-
-Design a mobile-first, high-fidelity UI for a real-time poker game. The design should feel like a premium digital poker experience with a modern, minimal aesthetic—not a casino game with gaudy decorations.
-
-## Output
-
-A responsive design system with frames for:
-
-1. **Mobile portrait** (iPhone 15 Pro - 393×852px) - Primary focus
-2. **Tablet landscape** (iPad - 1024×768px) - Secondary
-3. **Desktop** (1440×900px) - Optional stretch goal
+**Blitz Hold'em** is heads-up No-Limit Texas Hold'em where time is the currency. Players bet seconds from their time bank—hit zero, you lose. Every design decision should reinforce that **time is precious** and **every second matters**.
 
 ---
 
-## Visual Style
+## Core Design Principles
 
-### Theme: "Digital Neon Poker"
+### 1. Clarity Over Decoration
 
-- **Background**: Deep forest green (#0D1F12) felt texture, subtle and classy
-- **Accent colors**:
-  - Emerald green (#10B981) for positive actions (check, call)
-  - Amber/Gold (#F59E0B) for betting/raising
-  - Red (#EF4444) for fold and warnings
-  - Blue (#3B82F6) for informational elements
-- **Typography**: Clean sans-serif (Inter or SF Pro) with **digital/mono font for numbers** (time banks, pot, bets)
-- **Cards**: Clean, readable card faces with subtle shadows
-- **Overall feel**: Dark mode, glassmorphic panels, subtle glows—like a high-end digital poker table
+**The Problem**: Casino games are cluttered with animations, gold trim, and visual noise that distract from gameplay.
 
----
+**Our Approach**:
 
-## Screen Layout (Mobile Portrait - Primary)
+- Remove anything that doesn't serve gameplay
+- No decorative elements (flames, sparkles, 3D effects)
+- Clean typography, clear hierarchy
+- Information should be scannable in <1 second
 
-### Structure (top to bottom):
-
-```
-┌─────────────────────────────┐
-│  Header: Room ID + Copy Link │  <- Minimal, dark bar
-├─────────────────────────────┤
-│                             │
-│    [Opponent Seat]          │  <- Top of play area
-│    Avatar + Name + Timer    │
-│    [Two hole cards]         │
-│    [Bet chip if betting]    │
-│                             │
-│  ─────────────────────────  │
-│                             │
-│    [5 Community Cards]      │  <- Center
-│    [Pot: XXs]               │
-│                             │
-│  ─────────────────────────  │
-│                             │
-│    [Bet chip if betting]    │
-│    [Your two hole cards]    │
-│    Avatar + Name + Timer    │  <- Bottom of play area
-│    [Your Seat]              │
-│                             │
-├─────────────────────────────┤
-│      [Action Bar]           │  <- Sticky bottom
-│  Fold | Call/Check | Raise  │
-│  [Raise slider when active] │
-└─────────────────────────────┘
-```
+**Test**: Can a player glance at the screen and instantly know: whose turn it is, how much time they have, what the pot is, and what actions are available?
 
 ---
 
-## Key Components
+### 2. Time Anxiety is a Feature
 
-### 1. Player Seat Component
+**The Mechanic**: Time is literally draining. The UI should make this feel urgent without being stressful to the point of frustration.
 
-Each player seat displays:
+**Implementation**:
 
-- **Avatar**: Circular, 40-48px, with first letter of alias
-- **Alias**: Player name (max ~12 chars)
-- **Time Bank**: Digital clock display (e.g., "45s") with color coding:
-  - White/Green: > 30s (healthy)
-  - Yellow: 10-30s (warning)
-  - Red + pulse animation: < 10s (critical)
-- **Active indicator**: Glowing ring or highlight when it's their turn
-- **Dealer button**: Small "D" badge on the dealer
-- **Status badges**: "ALL IN" (red) or "FOLD" (gray) when applicable
-- **Current bet chip**: Yellow pill showing bet amount (e.g., "12s") positioned between player and center
+- Time banks use monospace/digital font (numbers should feel like a countdown)
+- Color progression: white → yellow (< 30s) → red (< 10s)
+- Subtle pulse animation at critical levels (< 10s)
+- No screen shake or aggressive animations—tension comes from the number itself
 
-**Layout**: Horizontal row: [Avatar] [Name column] [Timer]
-
-### 2. Community Cards Area
-
-- 5 card slots in a horizontal row
-- Empty slots shown as dashed outlines
-- Cards animate in when dealt
-- Winning cards highlighted with golden glow at showdown
-
-### 3. Pot Display
-
-- Centered below community cards
-- Dark pill/badge with "Pot: XXs"
-- **Digital/mono font** for the number
-- Subtle golden/yellow accent color
-
-### 4. Action Bar (Critical Component)
-
-Fixed to bottom of screen. Two states:
-
-**Default State** (3-button row):
-
-```
-┌─────────────────────────────────────────┐
-│  [FOLD]    [CALL XXs]    [RAISE]        │
-│   red       green         amber          │
-└─────────────────────────────────────────┘
-```
-
-**Raise Panel Expanded** (replaces default):
-
-```
-┌─────────────────────────────────────────┐
-│  Presets:  [33%]  [75%]  [150%]  [MAX]  │
-│                                          │
-│  ◄━━━━━━━━━━━━●━━━━━━━━━━━━━━━━━━━━━━━► │
-│          [  42  ] s    (input field)     │
-│                                          │
-│  [FOLD]    [CALL]    [RAISE 42s]        │
-│                        ↑ shows amount    │
-└─────────────────────────────────────────┘
-```
-
-**Button behaviors**:
-
-- FOLD: Always available, red/danger styling, extra padding to prevent misclicks
-- CALL/CHECK: Green, shows "Check" when no bet to call, "Call Xs" when there's a bet
-- RAISE/BET: Amber/gold, opens the raise panel, shows "Bet" pre-flop with no prior bet
-
-### 5. Cards
-
-- **Face-up cards**: White background, clear rank + suit, standard playing card look
-- **Face-down cards**: Dark back design with subtle pattern
-- **Size**: ~60×84px on mobile, scales up on larger screens
-- **Winning highlight**: Golden border/glow on cards that make the winning hand
-
-### 6. "Show Cards" Button
-
-Appears after a hand ends (when you won by opponent folding):
-
-- Small, secondary button near your cards
-- "Show Cards" - reveals your hand to opponent (optional/voluntary)
+**Anti-pattern**: Don't hide the timer or make it small. It's the central mechanic.
 
 ---
 
-## Interactions & States
+### 3. Prevent Costly Mistakes
 
-### Turn Indicator
+**The Stakes**: A misclick could cost you the entire pot (your time bank).
 
-- When it's your turn: Action bar buttons fully enabled, your seat has glowing border
-- When waiting: Action bar buttons dimmed/disabled, opponent seat highlighted
+**Implementation**:
 
-### Time Ticking
+- FOLD button is visually distinct (outlined, not filled) and has extra padding
+- Destructive actions require deliberate targeting
+- RAISE requires two taps: first to open panel, second to confirm amount
+- Call/Check are safe defaults (green, prominent)
+- No confirmation dialogs—speed matters—but layout prevents accidents
 
-- Active player's time bank counts down in real-time
-- At < 10 seconds: number turns red and pulses
-
-### All-In Showdown
-
-- When both players are all-in, both hole cards are revealed
-- Community cards deal out with delays between streets
-- Dramatic reveal moment
-
-### Result State
-
-- Winner's cards highlighted
-- "+XXs" gain shown next to winner's timer
-- Brief pause before next hand auto-starts
+**The Fold Zone**: Extra whitespace around the fold button. It should never be adjacent to Call/Raise.
 
 ---
 
-## Responsive Considerations
+### 4. Mobile-First, Touch-Optimized
 
-### Mobile (< 640px)
+**Reality**: Most players will be on phones, often one-handed.
 
-- Compact spacing, smaller cards
-- Action bar takes full width
-- Raise presets in scrollable row if needed
+**Implementation**:
 
-### Tablet/Desktop (≥ 640px)
+- Minimum touch targets: 44×44px (Apple HIG)
+- Action bar at bottom of screen (thumb-reachable)
+- Important info in the center vertical third (easy to see without adjusting grip)
+- Slider for raise amounts (more natural than +/- buttons on mobile)
+- Preset buttons (33%, 75%, 150%, MAX) for quick betting
 
-- More breathing room
-- Larger cards and text
-- Action bar can be wider with more horizontal space
-
----
-
-## Design Tokens (Figma Variables)
-
-### Spacing
-
-- `space-xs`: 4px
-- `space-sm`: 8px
-- `space-md`: 16px
-- `space-lg`: 24px
-- `space-xl`: 32px
-
-### Colors
-
-- `bg-felt`: #0D1F12 (main background)
-- `bg-surface`: #1F2937 (panels, cards backgrounds)
-- `bg-surface-dark`: #111827 (darker panels)
-- `accent-success`: #10B981 (check, call, win)
-- `accent-warning`: #F59E0B (raise, bet, pot)
-- `accent-danger`: #EF4444 (fold, critical time)
-- `accent-info`: #3B82F6 (informational)
-- `text-primary`: #FFFFFF
-- `text-secondary`: #9CA3AF
-- `border-subtle`: #374151
-
-### Typography
-
-- `font-display`: Inter/SF Pro (UI text)
-- `font-mono`: JetBrains Mono or SF Mono (numbers, timers)
+**Test**: Can you play a full hand holding your phone in one hand without repositioning?
 
 ---
 
-## Reference Mood
+### 5. Information Hierarchy
 
-- Clean like Apple's design language
-- Dark mode aesthetic similar to Discord or Spotify
-- The premium feel of a high-stakes poker app, not a casual mobile game
-- Minimal chrome, maximum focus on the cards and action
+**What matters most** (in order):
+
+1. Whose turn is it?
+2. How much time do I/they have?
+3. What are the hole cards?
+4. What's on the board?
+5. What's the pot?
+6. What are my action options?
+
+**Visual Hierarchy**:
+
+- Active player has glowing/highlighted border
+- Time banks are prominent with large, digital font
+- Cards are the visual focus (largest elements)
+- Pot is secondary (visible but not dominant)
+- Action bar is distinct from the table area
 
 ---
 
-## Framer Wireframer Prompt
+### 6. State Communication
 
-> Note: Wireframer generates website pages, not app UI systems. Use this to create a landing page or game interface mockup.
+Every game state should be immediately obvious:
 
-### Landing Page Prompt
+| State            | Visual Treatment                                    |
+| ---------------- | --------------------------------------------------- |
+| My turn          | Glowing border on my seat, action bar fully enabled |
+| Waiting          | Opponent highlighted, action bar dimmed             |
+| All-in           | Red "ALL IN" badge, cards revealed during runout    |
+| Folded           | Gray "FOLD" badge, cards removed/dimmed             |
+| Hand won         | Winner's cards highlighted golden, "+Xs" gain shown |
+| Low time (< 10s) | Timer red + pulse animation                         |
 
-```
-Create a dark, premium landing page for "Blitz Hold'em" - a heads-up poker game where you bet TIME instead of chips.
+---
 
-Hero section: Large headline "Bet Your Time. Win Their Time." with subtext explaining the concept. Show a mockup of the game interface on a phone. CTA button "Play Now" in emerald green.
+### 7. Consistent Color Language
 
-Features section: 3 cards explaining - "Time is Money" (bet seconds from your 60s bank), "Heads-Up Action" (intense 1v1 battles), "Zero to Hero" (hit zero, you lose).
+Colors have meaning. Use them consistently:
 
-How it works: Simple 3-step visual - Join a room, Play poker with time bets, Winner takes the pot in seconds.
+| Color           | Meaning           | Usage                             |
+| --------------- | ----------------- | --------------------------------- |
+| Green (#10B981) | Safe/positive     | Check, Call, winning              |
+| Amber (#F59E0B) | Betting/neutral   | Raise, Bet, pot, chips            |
+| Red (#EF4444)   | Danger/loss       | Fold, low time, losing            |
+| White           | Default           | Text, healthy time                |
+| Gray            | Disabled/inactive | Unavailable actions, folded state |
 
-Style: Dark forest green background (#0D1F12), glassmorphic cards, emerald (#10B981) and amber (#F59E0B) accents, mono font for numbers, minimal and premium feel like a fintech app.
+**Rule**: Never use green for a destructive action. Never use red for a positive outcome.
 
-Footer: Simple links and "Start Playing" CTA.
-```
+---
 
-### Game Interface Page Prompt
+### 8. Typography Rules
 
-```
-Create a poker game interface page with dark theme.
+**Fonts**:
 
-Layout (vertical, mobile-style):
-- Top bar: "Room: ABC123" with copy icon
-- Opponent area: Circle avatar with "P" letter, name "Player2", timer showing "45s" in mono font, two playing cards (face down), yellow chip showing "10s" bet
-- Center: Row of 5 playing cards (3 face-up showing hearts/spades, 2 empty slots with dashed borders), below that a pill showing "Pot: 24s" in yellow
-- Your area: Yellow chip "10s", two face-up cards (Ace of spades, King of hearts), circle avatar, name "You", timer "38s"
-- Bottom action bar: Three buttons - "FOLD" (red outline), "CALL 10s" (green filled), "RAISE" (amber outline)
+- UI text: System sans-serif (Inter, SF Pro, or system default)
+- Numbers: Monospace (for timers, pot, bets)—creates "digital clock" feel
 
-Colors: Background #0D1F12 (dark green), cards white with shadows, buttons use red (#EF4444), green (#10B981), amber (#F59E0B). All numbers in monospace font.
+**Sizing**:
 
-Feel: Premium poker app, minimal, dark mode, not a casino game.
-```
+- Time banks: Large (16-20px), bold
+- Pot: Medium (14-16px)
+- Player names: Small (12-14px)
+- Buttons: Medium (14-16px), uppercase for actions
+
+**Number Formatting**:
+
+- Always show unit: "45s" not "45"
+- Round to whole seconds in display
+- Use tabular/monospace figures so numbers don't jump around
+
+---
+
+### 9. Animation Guidelines
+
+**Do**:
+
+- Cards dealing in (subtle slide + fade)
+- Timer color transitions (smooth)
+- Button state changes (quick, 150ms)
+- Winning cards glow (pulse)
+
+**Don't**:
+
+- Screen shake
+- Confetti/particles
+- Slow, elaborate animations
+- Anything that delays gameplay
+
+**Rule**: Animations should be < 300ms. If it's not informative, cut it.
+
+---
+
+### 10. Dark Theme Rationale
+
+**Why dark**:
+
+- Reduces eye strain for extended play
+- Creates focus (bright elements pop)
+- Feels premium and modern
+- Traditional poker table aesthetic (green felt)
+
+**Background**: Deep forest green (#0D1F12)—poker table feel without being garish.
+
+**Contrast**: All text must meet WCAG AA contrast (4.5:1 minimum).
+
+---
+
+## Component Guidelines
+
+### Cards
+
+- Aspect ratio: ~5:7 (standard playing card)
+- Mobile size: 40-60px wide
+- Desktop size: 60-80px wide
+- Face-up: White background, clear rank/suit
+- Face-down: Dark, subtle pattern
+- Highlighted: Golden border/glow for winning hand
+
+### Player Seat
+
+- Avatar: Circle with initial letter (40-48px)
+- Layout: `[Avatar] [Name + Timer]` horizontal
+- Active state: Glowing ring/border
+- Badges: Positioned top-left (Dealer "D", "ALL IN", "FOLD")
+
+### Bet Chips
+
+- Style: Pill/capsule shape
+- Color: Amber/yellow
+- Format: "12s" (amount + unit)
+- Position: Between player and center (shows bet flowing to pot)
+
+### Action Bar
+
+- Position: Fixed to bottom
+- Layout: 3 buttons minimum (Fold | Call/Check | Raise)
+- Expanded: Slider + presets + amount display
+- Height: ~120px default, ~200px expanded
+
+---
+
+## Responsive Breakpoints
+
+| Breakpoint | Target  | Adjustments                           |
+| ---------- | ------- | ------------------------------------- |
+| < 640px    | Mobile  | Compact cards, full-width action bar  |
+| 640-1024px | Tablet  | Larger cards, more spacing            |
+| > 1024px   | Desktop | Maximum card size, comfortable layout |
+
+**Principle**: The game should be playable at any size. Mobile is not a degraded experience.
+
+---
+
+## Accessibility Considerations
+
+- Color is never the only indicator (use icons, text, position)
+- Touch targets ≥ 44px
+- Text contrast ≥ 4.5:1
+- Animation respects `prefers-reduced-motion`
+- Timer changes communicated through multiple channels (color + size + optional sound)
+
+---
+
+## Anti-Patterns to Avoid
+
+❌ Chip stacks with 3D perspective  
+❌ Realistic card textures/shadows  
+❌ Avatar photo uploads (keep it simple)  
+❌ Chat/social features in main UI  
+❌ Sound that can't be muted  
+❌ Landscape-only orientation  
+❌ Slow dealing animations  
+❌ Modal dialogs during gameplay  
+❌ Hidden or collapsed critical info  
+❌ Multiple font weights/sizes without purpose
+
+---
+
+## Reference Products
+
+**Learn from**:
+
+- Robinhood (financial UI, clean data display)
+- Duolingo (gamification without clutter)
+- Chess.com mobile (competitive game, clean UI)
+- Apple Calculator (digital display aesthetic)
+
+**Avoid**:
+
+- Zynga Poker (cluttered, casino aesthetic)
+- Most casino apps (visual noise, dark patterns)
+
+---
+
+## Success Metrics
+
+The UI is successful if:
+
+1. New players understand the game in < 30 seconds
+2. Players can complete actions in < 2 seconds
+3. Misclicks (especially fold) are rare (< 1%)
+4. Players report the game "feels fast"
+5. Mobile and desktop feel equally good

@@ -28,8 +28,10 @@ export default function HomePage() {
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-8">
       <h1 className="text-5xl font-bold text-white mb-4">⚡ Blitz Hold'em</h1>
-      <p className="text-gray-400 mb-8 text-center max-w-md">
-        Heads-up no-limit Texas Hold'em where you bet with your time. Every second counts!
+      <p className="text-gray-400 mb-8 text-center max-w-lg text-lg">
+        Fast-paced heads-up poker where{' '}
+        <span className="text-white font-medium">time is your bankroll</span>. No chips, no
+        buy-ins—just pure 1v1 action.
       </p>
 
       <div className="bg-gray-800 rounded-xl p-8 w-full max-w-md space-y-6">
@@ -63,26 +65,30 @@ export default function HomePage() {
           )}
         </button>
 
-        <div className="text-center text-gray-500 text-sm">
-          Share the link with a friend to play
-        </div>
+        <div className="text-center text-gray-500 text-sm">Then just send the link to a friend</div>
       </div>
 
       <div className="mt-12 grid grid-cols-1 md:grid-cols-3 gap-6 max-w-3xl text-center">
         <div className="bg-gray-800/50 rounded-lg p-6">
           <div className="text-3xl mb-2">⏱️</div>
           <h3 className="font-semibold text-white mb-1">Time is Currency</h3>
-          <p className="text-sm text-gray-400">Bet seconds from your time bank instead of chips</p>
+          <p className="text-sm text-gray-400">
+            Bet seconds instead of chips. Run out of time and you're out.
+          </p>
         </div>
         <div className="bg-gray-800/50 rounded-lg p-6">
-          <div className="text-3xl mb-2">⚡</div>
-          <h3 className="font-semibold text-white mb-1">Every Second Counts</h3>
-          <p className="text-sm text-gray-400">Your time drains while you think</p>
+          <div className="text-3xl mb-2">🎯</div>
+          <h3 className="font-semibold text-white mb-1">Heads-Up Action</h3>
+          <p className="text-sm text-gray-400">
+            1v1 poker—every hand you play. No waiting, no folding around.
+          </p>
         </div>
         <div className="bg-gray-800/50 rounded-lg p-6">
-          <div className="text-3xl mb-2">🏆</div>
-          <h3 className="font-semibold text-white mb-1">Win the Pot</h3>
-          <p className="text-sm text-gray-400">Winner gets the pot added to their time bank</p>
+          <div className="text-3xl mb-2">🔗</div>
+          <h3 className="font-semibold text-white mb-1">Just Send a Link</h3>
+          <p className="text-sm text-gray-400">
+            No accounts, no downloads. Create a table and share the URL.
+          </p>
         </div>
       </div>
     </div>
