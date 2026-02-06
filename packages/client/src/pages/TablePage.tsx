@@ -32,7 +32,13 @@ export default function TablePage() {
       <div className="flex flex-col items-center justify-center min-h-screen p-8">
         <div className="bg-red-900/50 border border-red-500 rounded-lg p-6 max-w-md text-center">
           <h2 className="text-xl font-bold text-red-400 mb-2">Connection Error</h2>
-          <p className="text-gray-300">{error}</p>
+          <p className="text-gray-300 mb-4">{error}</p>
+          <button
+            onClick={() => navigate('/')}
+            className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors"
+          >
+            ← Back to Home
+          </button>
         </div>
       </div>
     );

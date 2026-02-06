@@ -30,14 +30,14 @@
 - [ ] End-to-end testing with real users (2-player full game)
 - [x] Error handling for edge cases (network drops mid-hand, etc.)
 
-### Important (Should Fix)
+### Important (Should Fix or implement)
 
 - [ ] Add loading states for network operations
 - [ ] Add error messages for failed actions
 - [ ] Mobile testing on real devices (iOS Safari, Android Chrome)
 - [ ] Handle browser back button gracefully
 - [ ] Rematch button
-- [ ] Victory counter / session stats
+- [ ] Victory counter (for each game not hand)
 - [ ] Basic ledger for hand history sharing
 
 ### Nice to Have (Post-Launch)

@@ -8,19 +8,25 @@ const API_BASE = import.meta.env.VITE_API_URL || '';
 
 export default function HomePage() {
   const [isCreating, setIsCreating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [alias, setAlias] = useState('');
   const navigate = useNavigate();
 
   const createTable = async () => {
     setIsCreating(true);
+    setError(null);
     try {
       const res = await fetch(`${API_BASE}/api/rooms`, { method: 'POST' });
+      if (!res.ok) {
+        throw new Error('Server error');
+      }
       const data = await res.json();
       // Store alias in session
       sessionStorage.setItem('playerAlias', alias || 'Player');
       navigate(`/table/${data.roomId}`);
     } catch (err) {
       console.error('Failed to create room:', err);
+      setError('Failed to create table. Please try again.');
       setIsCreating(false);
     }
   };
@@ -64,6 +70,12 @@ export default function HomePage() {
             <>🎮 Create Table</>
           )}
         </button>
+
+        {error && (
+          <div className="text-red-400 text-sm text-center bg-red-900/30 border border-red-800 rounded-lg py-2 px-3">
+            {error}
+          </div>
+        )}
 
         <div className="text-center text-gray-500 text-sm">Then just send the link to a friend</div>
       </div>
