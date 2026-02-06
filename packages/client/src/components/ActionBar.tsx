@@ -72,12 +72,18 @@ export default function ActionBar({ send }: ActionBarProps) {
   }, [isYourTurn]);
 
   // Auto all-in: immediately send all-in action when it becomes our turn
+  // If opponent is already all-in, we call instead
   useEffect(() => {
     if (autoAllIn && isYourTurn && validActions.length > 0 && !autoAllInSentRef.current) {
       autoAllInSentRef.current = true;
       // Small delay to ensure the action is processed
       const timer = setTimeout(() => {
-        send({ type: 'ACTION', action: 'all-in' });
+        // If all-in is available, use it; otherwise call (opponent already all-in)
+        if (validActions.includes('all-in')) {
+          send({ type: 'ACTION', action: 'all-in' });
+        } else if (validActions.includes('call')) {
+          send({ type: 'ACTION', action: 'call' });
+        }
       }, 50);
       return () => clearTimeout(timer);
     }
