@@ -36,14 +36,15 @@
 - [ ] Add error messages for failed actions
 - [ ] Mobile testing on real devices (iOS Safari, Android Chrome)
 - [ ] Handle browser back button gracefully
+- [ ] Rematch button
+- [ ] Victory counter / session stats
+- [ ] Basic ledger for hand history sharing
 
 ### Nice to Have (Post-Launch)
 
 - [ ] Add sound effects (optional, mutable)
 - [ ] Add hand history display
 - [ ] Add equity calculation during all-in runout
-- [ ] Victory counter / session stats
-- [ ] Basic ledger for hand history sharing
 - [ ] Landing page / how-to-play guide
 
 ---
