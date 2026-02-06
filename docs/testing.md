@@ -302,6 +302,7 @@ e2e/
 **Client Components with data-testid:**
 
 Added `data-testid` attributes to all components for reliable E2E selectors:
+
 - `Table.tsx`: poker-table, community-cards, pot, copy-link-button, settings-button, start-game-button, show-cards-button
 - `Card.tsx`: card (with data-card-rank, data-card-suit, data-card-hidden)
 - `Seat.tsx`: seat-top/bottom, hole-cards, player-info, ready-button (with data-seat-active, data-seat-folded)
