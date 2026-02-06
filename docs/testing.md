@@ -258,6 +258,7 @@ pnpm --filter @blitz-holdem/server test:integration
 ```
 
 **Key Features Tested:**
+
 - Configurable delays (`runoutDelayMs`, `nextHandDelayMs`) for fast test execution
 - Auto-action for disconnected players (check if possible, otherwise fold)
 - Seat cleanup after grace period expires

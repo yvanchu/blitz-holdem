@@ -6,7 +6,12 @@
 
 import { WebSocket } from 'ws';
 import type { Server } from 'http';
-import type { S2CMessage, C2SMessage, S2C_RoomState, S2C_ActionConfirm } from '@blitz-holdem/common';
+import type {
+  S2CMessage,
+  C2SMessage,
+  S2C_RoomState,
+  S2C_ActionConfirm,
+} from '@blitz-holdem/common';
 
 export interface TestClient {
   ws: WebSocket;
