@@ -42,7 +42,17 @@ function getPositionLabel(seatIndex: 0 | 1, dealerSeat: number): string {
 
 // Format a hand for human-readable display
 export function formatHandHistory(hand: CompletedHand): string {
-  const { ohhData, heroSeatIndex, heroHoleCards, opponentHoleCards, communityCards, winnerHandRank, potAwarded, isSplit, splitWinners } = hand;
+  const {
+    ohhData,
+    heroSeatIndex,
+    heroHoleCards,
+    opponentHoleCards,
+    communityCards,
+    winnerHandRank,
+    potAwarded,
+    isSplit,
+    splitWinners,
+  } = hand;
   const ohh = ohhData.ohh;
 
   const lines: string[] = [];
@@ -50,16 +60,18 @@ export function formatHandHistory(hand: CompletedHand): string {
   // Header
   lines.push('═══════════════════════════════════════════════════');
   lines.push(`BLITZ HOLD'EM HAND #${hand.handNumber}`);
-  
+
   const date = new Date(hand.timestamp);
-  const dateStr = date.toLocaleDateString('en-US', { 
-    month: 'short', 
-    day: 'numeric', 
+  const dateStr = date.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
     year: 'numeric',
     hour: 'numeric',
-    minute: '2-digit'
+    minute: '2-digit',
   });
-  lines.push(`Room: ${ohh.table_name} | Blinds: ${ohh.small_blind_amount}/${ohh.big_blind_amount} sec | ${dateStr}`);
+  lines.push(
+    `Room: ${ohh.table_name} | Blinds: ${ohh.small_blind_amount}/${ohh.big_blind_amount} sec | ${dateStr}`
+  );
   lines.push('═══════════════════════════════════════════════════');
   lines.push('');
 
@@ -67,7 +79,7 @@ export function formatHandHistory(hand: CompletedHand): string {
   lines.push('PLAYERS:');
   for (const player of ohh.players) {
     const isHero = player.seat - 1 === heroSeatIndex;
-    const position = getPositionLabel(player.seat - 1 as 0 | 1, ohh.dealer_seat - 1);
+    const position = getPositionLabel((player.seat - 1) as 0 | 1, ohh.dealer_seat - 1);
     const name = isHero ? `${player.name} (Hero)` : player.name;
     lines.push(`  Seat ${player.seat}: ${name} (${position}) - ${player.starting_stack} sec`);
   }
@@ -81,7 +93,7 @@ export function formatHandHistory(hand: CompletedHand): string {
 
   // Process rounds
   let cumulativeBoard: Card[] = [];
-  
+
   for (const round of ohh.rounds) {
     // Street header
     if (round.street === 'Preflop') {
@@ -95,13 +107,13 @@ export function formatHandHistory(hand: CompletedHand): string {
       } else if (round.street === 'River' && communityCards.length >= 5) {
         cumulativeBoard = communityCards.slice(0, 5);
       }
-      
+
       lines.push(`── ${round.street.toUpperCase()} ── [${formatCards(cumulativeBoard)}]`);
     }
 
     // Actions
     for (const action of round.actions) {
-      const player = ohh.players.find(p => p.id === action.player_id);
+      const player = ohh.players.find((p) => p.id === action.player_id);
       if (!player) continue;
 
       const isHero = player.seat - 1 === heroSeatIndex;
@@ -128,8 +140,8 @@ export function formatHandHistory(hand: CompletedHand): string {
           actionStr = `bets ${action.amount} sec`;
           break;
         case 'Raise':
-          actionStr = action.is_allin 
-            ? `raises to ${action.amount} sec (all-in)` 
+          actionStr = action.is_allin
+            ? `raises to ${action.amount} sec (all-in)`
             : `raises to ${action.amount} sec`;
           break;
         default:
@@ -143,13 +155,13 @@ export function formatHandHistory(hand: CompletedHand): string {
 
   // Result
   lines.push('── RESULT ──');
-  
+
   const pot = ohh.pots[0];
   const totalPot = pot?.amount || potAwarded;
 
   // Show opponent's cards if they were revealed
   if (opponentHoleCards) {
-    const opponentPlayer = ohh.players.find(p => p.seat - 1 !== heroSeatIndex);
+    const opponentPlayer = ohh.players.find((p) => p.seat - 1 !== heroSeatIndex);
     if (opponentPlayer) {
       lines.push(`  ${opponentPlayer.name} shows ${formatHoleCards(opponentHoleCards)}`);
     }
@@ -160,23 +172,22 @@ export function formatHandHistory(hand: CompletedHand): string {
     // Strip "(split)" from hand rank if present for cleaner display
     const cleanHandRank = winnerHandRank?.replace(' (split)', '') || '';
     lines.push(`  Split pot! Both players have ${cleanHandRank}`);
-    
+
     // Use the OHH pot data for player names since it has the correct player IDs
     const potWinners = pot?.player_wins || [];
     for (const potWinner of potWinners) {
-      const winnerPlayer = ohh.players.find(p => p.id === potWinner.player_id);
+      const winnerPlayer = ohh.players.find((p) => p.id === potWinner.player_id);
       const isHero = winnerPlayer ? winnerPlayer.seat - 1 === heroSeatIndex : false;
-      const name = isHero ? 'Hero' : (winnerPlayer?.name || 'Unknown');
+      const name = isHero ? 'Hero' : winnerPlayer?.name || 'Unknown';
       lines.push(`    ${name} wins ${potWinner.win_amount} sec`);
     }
   } else {
     const winnerPlayerId = pot?.player_wins?.[0]?.player_id;
-    const winnerPlayer = winnerPlayerId !== undefined
-      ? ohh.players.find(p => p.id === winnerPlayerId)
-      : undefined;
-    
+    const winnerPlayer =
+      winnerPlayerId !== undefined ? ohh.players.find((p) => p.id === winnerPlayerId) : undefined;
+
     const winnerIsHero = winnerPlayer ? winnerPlayer.seat - 1 === heroSeatIndex : false;
-    const winnerName = winnerIsHero ? 'Hero' : (winnerPlayer?.name || 'Unknown');
+    const winnerName = winnerIsHero ? 'Hero' : winnerPlayer?.name || 'Unknown';
 
     if (winnerHandRank) {
       lines.push(`  ${winnerName} wins ${potAwarded} sec with ${winnerHandRank}`);
@@ -184,7 +195,7 @@ export function formatHandHistory(hand: CompletedHand): string {
       lines.push(`  ${winnerName} wins ${potAwarded} sec`);
     }
   }
-  
+
   lines.push(`  Pot: ${totalPot} sec`);
   lines.push('');
   lines.push('═══════════════════════════════════════════════════');
@@ -201,7 +212,17 @@ export interface FormattedLine {
 }
 
 export function formatHandHistoryStructured(hand: CompletedHand): FormattedLine[] {
-  const { ohhData, heroSeatIndex, heroHoleCards, opponentHoleCards, communityCards, winnerHandRank, potAwarded, isSplit, splitWinners } = hand;
+  const {
+    ohhData,
+    heroSeatIndex,
+    heroHoleCards,
+    opponentHoleCards,
+    communityCards,
+    winnerHandRank,
+    potAwarded,
+    isSplit,
+    splitWinners,
+  } = hand;
   const ohh = ohhData.ohh;
 
   const lines: FormattedLine[] = [];
@@ -209,16 +230,19 @@ export function formatHandHistoryStructured(hand: CompletedHand): FormattedLine[
   // Header
   lines.push({ type: 'divider', text: '═══════════════════════════════════════════════════' });
   lines.push({ type: 'header', text: `BLITZ HOLD'EM HAND #${hand.handNumber}` });
-  
+
   const date = new Date(hand.timestamp);
-  const dateStr = date.toLocaleDateString('en-US', { 
-    month: 'short', 
-    day: 'numeric', 
+  const dateStr = date.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
     year: 'numeric',
     hour: 'numeric',
-    minute: '2-digit'
+    minute: '2-digit',
   });
-  lines.push({ type: 'subheader', text: `Room: ${ohh.table_name} | Blinds: ${ohh.small_blind_amount}/${ohh.big_blind_amount} sec | ${dateStr}` });
+  lines.push({
+    type: 'subheader',
+    text: `Room: ${ohh.table_name} | Blinds: ${ohh.small_blind_amount}/${ohh.big_blind_amount} sec | ${dateStr}`,
+  });
   lines.push({ type: 'divider', text: '═══════════════════════════════════════════════════' });
   lines.push({ type: 'empty', text: '' });
 
@@ -226,12 +250,12 @@ export function formatHandHistoryStructured(hand: CompletedHand): FormattedLine[
   lines.push({ type: 'section', text: 'PLAYERS:' });
   for (const player of ohh.players) {
     const isHero = player.seat - 1 === heroSeatIndex;
-    const position = getPositionLabel(player.seat - 1 as 0 | 1, ohh.dealer_seat - 1);
+    const position = getPositionLabel((player.seat - 1) as 0 | 1, ohh.dealer_seat - 1);
     const name = isHero ? `${player.name} (Hero)` : player.name;
-    lines.push({ 
-      type: 'action', 
+    lines.push({
+      type: 'action',
       text: `Seat ${player.seat}: ${name} (${position}) - ${player.starting_stack} sec`,
-      highlight: isHero 
+      highlight: isHero,
     });
   }
   lines.push({ type: 'empty', text: '' });
@@ -244,7 +268,7 @@ export function formatHandHistoryStructured(hand: CompletedHand): FormattedLine[
 
   // Process rounds
   let cumulativeBoard: Card[] = [];
-  
+
   for (const round of ohh.rounds) {
     if (round.street === 'Preflop') {
       lines.push({ type: 'section', text: '── PREFLOP ──' });
@@ -256,12 +280,16 @@ export function formatHandHistoryStructured(hand: CompletedHand): FormattedLine[
       } else if (round.street === 'River' && communityCards.length >= 5) {
         cumulativeBoard = communityCards.slice(0, 5);
       }
-      
-      lines.push({ type: 'section', text: `── ${round.street.toUpperCase()} ──`, cards: cumulativeBoard });
+
+      lines.push({
+        type: 'section',
+        text: `── ${round.street.toUpperCase()} ──`,
+        cards: cumulativeBoard,
+      });
     }
 
     for (const action of round.actions) {
-      const player = ohh.players.find(p => p.id === action.player_id);
+      const player = ohh.players.find((p) => p.id === action.player_id);
       if (!player) continue;
 
       const isHero = player.seat - 1 === heroSeatIndex;
@@ -288,8 +316,8 @@ export function formatHandHistoryStructured(hand: CompletedHand): FormattedLine[
           actionStr = `bets ${action.amount} sec`;
           break;
         case 'Raise':
-          actionStr = action.is_allin 
-            ? `raises to ${action.amount} sec (all-in)` 
+          actionStr = action.is_allin
+            ? `raises to ${action.amount} sec (all-in)`
             : `raises to ${action.amount} sec`;
           break;
         default:
@@ -303,17 +331,17 @@ export function formatHandHistoryStructured(hand: CompletedHand): FormattedLine[
 
   // Result
   lines.push({ type: 'section', text: '── RESULT ──' });
-  
+
   const pot2 = ohh.pots[0];
   const totalPot2 = pot2?.amount || potAwarded;
 
   if (opponentHoleCards) {
-    const opponentPlayer = ohh.players.find(p => p.seat - 1 !== heroSeatIndex);
+    const opponentPlayer = ohh.players.find((p) => p.seat - 1 !== heroSeatIndex);
     if (opponentPlayer) {
-      lines.push({ 
-        type: 'result', 
-        text: `${opponentPlayer.name} shows`, 
-        cards: opponentHoleCards 
+      lines.push({
+        type: 'result',
+        text: `${opponentPlayer.name} shows`,
+        cards: opponentHoleCards,
       });
     }
   }
@@ -322,31 +350,42 @@ export function formatHandHistoryStructured(hand: CompletedHand): FormattedLine[
   if (isSplit && splitWinners && splitWinners.length > 1) {
     const cleanHandRank = winnerHandRank?.replace(' (split)', '') || '';
     lines.push({ type: 'result', text: `Split pot! Both players have ${cleanHandRank}` });
-    
+
     // Use the OHH pot data for player names since it has the correct player IDs
     const potWinners = pot2?.player_wins || [];
     for (const potWinner of potWinners) {
-      const winnerPlayer = ohh.players.find(p => p.id === potWinner.player_id);
+      const winnerPlayer = ohh.players.find((p) => p.id === potWinner.player_id);
       const isHero = winnerPlayer ? winnerPlayer.seat - 1 === heroSeatIndex : false;
-      const name = isHero ? 'Hero' : (winnerPlayer?.name || 'Unknown');
-      lines.push({ type: 'result', text: `  ${name} wins ${potWinner.win_amount} sec`, highlight: isHero });
+      const name = isHero ? 'Hero' : winnerPlayer?.name || 'Unknown';
+      lines.push({
+        type: 'result',
+        text: `  ${name} wins ${potWinner.win_amount} sec`,
+        highlight: isHero,
+      });
     }
   } else {
     const winnerPlayerId2 = pot2?.player_wins?.[0]?.player_id;
-    const winnerPlayer2 = winnerPlayerId2 !== undefined
-      ? ohh.players.find(p => p.id === winnerPlayerId2)
-      : undefined;
-    
+    const winnerPlayer2 =
+      winnerPlayerId2 !== undefined ? ohh.players.find((p) => p.id === winnerPlayerId2) : undefined;
+
     const winnerIsHero2 = winnerPlayer2 ? winnerPlayer2.seat - 1 === heroSeatIndex : false;
-    const winnerName2 = winnerIsHero2 ? 'Hero' : (winnerPlayer2?.name || 'Unknown');
+    const winnerName2 = winnerIsHero2 ? 'Hero' : winnerPlayer2?.name || 'Unknown';
 
     if (winnerHandRank) {
-      lines.push({ type: 'result', text: `${winnerName2} wins ${potAwarded} sec with ${winnerHandRank}`, highlight: winnerIsHero2 });
+      lines.push({
+        type: 'result',
+        text: `${winnerName2} wins ${potAwarded} sec with ${winnerHandRank}`,
+        highlight: winnerIsHero2,
+      });
     } else {
-      lines.push({ type: 'result', text: `${winnerName2} wins ${potAwarded} sec`, highlight: winnerIsHero2 });
+      lines.push({
+        type: 'result',
+        text: `${winnerName2} wins ${potAwarded} sec`,
+        highlight: winnerIsHero2,
+      });
     }
   }
-  
+
   lines.push({ type: 'result', text: `Pot: ${totalPot2} sec` });
   lines.push({ type: 'empty', text: '' });
   lines.push({ type: 'divider', text: '═══════════════════════════════════════════════════' });

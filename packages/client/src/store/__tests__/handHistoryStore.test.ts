@@ -237,10 +237,10 @@ describe('handHistoryStore', () => {
       useHandHistoryStore.getState().recordStreet('flop', flopCards);
       useHandHistoryStore.getState().recordStreet('flop', flopCards);
       useHandHistoryStore.getState().recordStreet('flop', flopCards);
-      
+
       const { currentStreetId, currentHand } = useHandHistoryStore.getState();
       expect(currentStreetId).toBe(2); // Should only be 2 (preflop=1, flop=2)
-      
+
       // Check OHH data has only 2 rounds (preflop + flop)
       const ohhData = currentHand?.toJSON();
       expect(ohhData?.ohh.rounds.length).toBe(2);
@@ -654,7 +654,7 @@ describe('handHistoryStore', () => {
         // Expected in non-DOM environment - the error happens at document.createElement
         // which means all the data processing logic works correctly
       }
-      
+
       // Verify hands still exist (export doesn't clear them)
       expect(useHandHistoryStore.getState().completedHands.length).toBe(1);
     });

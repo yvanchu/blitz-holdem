@@ -1,6 +1,11 @@
 import { useState } from 'react';
 import { useHandHistoryStore } from '../store/handHistoryStore';
-import { formatHandHistoryStructured, formatHandHistory, formatCard, SUIT_COLORS } from '../utils/handHistoryFormatter';
+import {
+  formatHandHistoryStructured,
+  formatHandHistory,
+  formatCard,
+  SUIT_COLORS,
+} from '../utils/handHistoryFormatter';
 import type { Card } from '@blitz-holdem/common';
 
 const SITE_URL = 'https://blitz-holdem-client-production.up.railway.app';
@@ -47,7 +52,7 @@ export function HandHistoryModal() {
 
   const handleShareHand = async () => {
     if (!currentHand) return;
-    
+
     const handText = formatHandHistory(currentHand);
     const shareText = `${handText}
 
@@ -75,7 +80,12 @@ export function HandHistoryModal() {
             aria-label="Close"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </button>
         </div>
@@ -90,14 +100,19 @@ export function HandHistoryModal() {
               aria-label="Previous hand"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15 19l-7-7 7-7"
+                />
               </svg>
             </button>
-            
+
             <span className="text-zinc-300 font-medium">
               Hand {viewingIndex + 1} of {totalHands}
             </span>
-            
+
             <button
               onClick={navigateNext}
               disabled={viewingIndex >= totalHands - 1}
@@ -105,7 +120,12 @@ export function HandHistoryModal() {
               aria-label="Next hand"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 5l7 7-7 7"
+                />
               </svg>
             </button>
           </div>
@@ -117,7 +137,9 @@ export function HandHistoryModal() {
             <div className="text-center text-zinc-500 py-8">
               <p className="text-4xl mb-4">📜</p>
               <p>No hands played yet.</p>
-              <p className="text-xs mt-2">Hand history will appear here after each completed hand.</p>
+              <p className="text-xs mt-2">
+                Hand history will appear here after each completed hand.
+              </p>
             </div>
           ) : (
             <div className="space-y-0.5">
@@ -143,15 +165,18 @@ export function HandHistoryModal() {
                     );
                   case 'section':
                     return (
-                      <div key={i} className="text-yellow-500 font-semibold mt-2 flex items-center flex-wrap">
+                      <div
+                        key={i}
+                        className="text-yellow-500 font-semibold mt-2 flex items-center flex-wrap"
+                      >
                         {line.text}
                         {line.cards && <CardsDisplay cards={line.cards} />}
                       </div>
                     );
                   case 'action':
                     return (
-                      <div 
-                        key={i} 
+                      <div
+                        key={i}
                         className={`pl-4 ${line.highlight ? 'text-cyan-300' : 'text-zinc-300'}`}
                       >
                         {line.text}
@@ -159,8 +184,8 @@ export function HandHistoryModal() {
                     );
                   case 'result':
                     return (
-                      <div 
-                        key={i} 
+                      <div
+                        key={i}
                         className={`pl-4 flex items-center flex-wrap ${line.highlight ? 'text-green-400 font-semibold' : 'text-zinc-300'}`}
                       >
                         {line.text}
@@ -192,14 +217,24 @@ export function HandHistoryModal() {
             {copied ? (
               <>
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M5 13l4 4L19 7"
+                  />
                 </svg>
                 Copied!
               </>
             ) : (
               <>
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"
+                  />
                 </svg>
                 Share This Hand
               </>
@@ -213,7 +248,12 @@ export function HandHistoryModal() {
             className="w-full py-2.5 bg-zinc-700 hover:bg-zinc-600 disabled:bg-zinc-800 disabled:text-zinc-600 disabled:cursor-not-allowed text-white rounded-lg font-medium transition-colors flex items-center justify-center gap-2"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+              />
             </svg>
             Export All Hands (JSON)
           </button>

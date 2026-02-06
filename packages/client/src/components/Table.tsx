@@ -100,7 +100,6 @@ export default function Table({ send }: TableProps) {
                   ? 'You Win!'
                   : `${opponentPlayer?.alias || 'Opponent'} Wins!`}
               </p>
-
             </div>
 
             {/* Session score */}
@@ -147,7 +146,6 @@ export default function Table({ send }: TableProps) {
                 )}
               </div>
             )}
-
           </div>
         ) : isInLobby ? (
           /* Lobby controls */

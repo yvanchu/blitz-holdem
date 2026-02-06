@@ -403,8 +403,8 @@ describe('handHistoryFormatter', () => {
           ohh: {
             spec_version: '1.4.6',
             internal_version: '1.4.6',
-            network_name: 'Blitz Hold\'em',
-            site_name: 'Blitz Hold\'em',
+            network_name: "Blitz Hold'em",
+            site_name: "Blitz Hold'em",
             game_type: 'Holdem',
             table_name: 'test-room',
             table_size: 2,

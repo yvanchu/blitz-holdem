@@ -180,10 +180,316 @@ jobs:
 - **Hand evaluation:** 100%
 - **Deck operations:** 100%
 
-## Future Test Additions
+## Test Coverage Roadmap
 
-- [ ] WebSocket message protocol tests
-- [ ] Integration tests with mock WebSocket
-- [ ] End-to-end tests with Playwright
-- [ ] Performance tests for hand evaluation
-- [ ] Stress tests for concurrent games
+This section outlines the plan for achieving comprehensive test coverage for a production-ready MVP.
+
+### Current Coverage (✅ Complete)
+
+| Layer                         | Tests                                | Status |
+| ----------------------------- | ------------------------------------ | ------ |
+| Unit: Game Engine             | `engine.test.ts`                     | ✅     |
+| Unit: Deck & Evaluation       | `deck-evaluate.test.ts`              | ✅     |
+| Unit: Timer                   | `timer.test.ts`                      | ✅     |
+| Unit: Hand History Store      | `handHistoryStore.test.ts`           | ✅     |
+| Unit: Hand History Formatter  | `handHistoryFormatter.test.ts`       | ✅     |
+| Server Controller (mocked WS) | `lobby.test.ts`, `showCards.test.ts` | ✅     |
+
+### Phase 1: WebSocket Integration Tests (Priority: High)
+
+**Goal:** Test real WebSocket connections between server and simulated clients.
+
+**Location:** `packages/server/src/__tests__/integration/`
+
+**Tests to Add:**
+
+```
+integration/
+├── websocket.integration.test.ts   # Raw WS connection tests
+├── gameFlow.integration.test.ts    # Full hand lifecycle
+├── reconnection.integration.test.ts # Disconnect/reconnect scenarios
+└── protocol.integration.test.ts    # Message protocol validation
+```
+
+| Test File                          | Test Cases                                       | Bug Prevented                      |
+| ---------------------------------- | ------------------------------------------------ | ---------------------------------- |
+| `websocket.integration.test.ts`    | Connection handshake, auth, room join            | Connection failures in production  |
+| `gameFlow.integration.test.ts`     | Create room → Join → Play 3+ hands → Game end    | State desync between server/client |
+| `reconnection.integration.test.ts` | Mid-hand disconnect, grace period, state restore | Lost game state on reconnect       |
+| `protocol.integration.test.ts`     | All message types validated against schema       | Malformed messages crash server    |
+
+**Implementation Approach:**
+
+```typescript
+// Example: websocket.integration.test.ts
+import { WebSocket } from 'ws';
+import { createServer } from '../index';
+
+describe('WebSocket Integration', () => {
+  let server: ReturnType<typeof createServer>;
+  let ws1: WebSocket;
+  let ws2: WebSocket;
+
+  beforeAll(async () => {
+    server = createServer();
+    await server.listen(0); // Random port
+  });
+
+  afterAll(() => server.close());
+
+  it('should complete full JOIN_TABLE flow', async () => {
+    ws1 = new WebSocket(`ws://localhost:${server.port}`);
+    await waitForOpen(ws1);
+
+    ws1.send(JSON.stringify({ type: 'CREATE_TABLE', alias: 'Player1' }));
+    const response = await waitForMessage(ws1, 'TABLE_JOINED');
+
+    expect(response.roomId).toBeDefined();
+    expect(response.seatIndex).toBe(0);
+  });
+});
+```
+
+**Commands to Run:**
+
+```bash
+pnpm --filter @blitz-holdem/server test:integration
+```
+
+---
+
+### Phase 2: E2E Browser Tests with Playwright (Priority: High)
+
+**Goal:** Test complete user flows in real browsers.
+
+**Location:** `packages/e2e/` (new package)
+
+**Setup:**
+
+```bash
+pnpm create playwright@latest packages/e2e
+```
+
+**Tests to Add:**
+
+```
+e2e/
+├── playwright.config.ts
+├── fixtures/
+│   └── game.fixture.ts          # Reusable game setup
+└── tests/
+    ├── createAndJoin.spec.ts    # Room creation & joining
+    ├── playHand.spec.ts         # Complete hand from deal to showdown
+    ├── allIn.spec.ts            # All-in scenarios
+    ├── fold.spec.ts             # Fold and show cards
+    ├── settings.spec.ts         # Settings modal
+    ├── timerDrain.spec.ts       # Time bank countdown accuracy
+    └── reconnect.spec.ts        # Browser refresh mid-hand
+```
+
+| Test File               | User Flow                                                  | Bug Prevented                  |
+| ----------------------- | ---------------------------------------------------------- | ------------------------------ |
+| `createAndJoin.spec.ts` | Create room, copy link, open in 2nd tab, join              | Broken room links              |
+| `playHand.spec.ts`      | Deal, bet, call, flop, check, turn, raise, river, showdown | UI not reflecting game state   |
+| `allIn.spec.ts`         | All-in, call, see runout cards dealt                       | Missing cards on all-in runout |
+| `fold.spec.ts`          | Fold, click "Show Cards", verify opponent sees             | Show cards feature broken      |
+| `timerDrain.spec.ts`    | Verify timer decrements ~1s/s on active turn               | Timer not draining correctly   |
+| `reconnect.spec.ts`     | Mid-hand refresh, verify state restored                    | Lost state on page refresh     |
+
+**Implementation Approach:**
+
+```typescript
+// Example: playHand.spec.ts
+import { test, expect } from '@playwright/test';
+import { GameFixture } from '../fixtures/game.fixture';
+
+test.describe('Play a complete hand', () => {
+  let game: GameFixture;
+
+  test.beforeEach(async ({ browser }) => {
+    game = new GameFixture(browser);
+    await game.createAndJoinRoom();
+    await game.startGame();
+  });
+
+  test('should complete a hand with betting on all streets', async () => {
+    // Preflop
+    await game.player1.waitForTurn();
+    await game.player1.call();
+    await game.player2.check();
+
+    // Flop
+    await expect(game.player1.communityCards).toHaveCount(3);
+    await game.player1.bet(5);
+    await game.player2.call();
+
+    // Turn
+    await expect(game.player1.communityCards).toHaveCount(4);
+    await game.player1.check();
+    await game.player2.check();
+
+    // River
+    await expect(game.player1.communityCards).toHaveCount(5);
+    await game.player1.check();
+    await game.player2.check();
+
+    // Showdown
+    await expect(game.player1.resultOverlay).toBeVisible();
+  });
+});
+```
+
+**Commands to Run:**
+
+```bash
+pnpm --filter e2e test           # Run all E2E tests
+pnpm --filter e2e test:headed    # Run with browser visible
+pnpm --filter e2e test:debug     # Debug mode with Playwright inspector
+```
+
+---
+
+### Phase 3: Client Component Tests (Priority: Medium)
+
+**Goal:** Test React components in isolation with React Testing Library.
+
+**Location:** `packages/client/src/components/__tests__/`
+
+**Tests to Add:**
+
+| Component       | Test File                | Key Tests                                     |
+| --------------- | ------------------------ | --------------------------------------------- |
+| `ActionBar`     | `ActionBar.test.tsx`     | Button states, bet slider, keyboard shortcuts |
+| `Timer`         | `Timer.test.tsx`         | Countdown display, active/inactive states     |
+| `Table`         | `Table.test.tsx`         | Card rendering, pot display                   |
+| `Seat`          | `Seat.test.tsx`          | Player info, dealer button, fold state        |
+| `Card`          | `Card.test.tsx`          | Face up/down, suit colors                     |
+| `SettingsModal` | `SettingsModal.test.tsx` | Input validation, save/cancel                 |
+
+**Implementation Approach:**
+
+```typescript
+// Example: ActionBar.test.tsx
+import { render, screen, fireEvent } from '@testing-library/react';
+import { ActionBar } from '../ActionBar';
+
+describe('ActionBar', () => {
+  it('should disable Bet button when insufficient time bank', () => {
+    render(<ActionBar timeBank={1} minBet={5} />);
+    expect(screen.getByRole('button', { name: /bet/i })).toBeDisabled();
+  });
+
+  it('should call onAction with correct bet amount', () => {
+    const onAction = vi.fn();
+    render(<ActionBar timeBank={100} minBet={2} onAction={onAction} />);
+
+    fireEvent.change(screen.getByRole('slider'), { target: { value: '10' } });
+    fireEvent.click(screen.getByRole('button', { name: /bet/i }));
+
+    expect(onAction).toHaveBeenCalledWith({ type: 'bet', amount: 10 });
+  });
+});
+```
+
+---
+
+### Phase 4: Protocol & Contract Tests (Priority: Medium)
+
+**Goal:** Ensure client and server agree on message formats.
+
+**Location:** `packages/common/src/__tests__/protocol.test.ts`
+
+**Tests to Add:**
+
+| Test                    | Purpose                                              |
+| ----------------------- | ---------------------------------------------------- |
+| Schema validation       | All message types match TypeScript definitions       |
+| Backwards compatibility | Old clients handle new optional fields               |
+| Error responses         | Server sends proper error messages for invalid input |
+
+---
+
+### Phase 5: Performance & Stress Tests (Priority: Low)
+
+**Goal:** Ensure system handles load and edge cases.
+
+**Tests to Add:**
+
+| Test                 | Scenario                             |
+| -------------------- | ------------------------------------ |
+| Hand evaluation perf | Evaluate 10,000 hands in <1s         |
+| Concurrent rooms     | 100 simultaneous games               |
+| Rapid actions        | 50 actions/second from single client |
+| Memory leaks         | Play 1000 hands, check memory stable |
+
+---
+
+## Implementation Checklist
+
+### Phase 1: WebSocket Integration (Est: 2-3 days)
+
+- [ ] Create `packages/server/src/__tests__/integration/` directory
+- [ ] Add test utilities for WebSocket helpers (`waitForMessage`, `waitForOpen`)
+- [ ] Write `websocket.integration.test.ts`
+- [ ] Write `gameFlow.integration.test.ts`
+- [ ] Write `reconnection.integration.test.ts`
+- [ ] Write `protocol.integration.test.ts`
+- [ ] Add `test:integration` script to server package.json
+- [ ] Update CI workflow to run integration tests
+
+### Phase 2: E2E with Playwright (Est: 3-4 days)
+
+- [ ] Create `packages/e2e/` with Playwright setup
+- [ ] Configure Playwright to start server/client before tests
+- [ ] Create `GameFixture` for reusable test setup
+- [ ] Write `createAndJoin.spec.ts`
+- [ ] Write `playHand.spec.ts`
+- [ ] Write `allIn.spec.ts`
+- [ ] Write `fold.spec.ts`
+- [ ] Write `timerDrain.spec.ts`
+- [ ] Write `reconnect.spec.ts`
+- [ ] Add E2E tests to CI (headless Chrome)
+
+### Phase 3: Component Tests (Est: 2 days)
+
+- [ ] Set up React Testing Library in client package
+- [ ] Write `ActionBar.test.tsx`
+- [ ] Write `Timer.test.tsx`
+- [ ] Write `Table.test.tsx`
+- [ ] Write `Seat.test.tsx`
+
+### Phase 4: Protocol Tests (Est: 1 day)
+
+- [ ] Add Zod or similar for runtime schema validation
+- [ ] Write protocol schema tests
+- [ ] Add protocol validation to server message handlers
+
+### Phase 5: Performance Tests (Est: 1-2 days)
+
+- [ ] Write hand evaluation benchmark
+- [ ] Write concurrent rooms stress test
+- [ ] Set up memory profiling for long-running games
+
+---
+
+## Commands Reference
+
+```bash
+# Unit tests (existing)
+pnpm test                          # All unit tests
+pnpm test:watch                    # Watch mode
+
+# Integration tests (Phase 1)
+pnpm --filter @blitz-holdem/server test:integration
+
+# E2E tests (Phase 2)
+pnpm --filter e2e test             # Headless
+pnpm --filter e2e test:headed      # With browser
+pnpm --filter e2e test:debug       # Debug mode
+
+# All tests
+pnpm test:all                      # Unit + Integration + E2E
+
+# Coverage
+pnpm test -- --coverage
+```

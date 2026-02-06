@@ -300,7 +300,14 @@ export const useHandHistoryStore = create<HandHistoryState>((set, get) => ({
     }
   },
 
-  finalizeHand: ({ winnerId, winnerHandRank, potAwarded, communityCards, isSplit, splitWinners }) => {
+  finalizeHand: ({
+    winnerId,
+    winnerHandRank,
+    potAwarded,
+    communityCards,
+    isSplit,
+    splitWinners,
+  }) => {
     const {
       currentHand,
       currentHandNumber,
@@ -316,7 +323,7 @@ export const useHandHistoryStore = create<HandHistoryState>((set, get) => ({
       currentHand.addPot({
         number: 1,
         amount: splitWinners.reduce((sum, w) => sum + w.amount, 0),
-        player_wins: splitWinners.map(w => ({
+        player_wins: splitWinners.map((w) => ({
           player_id: getNumericPlayerId(w.playerId),
           win_amount: w.amount,
         })),
