@@ -323,46 +323,38 @@ pnpm --filter e2e test:ui        # Playwright UI mode
 
 ---
 
-### Phase 3: Client Component Tests (Priority: Medium)
+### Phase 3: Client Component Tests ✅ COMPLETE
 
 **Goal:** Test React components in isolation with React Testing Library.
 
 **Location:** `packages/client/src/components/__tests__/`
 
-**Tests to Add:**
+**Tests Implemented:** 110 tests across 6 files
 
-| Component       | Test File                | Key Tests                                     |
-| --------------- | ------------------------ | --------------------------------------------- |
-| `ActionBar`     | `ActionBar.test.tsx`     | Button states, bet slider, keyboard shortcuts |
-| `Timer`         | `Timer.test.tsx`         | Countdown display, active/inactive states     |
-| `Table`         | `Table.test.tsx`         | Card rendering, pot display                   |
-| `Seat`          | `Seat.test.tsx`          | Player info, dealer button, fold state        |
-| `Card`          | `Card.test.tsx`          | Face up/down, suit colors                     |
-| `SettingsModal` | `SettingsModal.test.tsx` | Input validation, save/cancel                 |
+```
+components/__tests__/
+├── Timer.test.tsx           # 11 tests - Display, states, colors
+├── Card.test.tsx            # 20 tests - Face up/down, suits, ranks
+├── Seat.test.tsx            # 24 tests - Player info, data attrs
+├── ActionBar.test.tsx       # 23 tests - Button states, actions
+├── SettingsModal.test.tsx   # 16 tests - Inputs, validation, save
+└── Table.test.tsx           # 16 tests - Lobby, game, showdown
+```
 
-**Implementation Approach:**
+| Component       | Tests | Key Tests                                     |
+| --------------- | ----- | --------------------------------------------- |
+| `Timer`         | 11    | Display, active/inactive/all-in, color coding |
+| `Card`          | 20    | Face up/down, suits, ranks, sizes, highlight  |
+| `Seat`          | 24    | Empty seat, player info, data attrs, setup    |
+| `ActionBar`     | 23    | Button states, actions, keyboard shortcuts    |
+| `SettingsModal` | 16    | Visibility, inputs, save, validation          |
+| `Table`         | 16    | Rendering, lobby/game states, showdown        |
 
-```typescript
-// Example: ActionBar.test.tsx
-import { render, screen, fireEvent } from '@testing-library/react';
-import { ActionBar } from '../ActionBar';
+**Commands to Run:**
 
-describe('ActionBar', () => {
-  it('should disable Bet button when insufficient time bank', () => {
-    render(<ActionBar timeBank={1} minBet={5} />);
-    expect(screen.getByRole('button', { name: /bet/i })).toBeDisabled();
-  });
-
-  it('should call onAction with correct bet amount', () => {
-    const onAction = vi.fn();
-    render(<ActionBar timeBank={100} minBet={2} onAction={onAction} />);
-
-    fireEvent.change(screen.getByRole('slider'), { target: { value: '10' } });
-    fireEvent.click(screen.getByRole('button', { name: /bet/i }));
-
-    expect(onAction).toHaveBeenCalledWith({ type: 'bet', amount: 10 });
-  });
-});
+```bash
+pnpm --filter @blitz-holdem/client test       # Run client tests
+pnpm --filter @blitz-holdem/client test:watch # Watch mode
 ```
 
 ---
@@ -426,13 +418,19 @@ describe('ActionBar', () => {
 - [ ] Write `reconnect.spec.ts`
 - [ ] Add E2E tests to CI (headless Chrome)
 
-### Phase 3: Component Tests (Est: 2 days)
+### Phase 3: Component Tests ✅ COMPLETE
 
-- [ ] Set up React Testing Library in client package
-- [ ] Write `ActionBar.test.tsx`
-- [ ] Write `Timer.test.tsx`
-- [ ] Write `Table.test.tsx`
-- [ ] Write `Seat.test.tsx`
+- [x] Set up React Testing Library in client package
+- [x] Configure vite.config.ts with jsdom test environment
+- [x] Create test setup file with mocks
+- [x] Write `ActionBar.test.tsx` (23 tests)
+- [x] Write `Timer.test.tsx` (11 tests)
+- [x] Write `Card.test.tsx` (20 tests)
+- [x] Write `Table.test.tsx` (16 tests)
+- [x] Write `Seat.test.tsx` (24 tests)
+- [x] Write `SettingsModal.test.tsx` (16 tests)
+
+**Results:** 110 new tests, all passing
 
 ### Phase 4: Protocol Tests (Est: 1 day)
 
