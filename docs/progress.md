@@ -1,72 +1,50 @@
 # Blitz Hold'em — Development Progress
 
-## Current Status: MVP Playable
+## Current Status: MVP Complete - Pre-Release
 
-**Last Updated:** January 29, 2026
+**Last Updated:** February 6, 2026
 
 ---
 
 ## Milestone Progress
 
-| Milestone                 | Status      | Notes                                      |
-| ------------------------- | ----------- | ------------------------------------------ |
-| M0: Project Bootstrap     | Complete    | Monorepo, ESLint, TypeScript, CI           |
-| M1: Core Domain Logic     | Complete    | Types, deck, evaluator, engine, timer      |
-| M2: Server Foundation     | Complete    | Express, WebSocket, room/table management  |
-| M3: Real-Time Sync        | Complete    | Tick loop, time drain, reconnect logic     |
-| M4: Frontend Shell        | Complete    | React, Vite, Tailwind, routing, components |
-| M5: Live Play Integration | Complete    | WebSocket fixed, room creation works       |
-| M6: Polish & Edge Cases   | Not Started |                                            |
-| M7: Testing & QA          | Not Started |                                            |
-| M8: Deployment            | Not Started |                                            |
+| Milestone                 | Status      | Notes                                          |
+| ------------------------- | ----------- | ---------------------------------------------- |
+| M0: Project Bootstrap     | ✅ Complete | Monorepo, ESLint, TypeScript, CI               |
+| M1: Core Domain Logic     | ✅ Complete | Types, deck, evaluator, engine, timer          |
+| M2: Server Foundation     | ✅ Complete | Express, WebSocket, room/table management      |
+| M3: Real-Time Sync        | ✅ Complete | Tick loop, time drain, reconnect logic         |
+| M4: Frontend Shell        | ✅ Complete | React, Vite, Tailwind, routing, components     |
+| M5: Live Play Integration | ✅ Complete | WebSocket, room creation, full game flow       |
+| M6: Polish & Edge Cases   | ✅ Complete | All-in showdown, show cards, UI improvements   |
+| M7: Testing & QA          | 🟡 Partial  | Unit tests exist, needs more integration tests |
+| M8: Deployment            | ✅ Complete | Railway deployment, CI/CD pipeline working     |
 
 ---
 
-## Resolved Issues
+## Pre-Release Checklist
 
-### Issue #1: WebSocket Connection Fails in Browser
+### Critical (Must Fix Before Public Release)
 
-**Status:** FIXED  
-**Reported:** 2026-01-29  
-**Resolved:** 2026-01-29  
-**Symptom:** After creating a table and navigating to `/table/:roomId`, the page shows "Connection Error"
+- [ ] **SECURITY**: Remove `allowedHosts: ['all']` from vite.config.ts (added for ngrok testing)
+- [ ] End-to-end testing with real users (2-player full game)
+- [ ] Error handling for edge cases (network drops mid-hand, etc.)
 
-**Root Cause:**
-The `useSocket` hook had a dependency array issue. The `useEffect` depended on `[connect, send]`, but `connect` was a `useCallback` that depended on `store`. When store state changed, it recreated `connect`, triggering effect cleanup which closed the WebSocket, causing a reconnect loop.
+### Important (Should Fix)
 
-**Fix Applied:**
+- [ ] Add loading states for network operations
+- [ ] Add error messages for failed actions
+- [ ] Mobile testing on real devices (iOS Safari, Android Chrome)
+- [ ] Handle browser back button gracefully
 
-- Removed `store` from dependencies by using `useGameStore.getState()` directly
-- Changed to empty dependency array `[]` so effect only runs once on mount
-- Added `isConnecting` ref to prevent multiple simultaneous connections
-- Separated ping into its own `useEffect`
+### Nice to Have (Post-Launch)
 
----
-
-## Todos
-
-### High Priority
-
-- [x] Fix WebSocket connection issue (#1)
-- [ ] Verify end-to-end hand completion
-- [ ] Test two-player gameplay
-- [ ] **CLEANUP**: Remove `allowedHosts: ['all']` from vite.config.ts before production (added for ngrok testing)
-
-### Medium Priority
-
-- [ ] Add unit tests for game engine
-- [ ] Add integration tests for server
-- [ ] Implement auto-check on timeout when check is valid
-- [x] Implement proper all-in showdown (deal remaining streets)
-- [ ] Implement play again button and show a victory counter badge
-- [ ] Implement a basic ledger that contains hand history and can be shared
-
-### Low Priority
-
-- [ ] Add in equity calculation when both players are all in
-- [ ] Add sound effects
+- [ ] Add sound effects (optional, mutable)
 - [ ] Add hand history display
-- [ ] Mobile responsive improvements
+- [ ] Add equity calculation during all-in runout
+- [ ] Victory counter / session stats
+- [ ] Basic ledger for hand history sharing
+- [ ] Landing page / how-to-play guide
 
 ---
 
@@ -80,6 +58,8 @@ The `useSocket` hook had a dependency array issue. The `useEffect` depended on `
 - [x] Time bank mechanics (drain on turn, commit on bet/call)
 - [x] Blinds posting (SB/BB)
 - [x] Valid action calculation (fold, check, call, bet, raise, all-in)
+- [x] All-in showdown with street runout (flop → turn → river → result)
+- [x] Automatic card reveal when both players all-in
 
 ### Server
 
@@ -92,6 +72,8 @@ The `useSocket` hook had a dependency array issue. The `useEffect` depended on `
 - [x] Game state broadcasting
 - [x] Tick loop for time drain (6 Hz)
 - [x] Disconnect grace period handling
+- [x] Show cards feature (voluntary card reveal after fold)
+- [x] ALL_IN_SHOWDOWN broadcast (reveals both hands)
 
 ### Client
 
@@ -99,13 +81,42 @@ The `useSocket` hook had a dependency array issue. The `useEffect` depended on `
 - [x] Table page with game UI
 - [x] Seat component with player info
 - [x] Card component (face up / face down)
-- [x] Timer component with color warnings
-- [x] Action bar with bet slider
+- [x] Timer component with digital font and color warnings
+- [x] Action bar with bet slider and presets (33%, 75%, 150%, MAX)
 - [x] Keyboard shortcuts (F/C/B/A)
-- [x] Waiting room before game starts
-- [x] Result overlay after hand
+- [x] Inline ready state (no separate waiting room)
+- [x] Result display with winner highlight
 - [x] Zustand store for game state
 - [x] WebSocket hook with reconnection logic
+- [x] Mobile responsive layout
+- [x] "Show Cards" button after hand ends
+- [x] Auto-clamp raise to all-in when exceeding max
+- [x] Stable table layout (prevents card bouncing)
+
+### UI/UX Polish
+
+- [x] Dark green felt background
+- [x] Digital/mono font for time banks and pot
+- [x] Color-coded actions (green=safe, red=fold, amber=raise)
+- [x] Bet chips positioned between players and pot
+- [x] Winning cards highlighted with golden glow
+- [x] Active player indicator (glowing border)
+- [x] All-in and Fold badges
+
+### Deployment
+
+- [x] Railway deployment (client + server)
+- [x] GitHub Actions CI pipeline
+- [x] Environment variable configuration
+- [x] Production build working
+
+### Testing
+
+- [x] Unit tests for game engine (9 tests)
+- [x] Unit tests for hand evaluator (20 tests)
+- [x] Unit tests for timer mechanics (17 tests)
+- [x] Server tests for show cards feature (4 tests)
+- [x] Pre-push hooks (typecheck, lint, test, build)
 
 ---
 
@@ -128,20 +139,68 @@ The `useSocket` hook had a dependency array issue. The `useEffect` depended on `
 ### Manual Testing Checklist
 
 - [x] Create table from home page
-- [ ] Join table via shared link
-- [ ] Both players ready up
-- [ ] Hand starts with correct blinds
-- [ ] Time drains on active player's turn
-- [ ] All betting actions work (fold, check, call, bet, raise, all-in)
-- [ ] Community cards dealt correctly (flop, turn, river)
-- [ ] Showdown determines correct winner
-- [ ] Pot awarded to winner
-- [ ] Next hand starts automatically
-- [ ] Disconnect/reconnect works
+- [x] Join table via shared link
+- [x] Both players ready up
+- [x] Hand starts with correct blinds
+- [x] Time drains on active player's turn
+- [x] All betting actions work (fold, check, call, bet, raise, all-in)
+- [x] Community cards dealt correctly (flop, turn, river)
+- [x] Showdown determines correct winner
+- [x] Pot awarded to winner
+- [x] Next hand starts automatically
+- [ ] Disconnect/reconnect works (needs verification)
+- [x] All-in runout reveals both hands
+- [x] Show cards feature works after fold
+
+### Automated Tests
+
+- **Common package**: 46 tests passing (deck, evaluator, engine, timer)
+- **Server package**: 4 tests passing (show cards feature)
+- **Client package**: No tests yet (visual components)
+
+---
+
+## Known Issues
+
+### Issue #1: WebSocket Connection Loop (RESOLVED)
+
+**Status:** FIXED  
+**Resolved:** 2026-01-29
+
+Root cause was `useEffect` dependency array causing reconnect loop. Fixed by using `useGameStore.getState()` directly.
+
+### Issue #2: Show Cards Not Displaying to Opponent (RESOLVED)
+
+**Status:** FIXED  
+**Resolved:** 2026-02-05
+
+The `shouldShowCards` condition required `result.showdown` to be true, but voluntary card showing happens when `showdown` is false. Fixed condition to check `!!revealedCards` instead.
 
 ---
 
 ## Session Log
+
+### 2026-02-05 / 2026-02-06
+
+- Added "Show Cards" feature (voluntary reveal after fold)
+- Fixed show cards not displaying to opponent
+- Added ALL_IN_SHOWDOWN message to reveal both hands when all-in
+- Added server tests for show cards feature
+- UI polish: digital font for timers/pot, raise presets (33/75/150/MAX)
+- Fixed CI: updated pnpm version 8 → 10 to match lockfile v9
+- Created UX design principles document
+- Removed separate waiting room (inline ready state)
+
+### 2026-01-30 - 2026-02-04
+
+- Deployed to Railway (client + server services)
+- Fixed production API calls with VITE_API_URL
+- Fixed all-in mechanics and showdown runout
+- Major UI redesign: green background, better raise UX
+- Responsive layout improvements for mobile
+- Fixed card bouncing with stable table height
+- Added bet chip positioning (opponent below, yours above)
+- Auto-clamp raise to all-in when exceeding max
 
 ### 2026-01-29
 
@@ -150,7 +209,5 @@ The `useSocket` hook had a dependency array issue. The `useEffect` depended on `
 - Implemented full game engine with hand evaluator
 - Built Express + WebSocket server
 - Built React frontend with all core components
-- **Issue:** WebSocket connection fails in browser - FIXED
-  - Root cause: useEffect dependency array causing reconnect loop
-  - Fix: Use `useGameStore.getState()` and empty dependency array
+- Fixed WebSocket connection loop issue
 - Room creation verified working
