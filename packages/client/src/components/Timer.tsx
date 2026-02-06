@@ -37,7 +37,9 @@ export default function Timer({ timeBank, isActive, isAllIn }: TimerProps) {
     <div
       className={`ml-1 sm:ml-2 px-2 sm:px-3 py-0.5 sm:py-1 rounded-lg border ${isActive ? 'bg-yellow-500/30 border-yellow-500/50' : 'bg-gray-900 border-gray-700'}`}
     >
-      <span className={`${digitalStyle} text-xs sm:text-sm font-bold ${colorClass}`}>{formatted}</span>
+      <span className={`${digitalStyle} text-xs sm:text-sm font-bold ${colorClass}`}>
+        {formatted}
+      </span>
     </div>
   );
 }

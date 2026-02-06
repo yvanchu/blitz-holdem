@@ -68,7 +68,9 @@ export default function Table({ send }: TableProps) {
         {/* Pot */}
         <div className="bg-gray-900/80 px-4 sm:px-6 py-1 sm:py-2 rounded-full border border-gray-700">
           <span className="text-gray-400 text-xs sm:text-sm">Pot: </span>
-          <span className="text-yellow-400 font-mono tracking-wider tabular-nums font-bold text-sm sm:text-lg">{Math.round(pot)}s</span>
+          <span className="text-yellow-400 font-mono tracking-wider tabular-nums font-bold text-sm sm:text-lg">
+            {Math.round(pot)}s
+          </span>
         </div>
       </div>
 
