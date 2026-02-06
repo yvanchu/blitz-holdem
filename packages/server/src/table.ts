@@ -599,9 +599,7 @@ export class TableController {
     if (p0.folded || p1.folded) return false;
     // At least one player is all-in and bets are equal (opponent has called)
     return (
-      (p0.isAllIn || p1.isAllIn) &&
-      p0.currentBet === p1.currentBet &&
-      this.state.isHandInProgress
+      (p0.isAllIn || p1.isAllIn) && p0.currentBet === p1.currentBet && this.state.isHandInProgress
     );
   }
 

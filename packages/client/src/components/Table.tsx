@@ -14,7 +14,15 @@ function isWinningCard(card: Card, winningCards?: Card[]): boolean {
 }
 
 export default function Table({ send }: TableProps) {
-  const { communityCards, pot, dealerIndex, yourSeatIndex, result, revealedCards, isHandInProgress } = useGameStore();
+  const {
+    communityCards,
+    pot,
+    dealerIndex,
+    yourSeatIndex,
+    result,
+    revealedCards,
+    isHandInProgress,
+  } = useGameStore();
   const yourPlayer = useGameStore(selectYourPlayer);
   const opponentPlayer = useGameStore(selectOpponentPlayer);
 

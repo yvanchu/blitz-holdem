@@ -81,9 +81,10 @@ export default function Seat({
   const isFolded = player.folded;
 
   // Determine which cards to show
-  // Priority: player's holeCards (for own seat), revealedCards (showdown), or hidden
+  // Priority: player's holeCards (for own seat), revealedCards (from showdown or voluntary show), or hidden
   const cardsToShow = player.holeCards || revealedCards;
-  const shouldShowCards = position === 'bottom' || showCards || (revealedCards && result?.showdown);
+  // Show cards if: bottom position (your cards), showCards prop, or revealedCards exist (from showdown or voluntary show)
+  const shouldShowCards = position === 'bottom' || showCards || !!revealedCards;
 
   // Bet chip component - with margin for spacing from other elements
   const BetChip = () =>
@@ -135,12 +136,7 @@ export default function Seat({
           </div>
 
           {/* Player info */}
-          <PlayerInfo
-            player={player}
-            isActive={isActive}
-            isDealer={isDealer}
-            result={result}
-          />
+          <PlayerInfo player={player} isActive={isActive} isDealer={isDealer} result={result} />
 
           {/* Bet chip - at bottom for opponent (closest to center) */}
           <BetChip />
@@ -154,12 +150,7 @@ export default function Seat({
           <BetChip />
 
           {/* Player info */}
-          <PlayerInfo
-            player={player}
-            isActive={isActive}
-            isDealer={isDealer}
-            result={result}
-          />
+          <PlayerInfo player={player} isActive={isActive} isDealer={isDealer} result={result} />
 
           {/* Cards with hand strength badge */}
           <div className="relative flex gap-1 mt-1 sm:mt-2">

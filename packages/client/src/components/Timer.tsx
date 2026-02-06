@@ -21,7 +21,9 @@ export default function Timer({ timeBank, isActive, isAllIn }: TimerProps) {
   if (isAllIn) {
     return (
       <div className="ml-1 sm:ml-2 px-2 sm:px-3 py-0.5 sm:py-1 bg-gray-700 rounded-lg">
-        <span className={`font-mono text-xs sm:text-sm ${seconds > 0 ? colorClass : 'text-gray-400'}`}>
+        <span
+          className={`font-mono text-xs sm:text-sm ${seconds > 0 ? colorClass : 'text-gray-400'}`}
+        >
           {formatted}
         </span>
       </div>
@@ -29,7 +31,9 @@ export default function Timer({ timeBank, isActive, isAllIn }: TimerProps) {
   }
 
   return (
-    <div className={`ml-1 sm:ml-2 px-2 sm:px-3 py-0.5 sm:py-1 rounded-lg ${isActive ? 'bg-yellow-500/30' : 'bg-gray-700'}`}>
+    <div
+      className={`ml-1 sm:ml-2 px-2 sm:px-3 py-0.5 sm:py-1 rounded-lg ${isActive ? 'bg-yellow-500/30' : 'bg-gray-700'}`}
+    >
       <span className={`font-mono text-xs sm:text-sm font-bold ${colorClass}`}>{formatted}</span>
     </div>
   );

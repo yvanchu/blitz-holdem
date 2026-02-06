@@ -178,7 +178,9 @@ export default function ActionBar({ send }: ActionBarProps) {
               {/* Large bet amount display */}
               <div className="flex-shrink-0">
                 <div className="text-gray-400 text-xs mb-1">Your {isBet ? 'bet' : 'raise'}</div>
-                <div className={`relative ${!isRaiseTooSmall ? 'bg-green-600' : 'bg-red-600'} rounded-lg px-3 py-2 sm:px-4 sm:py-3`}>
+                <div
+                  className={`relative ${!isRaiseTooSmall ? 'bg-green-600' : 'bg-red-600'} rounded-lg px-3 py-2 sm:px-4 sm:py-3`}
+                >
                   <input
                     type="text"
                     inputMode="numeric"
