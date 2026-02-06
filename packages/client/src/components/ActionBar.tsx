@@ -28,22 +28,26 @@ export default function ActionBar({ send }: ActionBarProps) {
   // Track if we've already sent the auto all-in for this turn
   const autoAllInSentRef = useRef(false);
 
-  // Minimum raise amount: need to call first, then raise by at least minRaise
-  // Total amount to put in = toCall + minRaise (the raise portion)
-  const minBetAmount = toCall + minRaise;
+  // The input is now the TOTAL bet amount (what you'll have committed after the action)
+  // Minimum total bet = your current bet + toCall + minRaise (the raise portion)
+  const yourCurrentBet = yourPlayer?.currentBet ?? 0;
+  const minTotalBet = yourCurrentBet + toCall + minRaise;
 
-  // Max bet is your entire time bank (excess vs opponent will be refunded)
-  const maxBet = yourPlayer?.timeBank ?? 0;
+  // Max bet is your current bet plus your entire time bank
+  const maxTotalBet = yourCurrentBet + (yourPlayer?.timeBank ?? 0);
+
+  // Check if current input is a valid raise amount
+  const isValidRaise = betAmount >= minTotalBet && betAmount <= maxTotalBet;
 
   // Only reset bet amount when it's a new betting action (not every tick)
-  // Reset when: raise panel opens, or when minBetAmount increases beyond current bet
+  // Reset when: raise panel opens, or when minTotalBet increases beyond current bet
   useEffect(() => {
-    if (!hasUserModified || betAmount < minBetAmount) {
-      const clampedMin = Math.min(minBetAmount, maxBet);
+    if (!hasUserModified || betAmount < minTotalBet) {
+      const clampedMin = Math.min(minTotalBet, maxTotalBet);
       setBetAmount(clampedMin);
       setInputValue(String(clampedMin));
     }
-  }, [minBetAmount]);
+  }, [minTotalBet]);
 
   // Reset user modified flag when raise panel closes
   useEffect(() => {
@@ -131,20 +135,20 @@ export default function ActionBar({ send }: ActionBarProps) {
   const canFold = validActions.includes('fold');
   const isBet = currentBet === 0; // True if this is a bet, false if it's a raise
 
-  // Handle input change for exact amount
+  // Handle input change for exact amount - allow any value, validity checked separately
   const handleInputChange = (value: string) => {
     setInputValue(value);
     setHasUserModified(true);
     const num = parseInt(value);
-    if (!isNaN(num) && num >= minBetAmount && num <= maxBet) {
+    if (!isNaN(num)) {
       setBetAmount(num);
     }
   };
 
-  // Handle preset button clicks
-  const setPreset = (amount: number) => {
+  // Handle preset button clicks - presets use TOTAL bet amount
+  const setPreset = (totalAmount: number) => {
     setHasUserModified(true);
-    const clamped = Math.min(maxBet, Math.max(minBetAmount, Math.floor(amount)));
+    const clamped = Math.min(maxTotalBet, Math.max(minTotalBet, Math.floor(totalAmount)));
     setBetAmount(clamped);
     setInputValue(String(clamped));
   };
@@ -155,13 +159,13 @@ export default function ActionBar({ send }: ActionBarProps) {
       {showRaisePanel && canRaise && (
         <div className="px-4 py-3 border-b border-gray-700 bg-gray-800/50">
           <div className="max-w-lg mx-auto">
-            {/* Slider with input */}
+            {/* Slider with input - values are TOTAL bet amount */}
             <div className="flex items-center gap-3 mb-3">
               <input
                 type="range"
-                min={minBetAmount}
-                max={maxBet}
-                value={betAmount}
+                min={minTotalBet}
+                max={maxTotalBet}
+                value={Math.max(minTotalBet, Math.min(maxTotalBet, betAmount))}
                 onChange={(e) => {
                   const val = Number(e.target.value);
                   setHasUserModified(true);
@@ -173,55 +177,58 @@ export default function ActionBar({ send }: ActionBarProps) {
               <div className="flex items-center gap-1">
                 <input
                   type="number"
-                  min={minBetAmount}
-                  max={maxBet}
+                  min={minTotalBet}
+                  max={maxTotalBet}
                   value={inputValue}
                   onChange={(e) => handleInputChange(e.target.value)}
                   onBlur={() => {
-                    // Clamp value on blur
+                    // Don't clamp on blur - let user see invalid value
                     const num = parseInt(inputValue);
-                    if (isNaN(num) || num < minBetAmount) {
-                      setBetAmount(minBetAmount);
-                      setInputValue(String(minBetAmount));
-                    } else if (num > maxBet) {
-                      setBetAmount(maxBet);
-                      setInputValue(String(maxBet));
+                    if (isNaN(num)) {
+                      setBetAmount(minTotalBet);
+                      setInputValue(String(minTotalBet));
+                    } else {
+                      setBetAmount(num);
                     }
                   }}
-                  className="w-20 px-2 py-1 bg-gray-700 border border-gray-600 rounded text-white text-center text-sm"
+                  className={`w-20 px-2 py-1 border rounded text-white text-center text-sm ${
+                    isValidRaise
+                      ? 'bg-gray-700 border-gray-600'
+                      : 'bg-red-900/50 border-red-500'
+                  }`}
                 />
                 <span className="text-gray-400 text-sm">s</span>
               </div>
             </div>
 
-            {/* Preset buttons */}
+            {/* Preset buttons - pot-based presets add to current bet to get total */}
             <div className="grid grid-cols-5 gap-2">
               <button
-                onClick={() => setPreset(minBetAmount)}
+                onClick={() => setPreset(minTotalBet)}
                 className="px-2 py-2 text-xs sm:text-sm bg-gray-700 hover:bg-gray-600 text-white rounded font-medium uppercase"
               >
                 Min Raise
               </button>
               <button
-                onClick={() => setPreset(Math.floor(pot / 2))}
+                onClick={() => setPreset(currentBet + Math.floor(pot / 2))}
                 className="px-2 py-2 text-xs sm:text-sm bg-gray-700 hover:bg-gray-600 text-white rounded font-medium uppercase"
               >
                 1/2 Pot
               </button>
               <button
-                onClick={() => setPreset(Math.floor((pot * 3) / 4))}
+                onClick={() => setPreset(currentBet + Math.floor((pot * 3) / 4))}
                 className="px-2 py-2 text-xs sm:text-sm bg-gray-700 hover:bg-gray-600 text-white rounded font-medium uppercase"
               >
                 3/4 Pot
               </button>
               <button
-                onClick={() => setPreset(pot)}
+                onClick={() => setPreset(currentBet + pot)}
                 className="px-2 py-2 text-xs sm:text-sm bg-gray-700 hover:bg-gray-600 text-white rounded font-medium uppercase"
               >
                 Pot
               </button>
               <button
-                onClick={() => setPreset(maxBet)}
+                onClick={() => setPreset(maxTotalBet)}
                 className="px-2 py-2 text-xs sm:text-sm bg-gray-700 hover:bg-gray-600 text-white rounded font-medium uppercase"
               >
                 All In
@@ -285,31 +292,36 @@ export default function ActionBar({ send }: ActionBarProps) {
           <button
             onClick={() => {
               if (showRaisePanel) {
+                if (!isValidRaise) return; // Don't submit invalid raise
+                // Calculate the delta (amount to add to reach total)
+                const raiseAmount = betAmount - yourCurrentBet;
                 // Send the bet/raise with all-in if at max
-                if (betAmount >= maxBet) {
-                  sendAction('all-in', maxBet);
+                if (betAmount >= maxTotalBet) {
+                  sendAction('all-in', raiseAmount);
                 } else {
-                  sendAction(isBet ? 'bet' : 'raise', betAmount);
+                  sendAction(isBet ? 'bet' : 'raise', raiseAmount);
                 }
               } else {
                 setShowRaisePanel(true);
               }
             }}
-            disabled={!isYourTurn || !canRaise}
+            disabled={!isYourTurn || !canRaise || (showRaisePanel && !isValidRaise)}
             className={`
               py-4 rounded-lg font-semibold text-sm sm:text-base uppercase tracking-wide
               border-2 transition-all
               ${
                 canRaise && isYourTurn
                   ? showRaisePanel
-                    ? 'border-green-500 bg-green-500/20 text-green-400'
+                    ? isValidRaise
+                      ? 'border-green-500 bg-green-500/20 text-green-400'
+                      : 'border-red-500 bg-red-500/20 text-red-400'
                     : 'border-green-500 text-green-400 hover:bg-green-500/20 active:bg-green-500/30'
                   : 'border-gray-600 text-gray-500 opacity-50 cursor-not-allowed'
               }
             `}
           >
             {showRaisePanel
-              ? `${isBet ? 'Bet' : 'Raise to'} ${(yourPlayer?.currentBet ?? 0) + betAmount}s`
+              ? `${isBet ? 'Bet' : 'Raise to'} ${betAmount}s`
               : isBet
                 ? 'Bet'
                 : 'Raise'}

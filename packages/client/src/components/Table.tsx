@@ -37,19 +37,20 @@ export default function Table() {
 
       {/* Community cards & pot (center) */}
       <div className="flex flex-col items-center gap-4">
-        {/* Community cards */}
-        <div className="flex gap-2">
-          {communityCards.length > 0
-            ? communityCards.map((card, i) => (
-                <CardComponent key={i} card={card} highlight={isWinningCard(card, winningCards)} />
-              ))
-            : // Placeholder for 5 cards
-              Array.from({ length: 5 }).map((_, i) => (
-                <div
-                  key={i}
-                  className="w-[60px] h-[84px] rounded-lg border-2 border-dashed border-white/20"
-                />
-              ))}
+        {/* Community cards - fixed width container for consistent alignment */}
+        <div className="flex gap-2 justify-center" style={{ width: '340px' }}>
+          {/* Always render 5 slots, show cards or placeholders */}
+          {Array.from({ length: 5 }).map((_, i) => {
+            const card = communityCards[i];
+            return card ? (
+              <CardComponent key={i} card={card} highlight={isWinningCard(card, winningCards)} />
+            ) : (
+              <div
+                key={i}
+                className="w-[60px] h-[84px] rounded-lg border-2 border-dashed border-white/20"
+              />
+            );
+          })}
         </div>
 
         {/* Pot */}

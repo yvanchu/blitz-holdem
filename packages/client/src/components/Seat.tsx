@@ -85,22 +85,26 @@ export default function Seat({
   const cardsToShow = player.holeCards || revealedCards;
   const shouldShowCards = position === 'bottom' || showCards || (revealedCards && result?.showdown);
 
+  // Bet chip component
+  const BetChip = () =>
+    player.currentBet > 0 ? (
+      <div className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-yellow-500 text-black text-sm font-bold shadow-lg">
+        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+          <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="none" />
+          <circle cx="12" cy="12" r="6" fill="currentColor" />
+        </svg>
+        {Math.round(player.currentBet)}s
+      </div>
+    ) : null;
+
   return (
     <div
       className={`flex flex-col items-center gap-2 transition-opacity ${
         isFolded ? 'opacity-50' : ''
       }`}
     >
-      {/* Bet chip - displayed above cards for visibility */}
-      {player.currentBet > 0 && (
-        <div className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-yellow-500 text-black text-sm font-bold shadow-lg">
-          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
-            <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="none" />
-            <circle cx="12" cy="12" r="6" fill="currentColor" />
-          </svg>
-          {Math.round(player.currentBet)}s
-        </div>
-      )}
+      {/* Bet chip for TOP position (opponent) - show BELOW cards (closer to center) */}
+      {position === 'top' && <BetChip />}
 
       {/* Cards with hand strength badge */}
       <div className="relative flex gap-1 mb-2">
@@ -130,6 +134,9 @@ export default function Seat({
           </>
         )}
       </div>
+
+      {/* Bet chip for BOTTOM position (you) - show ABOVE player info (closer to center) */}
+      {position === 'bottom' && <BetChip />}
 
       {/* Player info */}
       <div
