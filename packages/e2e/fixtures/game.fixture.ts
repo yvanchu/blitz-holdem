@@ -168,18 +168,36 @@ export class PlayerPage {
   }
 
   async raise(amount?: number): Promise<void> {
+    // First click opens the raise panel
     await this.raiseButton.click();
     if (amount !== undefined) {
       await this.betInput.fill(String(amount));
     }
-    await this.confirmRaiseButton.click();
+    // On desktop, clicking raise button again confirms the raise
+    // On mobile, there's a separate confirm button (sm:hidden)
+    // Try mobile button first, fall back to desktop (click raise again)
+    const confirmButton = this.confirmRaiseButton;
+    if (await confirmButton.isVisible({ timeout: 500 }).catch(() => false)) {
+      await confirmButton.click();
+    } else {
+      // Desktop: click raise button again to confirm
+      await this.raiseButton.click();
+    }
   }
 
   async allIn(): Promise<void> {
     // Open raise panel and use the All In preset
     await this.raiseButton.click();
     await this.page.locator('button:has-text("All In")').click();
-    await this.confirmRaiseButton.click();
+    // On desktop, clicking raise button again confirms the raise
+    // On mobile, there's a separate confirm button (sm:hidden)
+    const confirmButton = this.confirmRaiseButton;
+    if (await confirmButton.isVisible({ timeout: 500 }).catch(() => false)) {
+      await confirmButton.click();
+    } else {
+      // Desktop: click raise button again to confirm
+      await this.raiseButton.click();
+    }
   }
 
   async showCards(): Promise<void> {

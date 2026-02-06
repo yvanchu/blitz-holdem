@@ -11,9 +11,9 @@ test.describe('Timer Drain', () => {
     const { player1, player2 } = game;
 
     // Start game
-    await player2.readyButton.click();
+    await player2.ready();
     await player1.startButton.waitFor();
-    await player1.startButton.click();
+    await player1.startGame();
     await expect(player1.holeCards).toHaveCount(2, { timeout: 5000 });
 
     // Determine who has action
@@ -42,9 +42,9 @@ test.describe('Timer Drain', () => {
     const { player1, player2 } = game;
 
     // Start game
-    await player2.readyButton.click();
+    await player2.ready();
     await player1.startButton.waitFor();
-    await player1.startButton.click();
+    await player1.startGame();
     await expect(player1.holeCards).toHaveCount(2, { timeout: 5000 });
 
     // Determine who has action
@@ -59,9 +59,9 @@ test.describe('Timer Drain', () => {
     const { player1, player2 } = game;
 
     // Start game
-    await player2.readyButton.click();
+    await player2.ready();
     await player1.startButton.waitFor();
-    await player1.startButton.click();
+    await player1.startGame();
     await expect(player1.holeCards).toHaveCount(2, { timeout: 5000 });
 
     // Determine who has action
@@ -90,9 +90,9 @@ test.describe('Timer Drain', () => {
     const { player1, player2 } = game;
 
     // Start game
-    await player2.readyButton.click();
+    await player2.ready();
     await player1.startButton.waitFor();
-    await player1.startButton.click();
+    await player1.startGame();
     await expect(player1.holeCards).toHaveCount(2, { timeout: 5000 });
 
     // Both players should see timers
@@ -114,9 +114,9 @@ test.describe('Timer Drain', () => {
     const { player1, player2 } = game;
 
     // Start game
-    await player2.readyButton.click();
+    await player2.ready();
     await player1.startButton.waitFor();
-    await player1.startButton.click();
+    await player1.startGame();
     await expect(player1.holeCards).toHaveCount(2, { timeout: 5000 });
 
     // Determine who has action

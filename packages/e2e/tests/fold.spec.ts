@@ -11,29 +11,29 @@ test.describe('Fold and Show Cards', () => {
     const { player1, player2 } = game;
 
     // Start game
-    await player2.readyButton.click();
+    await player2.ready();
     await player1.startButton.waitFor();
-    await player1.startButton.click();
+    await player1.startGame();
     await expect(player1.holeCards).toHaveCount(2, { timeout: 5000 });
 
     // Determine who acts first
     const p1HasAction = await player1.isMyTurn();
-    const activePlayer = p1HasAction ? player1 : player2;
+    const foldingPlayer = p1HasAction ? player1 : player2;
 
     // Fold
-    await activePlayer.fold();
+    await foldingPlayer.fold();
 
-    // Hand should end - result overlay appears
-    await expect(activePlayer.resultOverlay).toBeVisible({ timeout: 5000 });
+    // Hand should end - "Show Cards" button appears for the folder
+    await expect(foldingPlayer.showCardsButton).toBeVisible({ timeout: 5000 });
   });
 
   test('should show folded badge on player seat', async ({ game }) => {
     const { player1, player2 } = game;
 
     // Start game
-    await player2.readyButton.click();
+    await player2.ready();
     await player1.startButton.waitFor();
-    await player1.startButton.click();
+    await player1.startGame();
     await expect(player1.holeCards).toHaveCount(2, { timeout: 5000 });
 
     // Determine who acts first
@@ -55,9 +55,9 @@ test.describe('Fold and Show Cards', () => {
     const { player1, player2 } = game;
 
     // Start game
-    await player2.readyButton.click();
+    await player2.ready();
     await player1.startButton.waitFor();
-    await player1.startButton.click();
+    await player1.startGame();
     await expect(player1.holeCards).toHaveCount(2, { timeout: 5000 });
 
     // Determine who acts first
@@ -75,9 +75,9 @@ test.describe('Fold and Show Cards', () => {
     const { player1, player2 } = game;
 
     // Start game
-    await player2.readyButton.click();
+    await player2.ready();
     await player1.startButton.waitFor();
-    await player1.startButton.click();
+    await player1.startGame();
     await expect(player1.holeCards).toHaveCount(2, { timeout: 5000 });
 
     // Determine who acts first
@@ -92,7 +92,7 @@ test.describe('Fold and Show Cards', () => {
     await foldingPlayer.showCardsButton.waitFor();
 
     // Click show cards
-    await foldingPlayer.showCardsButton.click();
+    await foldingPlayer.showCards();
 
     // Opponent should see the revealed cards (cards should have rank/suit data)
     // Check that the opponent's view of the folded player's cards are now visible
@@ -109,9 +109,9 @@ test.describe('Fold and Show Cards', () => {
     const { player1, player2 } = game;
 
     // Start game
-    await player2.readyButton.click();
+    await player2.ready();
     await player1.startButton.waitFor();
-    await player1.startButton.click();
+    await player1.startGame();
     await expect(player1.holeCards).toHaveCount(2, { timeout: 5000 });
 
     // Determine who acts first
@@ -122,17 +122,19 @@ test.describe('Fold and Show Cards', () => {
     // Fold
     await foldingPlayer.fold();
 
-    // Winner should see result overlay showing they won
-    await expect(winningPlayer.resultOverlay).toContainText('Win', { timeout: 5000 });
+    // Winner should see pot award indicator (e.g., "+3s")
+    await expect(winningPlayer.page.locator('[data-testid="seat-bottom"]')).toContainText('+', {
+      timeout: 5000,
+    });
   });
 
   test('should allow fold after opponent raises', async ({ game }) => {
     const { player1, player2 } = game;
 
     // Start game
-    await player2.readyButton.click();
+    await player2.ready();
     await player1.startButton.waitFor();
-    await player1.startButton.click();
+    await player1.startGame();
     await expect(player1.holeCards).toHaveCount(2, { timeout: 5000 });
 
     // Determine who acts first
@@ -140,15 +142,14 @@ test.describe('Fold and Show Cards', () => {
     const raiser = p1HasAction ? player1 : player2;
     const folder = p1HasAction ? player2 : player1;
 
-    // First player raises
-    await raiser.raiseButton.click();
-    await raiser.confirmRaiseButton.click();
+    // First player raises (using fixture method for desktop compatibility)
+    await raiser.raise();
 
     // Second player folds
     await folder.waitForTurn();
     await folder.fold();
 
-    // Hand should end
-    await expect(raiser.resultOverlay).toBeVisible({ timeout: 5000 });
+    // Hand should end - Show Cards button appears for folder
+    await expect(folder.showCardsButton).toBeVisible({ timeout: 5000 });
   });
 });

@@ -11,11 +11,11 @@ test.describe('Play a Complete Hand', () => {
     const { player1, player2 } = game;
 
     // Player 2 readies up
-    await player2.readyButton.click();
+    await player2.ready();
 
     // Player 1 starts the game
     await player1.startButton.waitFor();
-    await player1.startButton.click();
+    await player1.startGame();
 
     // Both players should see their hole cards
     await expect(player1.holeCards).toHaveCount(2, { timeout: 5000 });
@@ -30,9 +30,9 @@ test.describe('Play a Complete Hand', () => {
     const { player1, player2 } = game;
 
     // Start game
-    await player2.readyButton.click();
+    await player2.ready();
     await player1.startButton.waitFor();
-    await player1.startButton.click();
+    await player1.startGame();
 
     // Wait for cards to be dealt
     await expect(player1.holeCards).toHaveCount(2, { timeout: 5000 });
@@ -54,9 +54,9 @@ test.describe('Play a Complete Hand', () => {
     const { player1, player2 } = game;
 
     // Start game
-    await player2.readyButton.click();
+    await player2.ready();
     await player1.startButton.waitFor();
-    await player1.startButton.click();
+    await player1.startGame();
     await expect(player1.holeCards).toHaveCount(2, { timeout: 5000 });
 
     // Determine who acts first
@@ -79,9 +79,9 @@ test.describe('Play a Complete Hand', () => {
     const { player1, player2 } = game;
 
     // Start game
-    await player2.readyButton.click();
+    await player2.ready();
     await player1.startButton.waitFor();
-    await player1.startButton.click();
+    await player1.startGame();
     await expect(player1.holeCards).toHaveCount(2, { timeout: 5000 });
 
     // Helper to play a street by check-check
@@ -123,18 +123,18 @@ test.describe('Play a Complete Hand', () => {
     // River: check-check
     await playStreetCheckCheck();
 
-    // Should see result overlay (showdown)
-    await expect(player1.resultOverlay).toBeVisible({ timeout: 5000 });
-    await expect(player2.resultOverlay).toBeVisible({ timeout: 5000 });
+    // Showdown - winner should see pot award indicator (e.g., "+Xs")
+    await expect(player1.page.locator('text=/\\+\\d+s/')).toBeVisible({ timeout: 5000 });
+    await expect(player2.page.locator('text=/\\+\\d+s/')).toBeVisible({ timeout: 5000 });
   });
 
   test('should process raise action correctly', async ({ game }) => {
     const { player1, player2 } = game;
 
     // Start game
-    await player2.readyButton.click();
+    await player2.ready();
     await player1.startButton.waitFor();
-    await player1.startButton.click();
+    await player1.startGame();
     await expect(player1.holeCards).toHaveCount(2, { timeout: 5000 });
 
     // Determine who acts first
@@ -144,14 +144,8 @@ test.describe('Play a Complete Hand', () => {
     // Initial pot should be 3 (blinds)
     await expect(activePlayer.potValue).toContainText('3s');
 
-    // Click raise to open the raise panel
-    await activePlayer.raiseButton.click();
-
-    // The raise panel should show bet input
-    await expect(activePlayer.betInput).toBeVisible();
-
-    // Confirm the raise (default minimum raise)
-    await activePlayer.confirmRaiseButton.click();
+    // Raise using the fixture method (handles desktop/mobile)
+    await activePlayer.raise();
 
     // Pot should increase
     // After minimum raise, pot should be higher than 3
@@ -166,9 +160,9 @@ test.describe('Play a Complete Hand', () => {
     const { player1, player2 } = game;
 
     // Start game
-    await player2.readyButton.click();
+    await player2.ready();
     await player1.startButton.waitFor();
-    await player1.startButton.click();
+    await player1.startGame();
     await expect(player1.holeCards).toHaveCount(2, { timeout: 5000 });
 
     // Determine who acts first

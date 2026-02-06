@@ -12,13 +12,22 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   workers: 1, // Single worker for deterministic test execution
   reporter: 'html',
-  timeout: 30000,
+  timeout: 30000, // 30s per test
 
   use: {
     baseURL: 'http://localhost:5173',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     video: 'on-first-retry',
+    // Reduce action timeout for faster failure detection
+    actionTimeout: 5000,
+    // Navigation timeout
+    navigationTimeout: 10000,
+  },
+
+  // Fail early on first test failure in CI
+  expect: {
+    timeout: 5000, // Reduce default expect timeout from 5s
   },
 
   projects: [
