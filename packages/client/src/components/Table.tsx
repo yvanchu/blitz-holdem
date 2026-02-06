@@ -23,7 +23,7 @@ export default function Table() {
     opponentSeatIndex === 0 ? revealedCards?.seat0 : revealedCards?.seat1;
 
   return (
-    <div className="relative w-full h-full max-w-5xl max-h-[70vh] sm:max-h-[80vh] bg-felt rounded-[40%] sm:rounded-[50%] border-4 sm:border-8 border-amber-900 shadow-2xl flex flex-col items-center justify-between p-3 sm:p-6 lg:p-8">
+    <div className="relative w-full h-full max-w-5xl flex flex-col items-center justify-between py-2 sm:py-4">
       {/* Opponent seat (top) */}
       <div className="relative">
         <Seat

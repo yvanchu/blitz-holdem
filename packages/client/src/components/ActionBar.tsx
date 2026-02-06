@@ -169,123 +169,171 @@ export default function ActionBar({ send }: ActionBarProps) {
 
   return (
     <div className="shrink-0 bg-gray-900/95 backdrop-blur border-t border-gray-700 safe-area-bottom">
-      {/* Raise/Bet panel */}
+      {/* Raise/Bet panel - on mobile overlays the buttons */}
       {showRaisePanel && canRaise && (
-        <div className="px-3 sm:px-4 py-2 sm:py-3 border-b border-gray-700 bg-gray-800/50">
+        <div className="px-3 sm:px-4 py-3 sm:py-4 border-b sm:border-b border-gray-700 bg-gray-800/95 sm:bg-gray-800/50">
           <div className="max-w-lg mx-auto">
-            {/* Slider with input - values are TOTAL bet amount */}
-            <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
-              <input
-                type="range"
-                min={minTotalBet}
-                max={maxTotalBet}
-                value={Math.max(minTotalBet, Math.min(maxTotalBet, betAmount))}
-                onChange={(e) => {
-                  const val = Number(e.target.value);
-                  setHasUserModified(true);
-                  setBetAmount(val);
-                  setInputValue(String(val));
-                }}
-                className="flex-1 accent-green-500 h-2"
-              />
-              <div className="flex items-center gap-1">
-                <input
-                  type="number"
-                  min={minTotalBet}
-                  max={maxTotalBet}
-                  value={inputValue}
-                  onChange={(e) => handleInputChange(e.target.value)}
-                  onBlur={() => {
-                    // Auto-clamp to max on blur if too high
-                    const num = parseInt(inputValue);
-                    if (isNaN(num)) {
-                      setBetAmount(minTotalBet);
-                      setInputValue(String(minTotalBet));
-                    } else if (num > maxTotalBet) {
-                      setBetAmount(maxTotalBet);
-                      setInputValue(String(maxTotalBet));
-                    } else {
-                      setBetAmount(num);
-                    }
-                  }}
-                  className={`w-20 px-2 py-1 border rounded text-white text-center text-sm ${
-                    !isRaiseTooSmall
-                      ? 'bg-gray-700 border-gray-600'
-                      : 'bg-red-900/50 border-red-500'
-                  }`}
-                />
-                <span className="text-gray-400 text-sm">s</span>
+            {/* Two column layout: big input on left, presets on right */}
+            <div className="flex gap-3 sm:gap-4">
+              {/* Large bet amount display */}
+              <div className="flex-shrink-0">
+                <div className="text-gray-400 text-xs mb-1">Your {isBet ? 'bet' : 'raise'}</div>
+                <div className={`relative ${!isRaiseTooSmall ? 'bg-green-600' : 'bg-red-600'} rounded-lg px-3 py-2 sm:px-4 sm:py-3`}>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    value={inputValue}
+                    onChange={(e) => handleInputChange(e.target.value)}
+                    onBlur={() => {
+                      const num = parseInt(inputValue);
+                      if (isNaN(num)) {
+                        setBetAmount(minTotalBet);
+                        setInputValue(String(minTotalBet));
+                      } else if (num > maxTotalBet) {
+                        setBetAmount(maxTotalBet);
+                        setInputValue(String(maxTotalBet));
+                      } else {
+                        setBetAmount(num);
+                      }
+                    }}
+                    className="w-20 sm:w-24 bg-transparent text-white text-2xl sm:text-3xl font-bold text-center outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  />
+                </div>
+              </div>
+
+              {/* Presets and slider */}
+              <div className="flex-1 flex flex-col gap-2">
+                {/* Preset buttons */}
+                <div className="grid grid-cols-5 gap-1.5 sm:gap-2">
+                  <button
+                    onClick={() => setPreset(currentBet + Math.floor(pot / 3))}
+                    className="px-1 py-1.5 sm:py-2 text-[10px] sm:text-xs bg-gray-700 hover:bg-gray-600 text-white rounded font-medium uppercase"
+                  >
+                    1/3 Pot
+                  </button>
+                  <button
+                    onClick={() => setPreset(currentBet + Math.floor((pot * 3) / 4))}
+                    className="px-1 py-1.5 sm:py-2 text-[10px] sm:text-xs bg-gray-700 hover:bg-gray-600 text-white rounded font-medium uppercase"
+                  >
+                    3/4 Pot
+                  </button>
+                  <button
+                    onClick={() => setPreset(currentBet + pot)}
+                    className="px-1 py-1.5 sm:py-2 text-[10px] sm:text-xs bg-gray-700 hover:bg-gray-600 text-white rounded font-medium uppercase"
+                  >
+                    Pot
+                  </button>
+                  <button
+                    onClick={() => setPreset(currentBet + Math.floor((pot * 3) / 2))}
+                    className="px-1 py-1.5 sm:py-2 text-[10px] sm:text-xs bg-gray-700 hover:bg-gray-600 text-white rounded font-medium uppercase"
+                  >
+                    3/2 Pot
+                  </button>
+                  <button
+                    onClick={() => setPreset(maxTotalBet)}
+                    className="px-1 py-1.5 sm:py-2 text-[10px] sm:text-xs bg-gray-700 hover:bg-gray-600 text-white rounded font-medium uppercase"
+                  >
+                    All In
+                  </button>
+                </div>
+
+                {/* Slider */}
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setPreset(Math.max(minTotalBet, betAmount - 1))}
+                    className="w-8 h-8 flex items-center justify-center bg-gray-700 hover:bg-gray-600 text-white rounded text-lg font-bold"
+                  >
+                    −
+                  </button>
+                  <input
+                    type="range"
+                    min={minTotalBet}
+                    max={maxTotalBet}
+                    value={Math.max(minTotalBet, Math.min(maxTotalBet, betAmount))}
+                    onChange={(e) => {
+                      const val = Number(e.target.value);
+                      setHasUserModified(true);
+                      setBetAmount(val);
+                      setInputValue(String(val));
+                    }}
+                    className="flex-1 accent-green-500 h-2"
+                  />
+                  <button
+                    onClick={() => setPreset(Math.min(maxTotalBet, betAmount + 1))}
+                    className="w-8 h-8 flex items-center justify-center bg-gray-700 hover:bg-gray-600 text-white rounded text-lg font-bold"
+                  >
+                    +
+                  </button>
+                </div>
               </div>
             </div>
 
-            {/* Preset buttons - pot-based presets add to current bet to get total */}
-            <div className="grid grid-cols-5 gap-2">
+            {/* Back and Confirm buttons on mobile */}
+            <div className="flex gap-2 mt-3 sm:hidden">
               <button
-                onClick={() => setPreset(minTotalBet)}
-                className="px-2 py-2 text-xs sm:text-sm bg-gray-700 hover:bg-gray-600 text-white rounded font-medium uppercase"
+                onClick={() => setShowRaisePanel(false)}
+                className="flex-1 py-2.5 rounded-lg font-semibold text-sm uppercase border-2 border-gray-600 text-gray-400"
               >
-                Min Raise
+                Back
               </button>
               <button
-                onClick={() => setPreset(currentBet + Math.floor(pot / 2))}
-                className="px-2 py-2 text-xs sm:text-sm bg-gray-700 hover:bg-gray-600 text-white rounded font-medium uppercase"
+                onClick={() => {
+                  if (isRaiseTooSmall) return;
+                  const raiseAmount = betAmount - yourCurrentBet;
+                  if (betAmount >= maxTotalBet) {
+                    sendAction('all-in', raiseAmount);
+                  } else {
+                    sendAction(isBet ? 'bet' : 'raise', raiseAmount);
+                  }
+                }}
+                disabled={isRaiseTooSmall}
+                className={`flex-1 py-2.5 rounded-lg font-semibold text-sm uppercase border-2 ${
+                  !isRaiseTooSmall
+                    ? 'border-green-500 bg-green-500/20 text-green-400'
+                    : 'border-red-500 bg-red-500/20 text-red-400'
+                }`}
               >
-                1/2 Pot
-              </button>
-              <button
-                onClick={() => setPreset(currentBet + Math.floor((pot * 3) / 4))}
-                className="px-2 py-2 text-xs sm:text-sm bg-gray-700 hover:bg-gray-600 text-white rounded font-medium uppercase"
-              >
-                3/4 Pot
-              </button>
-              <button
-                onClick={() => setPreset(currentBet + pot)}
-                className="px-2 py-2 text-xs sm:text-sm bg-gray-700 hover:bg-gray-600 text-white rounded font-medium uppercase"
-              >
-                Pot
-              </button>
-              <button
-                onClick={() => setPreset(maxTotalBet)}
-                className="px-2 py-2 text-xs sm:text-sm bg-gray-700 hover:bg-gray-600 text-white rounded font-medium uppercase"
-              >
-                All In
+                {isBet ? 'Bet' : 'Raise'}
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Main buttons */}
-      <div className="px-3 sm:px-4 py-2 sm:py-3">
-        {/* Auto All-In checkbox */}
-        <div className="max-w-lg mx-auto mb-2 sm:mb-3">
-          <label
-            className={`
-              flex items-center gap-2 cursor-pointer select-none
-              px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg border-2 transition-all
-              ${
-                autoAllIn
-                  ? 'border-yellow-500 bg-yellow-500/20 text-yellow-400'
-                  : 'border-gray-600 text-gray-400 hover:border-gray-500'
-              }
-            `}
-          >
-            <input
-              type="checkbox"
-              checked={autoAllIn}
-              onChange={(e) => setAutoAllIn(e.target.checked)}
-              className="w-4 h-4 accent-yellow-500"
-            />
-            <span className="text-xs sm:text-sm font-medium">
-              Auto All-In
-              {autoAllIn && (
-                <span className="ml-2 text-xs text-yellow-500/80 hidden sm:inline">
-                  (Will go all-in on your turn)
-                </span>
-              )}
-            </span>
-          </label>
-        </div>
+      {/* Main buttons - hidden on mobile when raise panel is open */}
+      <div className={`px-3 sm:px-4 py-2 sm:py-3 ${showRaisePanel ? 'hidden sm:block' : ''}`}>
+        {/* Auto All-In checkbox - hidden when raise panel is open */}
+        {!showRaisePanel && (
+          <div className="max-w-lg mx-auto mb-2 sm:mb-3">
+            <label
+              className={`
+                flex items-center gap-2 cursor-pointer select-none
+                px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg border-2 transition-all
+                ${
+                  autoAllIn
+                    ? 'border-yellow-500 bg-yellow-500/20 text-yellow-400'
+                    : 'border-gray-600 text-gray-400 hover:border-gray-500'
+                }
+              `}
+            >
+              <input
+                type="checkbox"
+                checked={autoAllIn}
+                onChange={(e) => setAutoAllIn(e.target.checked)}
+                className="w-4 h-4 accent-yellow-500"
+              />
+              <span className="text-xs sm:text-sm font-medium">
+                Auto All-In
+                {autoAllIn && (
+                  <span className="ml-2 text-xs text-yellow-500/80 hidden sm:inline">
+                    (Will go all-in on your turn)
+                  </span>
+                )}
+              </span>
+            </label>
+          </div>
+        )}
 
         <div className="max-w-lg mx-auto grid grid-cols-4 gap-1.5 sm:gap-2">
           {/* CALL button */}
