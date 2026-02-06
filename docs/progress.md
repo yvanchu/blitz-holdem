@@ -32,12 +32,12 @@
 
 ### Important (Should Fix or implement)
 
-- [ ] Add loading states for network operations
-- [ ] Add error messages for failed actions
+- [x] Add loading states for network operations
+- [x] Add error messages for failed actions
 - [ ] Mobile testing on real devices (iOS Safari, Android Chrome)
-- [ ] Handle browser back button gracefully
-- [ ] Rematch button
-- [ ] Victory counter (for each game not hand)
+- [x] Handle browser back button gracefully
+- [x] Rematch button
+- [x] Victory counter (for each game not hand)
 - [ ] Basic ledger for hand history sharing
 
 ### Nice to Have (Post-Launch)
@@ -93,6 +93,12 @@
 - [x] "Show Cards" button after hand ends
 - [x] Auto-clamp raise to all-in when exceeding max
 - [x] Stable table layout (prevents card bouncing)
+- [x] Game over overlay with victory/defeat state
+- [x] Session wins counter (tracks games won)
+- [x] Rematch functionality (resets time banks)
+- [x] Error messages for failed actions
+- [x] Browser back button warning during game
+- [x] Disconnected player indicator
 
 ### UI/UX Polish
 
@@ -180,6 +186,18 @@ The `shouldShowCards` condition required `result.showdown` to be true, but volun
 ---
 
 ## Session Log
+
+### 2026-02-07
+
+- Fixed `allowedHosts: ['all']` security issue in vite.config.ts
+- Added disconnected player indicator (grayed out with "Disconnected" badge)
+- Added error messages for failed room creation on HomePage
+- Improved error UI on TablePage with "Back to Home" button
+- Added browser back button warning when game in progress
+- Implemented game over detection (GAME_OVER message when time runs out)
+- Added GameOverOverlay component with victory/defeat UI
+- Implemented session wins tracking (games won per player)
+- Added rematch functionality (resets time banks, returns to lobby state)
 
 ### 2026-02-05 / 2026-02-06
 
