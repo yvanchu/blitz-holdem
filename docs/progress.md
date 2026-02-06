@@ -26,9 +26,9 @@
 
 ### Critical (Must Fix Before Public Release)
 
-- [ ] **SECURITY**: Remove `allowedHosts: ['all']` from vite.config.ts (added for ngrok testing)
+- [x] **SECURITY**: Remove `allowedHosts: ['all']` from vite.config.ts (added for ngrok testing)
 - [ ] End-to-end testing with real users (2-player full game)
-- [ ] Error handling for edge cases (network drops mid-hand, etc.)
+- [x] Error handling for edge cases (network drops mid-hand, etc.)
 
 ### Important (Should Fix)
 

@@ -302,6 +302,13 @@ function PlayerInfo({
           FOLD
         </div>
       )}
+
+      {/* Disconnected indicator */}
+      {!player.isConnected && (
+        <div className="absolute -left-1 sm:-left-2 -bottom-1 sm:-bottom-2 px-1.5 sm:px-2 py-0.5 rounded-full bg-orange-600 text-white text-[10px] sm:text-xs font-bold animate-pulse">
+          AWAY
+        </div>
+      )}
     </div>
   );
 }
