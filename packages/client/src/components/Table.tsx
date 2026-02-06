@@ -27,6 +27,8 @@ export default function Table({ send }: TableProps) {
     readyState,
     handNumber,
     sessionWins,
+    gameOver,
+    clearGameOver,
   } = useGameStore();
   const yourPlayer = useGameStore(selectYourPlayer);
   const opponentPlayer = useGameStore(selectOpponentPlayer);
@@ -49,6 +51,9 @@ export default function Table({ send }: TableProps) {
   // Opponent is considered "joined" only when they've clicked Ready
   const opponentJoined = opponentPlayer !== null && opponentReady;
 
+  // Game over state (match ended - someone ran out of time)
+  const isGameOver = gameOver !== null;
+
   // Handler for copy link
   const handleCopyLink = async () => {
     await navigator.clipboard.writeText(window.location.href);
@@ -57,6 +62,12 @@ export default function Table({ send }: TableProps) {
   // Handler for start game (no force needed since opponent must be ready)
   const handleStart = () => {
     send({ type: 'START' });
+  };
+
+  // Handler for rematch
+  const handleRematch = () => {
+    clearGameOver();
+    send({ type: 'REMATCH' });
   };
 
   return (
@@ -74,9 +85,71 @@ export default function Table({ send }: TableProps) {
         />
       </div>
 
-      {/* Community cards & pot (center) OR Lobby controls */}
+      {/* Community cards & pot (center) OR Lobby/GameOver controls */}
       <div className="flex flex-col items-center gap-2 sm:gap-4">
-        {isInLobby ? (
+        {isGameOver ? (
+          /* Game Over controls - similar style to lobby */
+          <div className="flex flex-col items-center gap-4">
+            {/* Winner announcement */}
+            <div className="text-center">
+              <div className="text-4xl mb-2">
+                {gameOver.winnerSeatIndex === yourSeatIndex ? '🏆' : '😔'}
+              </div>
+              <p className="text-lg font-semibold text-white">
+                {gameOver.winnerSeatIndex === yourSeatIndex
+                  ? 'You Win!'
+                  : `${opponentPlayer?.alias || 'Opponent'} Wins!`}
+              </p>
+
+            </div>
+
+            {/* Session score */}
+            <div className="flex items-center gap-4 text-sm">
+              <span className={yourSeatIndex === 0 ? 'text-cyan-400 font-bold' : 'text-gray-300'}>
+                {sessionWins[0]}
+              </span>
+              <span className="text-gray-500">–</span>
+              <span className={yourSeatIndex === 1 ? 'text-cyan-400 font-bold' : 'text-gray-300'}>
+                {sessionWins[1]}
+              </span>
+            </div>
+
+            {/* Controls */}
+            {isOwner ? (
+              /* Host controls */
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={handleRematch}
+                  className="px-6 py-3 bg-cyan-600 hover:bg-cyan-500 text-white font-semibold rounded-lg shadow-lg transition-colors"
+                >
+                  🔄 Rematch
+                </button>
+                <button
+                  onClick={() => setShowSettings(true)}
+                  className="p-3 bg-gray-700 hover:bg-gray-600 text-white font-medium rounded-lg transition-colors"
+                  title="Settings"
+                >
+                  ⚙️
+                </button>
+              </div>
+            ) : (
+              /* Joiner controls */
+              <div className="flex flex-col items-center gap-3">
+                {yourReady ? (
+                  <p className="text-gray-400 text-sm">Waiting for host to start rematch...</p>
+                ) : (
+                  <button
+                    onClick={handleRematch}
+                    className="px-6 py-3 bg-cyan-600 hover:bg-cyan-500 text-white font-semibold rounded-lg shadow-lg transition-colors"
+                  >
+                    🔄 Rematch?
+                  </button>
+                )}
+              </div>
+            )}
+
+          </div>
+        ) : isInLobby ? (
           /* Lobby controls */
           <div className="flex flex-col items-center gap-4">
             {isOwner ? (

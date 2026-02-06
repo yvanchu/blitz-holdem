@@ -493,25 +493,6 @@ function resolveShowdown(state: TableState, _deck: Card[]): ActionResult {
 
   const comparison = compareHands(hand0, hand1);
 
-  let winnerId: string;
-  let winnerHandRank: string;
-  let winningCards: Card[];
-
-  if (comparison > 0) {
-    winnerId = p0.id;
-    winnerHandRank = hand0.rankName;
-    winningCards = hand0.cards;
-  } else if (comparison < 0) {
-    winnerId = p1.id;
-    winnerHandRank = hand1.rankName;
-    winningCards = hand1.cards;
-  } else {
-    // Tie - split pot (for MVP, give to player 0)
-    winnerId = p0.id;
-    winnerHandRank = hand0.rankName + ' (split)';
-    winningCards = hand0.cards;
-  }
-
   // Determine who shows first:
   // - If there was a river aggressor, they show first
   // - Otherwise, out of position (non-dealer) shows first
@@ -523,7 +504,16 @@ function resolveShowdown(state: TableState, _deck: Card[]): ActionResult {
     firstToShow = state.dealerIndex === 0 ? 1 : 0;
   }
 
-  return endHand(state, winnerId, true, winnerHandRank, winningCards, firstToShow);
+  if (comparison > 0) {
+    // Player 0 wins outright
+    return endHand(state, p0.id, true, hand0.rankName, hand0.cards, firstToShow);
+  } else if (comparison < 0) {
+    // Player 1 wins outright
+    return endHand(state, p1.id, true, hand1.rankName, hand1.cards, firstToShow);
+  } else {
+    // Tie - split pot
+    return endHandSplit(state, hand0.rankName, hand0.cards, firstToShow);
+  }
 }
 
 function endHand(
@@ -560,6 +550,56 @@ function endHand(
     activePlayerIndex: null,
     street: 'showdown',
     winner: winnerId,
+  };
+
+  return { state: newState, deck: [], handResult };
+}
+
+function endHandSplit(
+  state: TableState,
+  handRank: string,
+  winningCards: Card[],
+  firstToShow: 0 | 1
+): ActionResult {
+  const p0 = state.players[0]!;
+  const p1 = state.players[1]!;
+
+  // Split pot evenly - handle odd chip by giving to player out of position (non-dealer)
+  const halfPot = Math.floor(state.pot / 2);
+  const remainder = state.pot % 2;
+  const outOfPositionIndex = state.dealerIndex === 0 ? 1 : 0;
+
+  const p0Award = halfPot + (outOfPositionIndex === 0 ? remainder : 0);
+  const p1Award = halfPot + (outOfPositionIndex === 1 ? remainder : 0);
+
+  const updatedP0 = awardPot(p0, p0Award);
+  const updatedP1 = awardPot(p1, p1Award);
+
+  const updatedPlayers: [Player | null, Player | null] = [updatedP0, updatedP1];
+
+  const handResult: HandResult = {
+    winnerId: p0.id, // Primary winner for backwards compatibility
+    winnerHandRank: handRank + ' (split)',
+    potAwarded: p0Award, // Amount to primary winner
+    showdown: true,
+    winningCards,
+    firstToShow,
+    isSplit: true,
+    splitWinners: [
+      { playerId: p0.id, amount: p0Award },
+      { playerId: p1.id, amount: p1Award },
+    ],
+  };
+
+  const newState: TableState = {
+    ...state,
+    players: updatedPlayers,
+    pot: 0,
+    currentBet: 0,
+    isHandInProgress: false,
+    activePlayerIndex: null,
+    street: 'showdown',
+    winner: null, // No single winner on split
   };
 
   return { state: newState, deck: [], handResult };

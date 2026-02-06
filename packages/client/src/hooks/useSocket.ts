@@ -1,5 +1,6 @@
 import { useEffect, useRef, useCallback, useState } from 'react';
 import { useGameStore } from '../store/gameStore';
+import { useHandHistoryStore } from '../store/handHistoryStore';
 import type { C2SMessage, S2CMessage } from '@blitz-holdem/common';
 
 export function useSocket(_roomId: string) {
@@ -112,6 +113,7 @@ export function useSocket(_roomId: string) {
 
 function handleMessage(message: S2CMessage) {
   const store = useGameStore.getState();
+  const historyStore = useHandHistoryStore.getState();
 
   switch (message.type) {
     case 'ROOM_STATE':
@@ -138,7 +140,7 @@ function handleMessage(message: S2CMessage) {
       store.syncServerTime(message.serverTime);
       break;
 
-    case 'HAND_START':
+    case 'HAND_START': {
       store.setRoomState({
         handNumber: message.handNumber,
         dealerIndex: message.dealerIndex,
@@ -151,7 +153,26 @@ function handleMessage(message: S2CMessage) {
       store.updatePlayers(message.players);
       store.clearResult();
       store.syncServerTime(message.serverTime);
+
+      // Start recording hand history
+      const gameState = useGameStore.getState();
+      if (gameState.yourSeatIndex !== null && gameState.yourPlayerId && gameState.settings) {
+        historyStore.startNewHand({
+          handNumber: message.handNumber,
+          roomId: gameState.roomId || 'unknown',
+          dealerSeat: message.dealerIndex,
+          heroSeatIndex: gameState.yourSeatIndex,
+          heroPlayerId: gameState.yourPlayerId,
+          players: message.players.map((p) =>
+            p ? { id: p.id, alias: p.alias, timeBank: p.timeBank, seatIndex: p.seatIndex } : null
+          ),
+          smallBlind: gameState.settings.smallBlind,
+          bigBlind: gameState.settings.bigBlind,
+          heroHoleCards: message.holeCards,
+        });
+      }
       break;
+    }
 
     case 'TURN':
       store.setRoomState({
@@ -168,23 +189,57 @@ function handleMessage(message: S2CMessage) {
       store.syncServerTime(message.serverTime);
       break;
 
-    case 'ACTION_CONFIRM':
+    case 'ACTION_CONFIRM': {
       store.updatePlayers(message.players);
       store.setRoomState({ pot: message.pot, currentBet: message.currentBet });
       store.syncServerTime(message.serverTime);
+
+      // Record action in hand history
+      const actionPlayer = message.players.find((p) => p.id === message.playerId);
+      if (actionPlayer) {
+        historyStore.recordAction({
+          playerId: message.playerId,
+          action: message.action,
+          amount: message.amount,
+          isAllIn: actionPlayer.isAllIn,
+        });
+      }
       break;
+    }
 
     case 'STREET':
       store.setStreet(message.street, message.communityCards);
       store.setRoomState({ pot: message.pot, currentBet: message.currentBet });
       store.syncServerTime(message.serverTime);
+
+      // Record street change in hand history
+      historyStore.recordStreet(message.street, message.communityCards);
       break;
 
-    case 'RESULT':
+    case 'RESULT': {
       store.setResult(message.result, message.revealedCards, message.communityCards);
       store.updatePlayers(message.players);
       store.syncServerTime(message.serverTime);
+
+      // Record revealed cards
+      if (message.revealedCards.seat0) {
+        historyStore.recordRevealedCards(0, message.revealedCards.seat0);
+      }
+      if (message.revealedCards.seat1) {
+        historyStore.recordRevealedCards(1, message.revealedCards.seat1);
+      }
+
+      // Finalize hand history
+      historyStore.finalizeHand({
+        winnerId: message.result.winnerId,
+        winnerHandRank: message.result.winnerHandRank,
+        potAwarded: message.result.potAwarded,
+        communityCards: message.communityCards,
+        isSplit: message.result.isSplit,
+        splitWinners: message.result.splitWinners,
+      });
       break;
+    }
 
     case 'PLAYERS_UPDATE':
       // Full player state update (used after refunds)
@@ -244,12 +299,21 @@ function handleMessage(message: S2CMessage) {
 
     case 'CARDS_SHOWN':
       store.revealCardsForSeat(message.seatIndex, message.cards);
+      // Record revealed cards in hand history
+      historyStore.recordRevealedCards(message.seatIndex, message.cards);
       break;
 
     case 'ALL_IN_SHOWDOWN':
       // Set revealed cards for all-in runout (both players' cards visible)
       store.setRevealedCards(message.revealedCards);
       store.syncServerTime(message.serverTime);
+      // Record all revealed cards
+      if (message.revealedCards.seat0) {
+        historyStore.recordRevealedCards(0, message.revealedCards.seat0);
+      }
+      if (message.revealedCards.seat1) {
+        historyStore.recordRevealedCards(1, message.revealedCards.seat1);
+      }
       break;
 
     case 'PLAYER_READY':

@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { createInitialState, addPlayer, startHand, applyAction, getValidActions } from '../engine';
+import { evaluateHand, compareHands } from '../evaluate';
 import type { Player, TableState, Card } from '../types';
 
 // Helper to create a test player
@@ -219,6 +220,49 @@ describe('Engine - Valid Actions', () => {
       const actions = getValidActions(currentState);
       expect(actions).toContain('check');
     }
+  });
+});
+
+describe('Engine - Split Pot', () => {
+  it('should split pot evenly when both players have the same hand', () => {
+    // Set up a game where both players will play the board
+    // Board: Qc 7d Jd 7c Jh (Two pair: Jacks and Sevens with Q kicker)
+    // Hero: 5h 6h -> Best: J J 7 7 Q (board plays)
+    // Villain: 8c 6c -> Best: J J 7 7 Q (board plays)
+    // Expected: Split pot
+
+    // Force specific cards for the showdown scenario
+    const board: Card[] = [
+      { rank: 'Q', suit: 'c' },
+      { rank: '7', suit: 'd' },
+      { rank: 'J', suit: 'd' },
+      { rank: '7', suit: 'c' },
+      { rank: 'J', suit: 'h' },
+    ];
+    
+    const hero: [Card, Card] = [
+      { rank: '5', suit: 'h' },
+      { rank: '6', suit: 'h' },
+    ];
+    
+    const villain: [Card, Card] = [
+      { rank: '8', suit: 'c' },
+      { rank: '6', suit: 'c' },
+    ];
+
+    const heroCards = [...hero, ...board];
+    const villainCards = [...villain, ...board];
+    
+    const heroHand = evaluateHand(heroCards);
+    const villainHand = evaluateHand(villainCards);
+    
+    // Both should have the same hand (Two Pair: JJ77Q)
+    expect(heroHand.rankName).toBe('Two Pair');
+    expect(villainHand.rankName).toBe('Two Pair');
+    
+    // Comparison should be 0 (tie)
+    const comparison = compareHands(heroHand, villainHand);
+    expect(comparison).toBe(0);
   });
 });
 

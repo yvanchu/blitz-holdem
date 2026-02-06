@@ -2,7 +2,7 @@
 
 ## Current Status: MVP Complete - Pre-Release
 
-**Last Updated:** February 6, 2026
+**Last Updated:** February 7, 2026
 
 ---
 
@@ -38,10 +38,11 @@
 - [x] Handle browser back button gracefully
 - [x] Rematch button
 - [x] Victory counter (for each game not hand)
-- [ ] Basic text based hand history for the session
+- [x] Basic text based hand history for the session
 
 ### Nice to Have (Post-Launch)
 
+- [ ] Integration tests
 - [ ] Add sound effects (optional, mutable)
 - [ ] Add hand history display
 - [ ] Add equity calculation during all-in runout
@@ -99,6 +100,7 @@
 - [x] Error messages for failed actions
 - [x] Browser back button warning during game
 - [x] Disconnected player indicator
+- [x] Hand History with OHH format export and sharing
 
 ### UI/UX Polish
 
@@ -119,10 +121,11 @@
 
 ### Testing
 
-- [x] Unit tests for game engine (9 tests)
+- [x] Unit tests for game engine (10 tests)
 - [x] Unit tests for hand evaluator (20 tests)
 - [x] Unit tests for timer mechanics (17 tests)
-- [x] Server tests for show cards feature (4 tests)
+- [x] Server tests for lobby and show cards (20 tests)
+- [x] Client tests for hand history store and formatter (73 tests)
 - [x] Pre-push hooks (typecheck, lint, test, build)
 
 ---
@@ -200,6 +203,28 @@ The `shouldShowCards` condition required `result.showdown` to be true, but volun
 - Added rematch functionality (resets time banks, returns to lobby state)
 - Fixed rematch to properly reset game state (community cards, street, pot cleared)
 - Added in-game session wins badge (yellow circle on player info)
+
+### 2026-02-07
+
+- **Fixed split pot bug**: Pot was incorrectly being awarded to player 0 on ties (had "for MVP, give to player 0" comment)
+- Added proper `endHandSplit()` function that splits pot evenly, odd chip goes to out-of-position player
+- Extended `HandResult` type with `isSplit` and `splitWinners` fields
+- **Implemented Hand History feature**:
+  - Added `open-hand-tracker` library for OHH format compliance
+  - Created `handHistoryStore.ts` with full hand recording (actions, streets, revealed cards)
+  - Created `handHistoryFormatter.ts` for plain text and structured display
+  - Added `HandHistoryButton` with text label and hand count badge
+  - Added `HandHistoryModal` for browsing/sharing/exporting hands
+  - Integrated recording into WebSocket message handlers
+  - Full split pot support in hand history display
+- **UI cleanup**:
+  - Removed redundant "Review Hands" center table button
+  - Removed Leave buttons (users can use browser navigation)
+  - Removed "Opponent ran out of time" text from result overlay
+  - Hand History button only shows after first hand is played
+- Added 73 new client tests (hand history store + formatter)
+- Added split pot engine test
+- Total tests: 140 passing (47 common + 20 server + 73 client)
 
 ### 2026-02-05 / 2026-02-06
 

@@ -70,12 +70,14 @@ export interface TableState {
 }
 
 export interface HandResult {
-  winnerId: string;
+  winnerId: string; // Primary winner (for backwards compatibility) or first player in split
   winnerHandRank: string;
-  potAwarded: number;
+  potAwarded: number; // Amount awarded to primary winner
   showdown: boolean;
   winningCards?: Card[]; // The 5 cards that make the winning hand
   firstToShow?: 0 | 1; // Seat index of player who shows first
+  isSplit?: boolean; // True if pot was split
+  splitWinners?: { playerId: string; amount: number }[]; // All winners and their amounts
 }
 
 export type GamePhase = 'waiting' | 'ready' | 'playing' | 'finished';
