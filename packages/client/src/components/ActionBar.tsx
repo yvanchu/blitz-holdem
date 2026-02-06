@@ -7,12 +7,14 @@ import {
   selectValidActions,
 } from '../store/gameStore';
 import type { ActionType, C2SMessage } from '@blitz-holdem/common';
+import { HandHistoryButton } from './HandHistoryButton';
 
 interface ActionBarProps {
   send: (message: C2SMessage) => void;
+  isHandInProgress: boolean;
 }
 
-export default function ActionBar({ send }: ActionBarProps) {
+export default function ActionBar({ send, isHandInProgress }: ActionBarProps) {
   const { minRaise, currentBet, pot } = useGameStore();
   const yourPlayer = useGameStore(selectYourPlayer);
   const isYourTurn = useGameStore(selectIsYourTurn);
@@ -141,12 +143,23 @@ export default function ActionBar({ send }: ActionBarProps) {
     currentBet,
   ]);
 
-  if (!yourPlayer) return null;
+  if (!yourPlayer) {
+    // Return minimal action bar with just Hand History when no player (shouldn't normally happen)
+    return (
+      <div className="shrink-0 bg-gray-900/95 backdrop-blur border-t border-gray-700 safe-area-bottom">
+        <div className="px-3 sm:px-4 py-2 sm:py-3">
+          <div className="max-w-lg mx-auto">
+            <HandHistoryButton />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
-  const canCall = validActions.includes('call');
-  const canCheck = validActions.includes('check');
-  const canRaise = validActions.includes('bet') || validActions.includes('raise');
-  const canFold = validActions.includes('fold');
+  const canCall = isHandInProgress && validActions.includes('call');
+  const canCheck = isHandInProgress && validActions.includes('check');
+  const canRaise = isHandInProgress && (validActions.includes('bet') || validActions.includes('raise'));
+  const canFold = isHandInProgress && validActions.includes('fold');
   const isBet = currentBet === 0; // True if this is a bet, false if it's a raise
 
   // Handle input change for exact amount - clamp to max if too high, allow low values for red indicator
@@ -311,35 +324,38 @@ export default function ActionBar({ send }: ActionBarProps) {
 
       {/* Main buttons - hidden on mobile when raise panel is open */}
       <div className={`px-3 sm:px-4 py-2 sm:py-3 ${showRaisePanel ? 'hidden sm:block' : ''}`}>
-        {/* Auto All-In checkbox - hidden when raise panel is open */}
+        {/* Hand History Button + Auto All-In checkbox row - hidden when raise panel is open */}
         {!showRaisePanel && (
-          <div className="max-w-lg mx-auto mb-2 sm:mb-3">
-            <label
-              className={`
-                flex items-center gap-2 cursor-pointer select-none
-                px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg border-2 transition-all
-                ${
-                  autoAllIn
-                    ? 'border-yellow-500 bg-yellow-500/20 text-yellow-400'
-                    : 'border-gray-600 text-gray-400 hover:border-gray-500'
-                }
-              `}
-            >
-              <input
-                type="checkbox"
-                checked={autoAllIn}
-                onChange={(e) => setAutoAllIn(e.target.checked)}
-                className="w-4 h-4 accent-yellow-500"
-              />
-              <span className="text-xs sm:text-sm font-medium">
-                Auto All-In
-                {autoAllIn && (
-                  <span className="ml-2 text-xs text-yellow-500/80 hidden sm:inline">
-                    (Will go all-in on your turn)
-                  </span>
-                )}
-              </span>
-            </label>
+          <div className="max-w-lg mx-auto mb-2 sm:mb-3 flex items-center gap-2">
+            <HandHistoryButton />
+            {isHandInProgress && (
+              <label
+                className={`
+                  flex items-center gap-2 cursor-pointer select-none flex-1
+                  px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg border-2 transition-all
+                  ${
+                    autoAllIn
+                      ? 'border-yellow-500 bg-yellow-500/20 text-yellow-400'
+                      : 'border-gray-600 text-gray-400 hover:border-gray-500'
+                  }
+                `}
+              >
+                <input
+                  type="checkbox"
+                  checked={autoAllIn}
+                  onChange={(e) => setAutoAllIn(e.target.checked)}
+                  className="w-4 h-4 accent-yellow-500"
+                />
+                <span className="text-xs sm:text-sm font-medium">
+                  Auto All-In
+                  {autoAllIn && (
+                    <span className="ml-2 text-xs text-yellow-500/80 hidden sm:inline">
+                      (Will go all-in on your turn)
+                    </span>
+                  )}
+                </span>
+              </label>
+            )}
           </div>
         )}
 

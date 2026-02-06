@@ -4,7 +4,6 @@ import { useGameStore } from '../store/gameStore';
 import { useSocket } from '../hooks/useSocket';
 import Table from '../components/Table';
 import ActionBar from '../components/ActionBar';
-import { HandHistoryButton } from '../components/HandHistoryButton';
 import { HandHistoryModal } from '../components/HandHistoryModal';
 
 export default function TablePage() {
@@ -85,11 +84,6 @@ export default function TablePage() {
       {/* Hand History Modal */}
       <HandHistoryModal />
 
-      {/* Hand History Button - positioned above action bar */}
-      <div className="fixed bottom-20 sm:bottom-24 left-3 sm:left-4 z-20">
-        <HandHistoryButton />
-      </div>
-
       {/* Stakes display for joiner - top right */}
       {isJoiner && settings && (
         <div className="absolute top-3 right-3 z-10">
@@ -107,8 +101,8 @@ export default function TablePage() {
         <Table send={send} />
       </div>
 
-      {/* Action bar */}
-      {isHandInProgress && <ActionBar send={send} />}
+      {/* Action bar - always visible for consistent layout */}
+      <ActionBar send={send} isHandInProgress={isHandInProgress} />
     </div>
   );
 }
