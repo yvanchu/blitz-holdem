@@ -986,19 +986,50 @@ export class TableController {
     // Reset time banks for both players
     for (const [, connected] of this.players) {
       connected.player.timeBank = this.state.settings.initialTimeBank;
+      connected.player.holeCards = null;
+      connected.player.currentBet = 0;
+      connected.player.folded = false;
+      connected.player.isAllIn = false;
+      connected.player.hasActedThisStreet = false;
       connected.isReady = false;
     }
 
-    // Update state players array
+    // Reset the full game state for a new game
     this.state = {
       ...this.state,
       players: this.state.players.map((p) =>
-        p ? { ...p, timeBank: this.state.settings.initialTimeBank } : null
+        p
+          ? {
+              ...p,
+              timeBank: this.state.settings.initialTimeBank,
+              holeCards: null,
+              currentBet: 0,
+              folded: false,
+              isAllIn: false,
+              hasActedThisStreet: false,
+            }
+          : null
       ) as [Player | null, Player | null],
+      isHandInProgress: false,
+      handNumber: 0,
+      street: 'preflop',
+      communityCards: [],
+      pot: 0,
+      currentBet: 0,
+      minRaise: this.state.settings.bigBlind,
+      activePlayerIndex: null,
+      lastAggressorIndex: null,
+      lastRaiseAmount: 0,
     };
 
-    // Clear rematch requests and game state
+    // Clear rematch requests and last hand data
     this.rematchRequests.clear();
+    this.lastHandHoleCards = {
+      seat0: null,
+      seat1: null,
+      alreadyShown: new Set(),
+      showdown: false,
+    };
 
     // Broadcast ready states reset
     this.broadcastPlayerReady(0, false);

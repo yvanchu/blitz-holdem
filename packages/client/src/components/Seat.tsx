@@ -15,6 +15,7 @@ interface SeatProps {
   winningCards?: Card[]; // Cards that make the winning hand
   isSetupMode?: boolean; // Show name input + ready button (for joiner before clicking ready)
   onReady?: (alias: string) => void; // Called when ready button clicked in setup mode
+  wins?: number; // Session wins count for this player
 }
 
 // Helper to check if a card is part of the winning hand
@@ -33,6 +34,7 @@ export default function Seat({
   winningCards,
   isSetupMode = false,
   onReady,
+  wins = 0,
 }: SeatProps) {
   const { activePlayerIndex, result, communityCards, street, settings } = useGameStore();
   const [aliasInput, setAliasInput] = useState('');
@@ -193,7 +195,7 @@ export default function Seat({
           )}
 
           {/* Player info */}
-          <PlayerInfo player={player} isActive={isActive} isDealer={isDealer} result={result} />
+          <PlayerInfo player={player} isActive={isActive} isDealer={isDealer} result={result} wins={wins} />
 
           {/* Bet chip - at bottom for opponent (closest to center) */}
           <BetChip />
@@ -207,7 +209,7 @@ export default function Seat({
           <BetChip />
 
           {/* Player info */}
-          <PlayerInfo player={player} isActive={isActive} isDealer={isDealer} result={result} />
+          <PlayerInfo player={player} isActive={isActive} isDealer={isDealer} result={result} wins={wins} />
 
           {/* Cards with hand strength badge - hidden in lobby mode */}
           {!hideCards && (
@@ -250,11 +252,13 @@ function PlayerInfo({
   isActive,
   isDealer,
   result,
+  wins = 0,
 }: {
   player: PlayerPublic;
   isActive: boolean;
   isDealer: boolean;
   result: { winnerId: string; potAwarded: number } | null;
+  wins?: number;
 }) {
   return (
     <div
@@ -307,6 +311,13 @@ function PlayerInfo({
       {!player.isConnected && (
         <div className="absolute -left-1 sm:-left-2 -bottom-1 sm:-bottom-2 px-1.5 sm:px-2 py-0.5 rounded-full bg-orange-600 text-white text-[10px] sm:text-xs font-bold animate-pulse">
           AWAY
+        </div>
+      )}
+
+      {/* Wins counter badge - bottom right (like dealer button style) */}
+      {wins > 0 && (
+        <div className="absolute -right-1 sm:-right-2 -bottom-1 sm:-bottom-2 w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-yellow-500 text-black text-[10px] sm:text-xs font-bold flex items-center justify-center shadow-lg">
+          {wins}
         </div>
       )}
     </div>

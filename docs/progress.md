@@ -38,7 +38,7 @@
 - [x] Handle browser back button gracefully
 - [x] Rematch button
 - [x] Victory counter (for each game not hand)
-- [ ] Basic ledger for hand history sharing
+- [ ] Basic text based hand history for the session
 
 ### Nice to Have (Post-Launch)
 

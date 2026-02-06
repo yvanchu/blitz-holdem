@@ -131,6 +131,10 @@ function handleMessage(message: S2CMessage) {
         handNumber: message.handNumber,
         isHandInProgress: message.isHandInProgress,
       });
+      // Clear result/revealedCards when returning to lobby (rematch or initial join)
+      if (!message.isHandInProgress && message.handNumber === 0) {
+        store.clearResult();
+      }
       store.syncServerTime(message.serverTime);
       break;
 

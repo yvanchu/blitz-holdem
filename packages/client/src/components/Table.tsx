@@ -26,6 +26,7 @@ export default function Table({ send }: TableProps) {
     isHandInProgress,
     readyState,
     handNumber,
+    sessionWins,
   } = useGameStore();
   const yourPlayer = useGameStore(selectYourPlayer);
   const opponentPlayer = useGameStore(selectOpponentPlayer);
@@ -69,6 +70,7 @@ export default function Table({ send }: TableProps) {
           hideCards={isInLobby}
           revealedCards={opponentRevealedCards}
           winningCards={winningCards}
+          wins={sessionWins[opponentSeatIndex]}
         />
       </div>
 
@@ -173,6 +175,7 @@ export default function Table({ send }: TableProps) {
             }
             send({ type: 'READY' });
           }}
+          wins={sessionWins[yourSeatIndex ?? 0]}
         />
         {/* Show Cards button - visible after hand ends when cards not yet revealed */}
         {result && !isHandInProgress && !result.showdown && !yourRevealedCards && (
