@@ -2,7 +2,7 @@
 // Game Engine - Pure State Management for Blitz Hold'em
 // ─────────────────────────────────────────────────────────────
 
-import type { Action, ActionType, Card, HandResult, Player, Street, TableState } from './types';
+import type { Action, ActionType, Card, HandResult, Player, Street, TableSettings, TableState } from './types';
 import { DEFAULT_SETTINGS } from './types';
 import { createDeck, dealCards, shuffle } from './deck';
 import { compareHands, evaluateHand } from './evaluate';
@@ -12,7 +12,8 @@ import { awardPot, canAfford, commitSeconds } from './timer';
 // State Initialization
 // ─────────────────────────────────────────────────────────────
 
-export function createInitialState(roomId: string): TableState {
+export function createInitialState(roomId: string, settingsOverrides?: Partial<TableSettings>): TableState {
+  const settings = { ...DEFAULT_SETTINGS, ...settingsOverrides };
   return {
     roomId,
     players: [null, null],
@@ -22,10 +23,10 @@ export function createInitialState(roomId: string): TableState {
     communityCards: [],
     pot: 0,
     currentBet: 0,
-    minRaise: DEFAULT_SETTINGS.bigBlind,
-    lastRaiseAmount: DEFAULT_SETTINGS.bigBlind,
+    minRaise: settings.bigBlind,
+    lastRaiseAmount: settings.bigBlind,
     lastAggressorIndex: null,
-    settings: { ...DEFAULT_SETTINGS },
+    settings,
     handNumber: 0,
     isHandInProgress: false,
     lastActionTimestamp: Date.now(),

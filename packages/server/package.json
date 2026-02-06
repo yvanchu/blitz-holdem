@@ -10,7 +10,9 @@
     "build": "tsc",
     "typecheck": "tsc --noEmit",
     "test": "vitest run --passWithNoTests",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "test:integration": "vitest run --dir src/__tests__/integration",
+    "test:all": "vitest run"
   },
   "dependencies": {
     "@blitz-holdem/common": "workspace:*",

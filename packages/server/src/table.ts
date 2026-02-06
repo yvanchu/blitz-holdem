@@ -2,6 +2,7 @@ import { WebSocket } from 'ws';
 import { nanoid } from 'nanoid';
 import {
   type TableState,
+  type TableSettings,
   type Player,
   type Card,
   type ActionType,
@@ -9,6 +10,7 @@ import {
   type PlayerPublic,
   createInitialState,
   addPlayer,
+  removePlayer,
   startHand,
   applyAction,
   advanceStreet,
@@ -38,8 +40,8 @@ export class TableController {
     showdown: boolean; // if true, cards were already revealed
   } = { seat0: null, seat1: null, alreadyShown: new Set(), showdown: false };
 
-  constructor(roomId: string) {
-    this.state = createInitialState(roomId);
+  constructor(roomId: string, settingsOverrides?: Partial<TableSettings>) {
+    this.state = createInitialState(roomId, settingsOverrides);
   }
 
   get id(): string {
@@ -186,7 +188,7 @@ export class TableController {
           } else {
             this.broadcastGameOver();
           }
-        }, 6000); // 6 seconds for players to review showdown
+        }, this.state.settings.nextHandDelayMs);
       } else {
         // Check if we need to run out the hand (all-in situation)
         const p0 = this.state.players[0];
@@ -249,24 +251,71 @@ export class TableController {
     this.broadcastPlayerLeft(playerId, connected.player.seatIndex);
     console.log(`Player ${playerId} disconnected`);
 
-    // Grace period - auto-fold after timeout
+    // Grace period - after timeout, either clean up or let tick loop handle auto-actions
     setTimeout(() => {
       const stillDisconnected = this.players.get(playerId);
       if (
         stillDisconnected?.disconnectedAt &&
         Date.now() - stillDisconnected.disconnectedAt >= this.state.settings.disconnectGracePeriod
       ) {
-        // Auto-fold if it's their turn
-        if (
-          this.state.isHandInProgress &&
-          this.state.activePlayerIndex !== null &&
-          this.state.players[this.state.activePlayerIndex]?.id === playerId
-        ) {
-          this.handleAction(playerId, 'fold');
+        if (!this.state.isHandInProgress) {
+          // No hand in progress - clean up the seat immediately
+          this.cleanupDisconnectedPlayer(playerId);
         }
-        this.players.delete(playerId);
+        // If hand is in progress, the tick loop will handle auto-actions
+        // and cleanup will happen after hand ends
       }
     }, this.state.settings.disconnectGracePeriod);
+  }
+
+  /**
+   * Check if a player is disconnected and past the grace period
+   */
+  private isPlayerAbandoned(playerId: string): boolean {
+    const connected = this.players.get(playerId);
+    if (!connected) return true; // Already removed
+    if (!connected.disconnectedAt) return false; // Still connected
+    return Date.now() - connected.disconnectedAt >= this.state.settings.disconnectGracePeriod;
+  }
+
+  /**
+   * Clean up a disconnected player - remove from state and players map
+   */
+  private cleanupDisconnectedPlayer(playerId: string) {
+    const connected = this.players.get(playerId);
+    if (!connected) return;
+
+    console.log(`Cleaning up disconnected player ${playerId}`);
+    this.state = removePlayer(this.state, playerId);
+    this.players.delete(playerId);
+  }
+
+  /**
+   * Clean up any abandoned players after a hand ends
+   */
+  private cleanupAbandonedPlayers() {
+    for (const [playerId, connected] of this.players) {
+      if (connected.disconnectedAt && this.isPlayerAbandoned(playerId)) {
+        this.cleanupDisconnectedPlayer(playerId);
+      }
+    }
+  }
+
+  /**
+   * Auto-act for a disconnected player: check if possible, otherwise fold
+   */
+  private autoActForDisconnectedPlayer(playerId: string) {
+    const validActions = getValidActions(this.state);
+
+    // Take the most passive action: check if available, otherwise fold
+    if (validActions.includes('check')) {
+      console.log(`Auto-check for disconnected player ${playerId}`);
+      this.handleAction(playerId, 'check');
+    } else if (validActions.includes('fold')) {
+      console.log(`Auto-fold for disconnected player ${playerId}`);
+      this.handleAction(playerId, 'fold');
+    }
+    // If neither check nor fold is valid (shouldn't happen), do nothing
   }
 
   updateSettings(
@@ -347,6 +396,9 @@ export class TableController {
   // ─────────────────────────────────────────────────────────────
 
   private canContinue(): boolean {
+    // Clean up any players who disconnected during the hand
+    this.cleanupAbandonedPlayers();
+
     const p0 = this.state.players[0];
     const p1 = this.state.players[1];
     return !!(p0 && p1 && p0.timeBank > 0 && p1.timeBank > 0);
@@ -405,6 +457,13 @@ export class TableController {
     const activePlayer = this.state.players[this.state.activePlayerIndex];
     if (!activePlayer || activePlayer.folded || activePlayer.isAllIn) {
       return;
+    }
+
+    // Check if active player is disconnected and past grace period
+    // If so, take passive action for them (check if possible, otherwise fold)
+    if (!activePlayer.isConnected && this.isPlayerAbandoned(activePlayer.id)) {
+      this.autoActForDisconnectedPlayer(activePlayer.id);
+      return; // Don't drain time for disconnected player
     }
 
     // Drain time
@@ -513,7 +572,8 @@ export class TableController {
   }
 
   private runOutHand() {
-    const RUNOUT_DELAY_MS = 3000; // 3 seconds between each street
+    const runoutDelay = this.state.settings.runoutDelayMs;
+    const nextHandDelay = this.state.settings.nextHandDelayMs;
 
     // Note: Refund is already handled by engine's advanceStreet before we get here
     // The caller (handleAction or checkAndAdvanceAfterTimeout) broadcasts player updates
@@ -533,10 +593,10 @@ export class TableController {
 
       // If we're at river, we need to advance to showdown
       if (this.state.street === 'river') {
-        setTimeout(advanceToShowdown, RUNOUT_DELAY_MS);
+        setTimeout(advanceToShowdown, runoutDelay);
       } else {
         // Schedule next street advancement
-        setTimeout(advanceOneStreet, RUNOUT_DELAY_MS);
+        setTimeout(advanceOneStreet, runoutDelay);
       }
     };
 
@@ -563,16 +623,16 @@ export class TableController {
             } else {
               this.broadcastGameOver();
             }
-          }, 6000);
+          }, nextHandDelay);
           return;
         } else {
           // Broadcast the new street, then schedule next
           this.broadcastStreet();
 
           if (this.state.street === 'river') {
-            setTimeout(advanceToShowdown, RUNOUT_DELAY_MS);
+            setTimeout(advanceToShowdown, runoutDelay);
           } else {
-            setTimeout(advanceOneStreet, RUNOUT_DELAY_MS);
+            setTimeout(advanceOneStreet, runoutDelay);
           }
         }
       } catch (err) {
@@ -597,7 +657,7 @@ export class TableController {
             } else {
               this.broadcastGameOver();
             }
-          }, 6000);
+          }, nextHandDelay);
         }
       } catch (err) {
         console.error('Error advancing to showdown:', err);
@@ -607,9 +667,9 @@ export class TableController {
     // Start the runout sequence after initial delay
     // If we already have a street dealt (flop), show it first
     if (hasInitialStreet) {
-      setTimeout(showCurrentStreetAndContinue, RUNOUT_DELAY_MS);
+      setTimeout(showCurrentStreetAndContinue, runoutDelay);
     } else {
-      setTimeout(advanceOneStreet, RUNOUT_DELAY_MS);
+      setTimeout(advanceOneStreet, runoutDelay);
     }
   }
 

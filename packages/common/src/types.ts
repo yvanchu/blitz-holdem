@@ -40,6 +40,8 @@ export interface TableSettings {
   bigBlind: number; // default 2
   tickRateHz: number; // default 6
   disconnectGracePeriod: number; // default 5000 (ms)
+  runoutDelayMs: number; // delay between streets during all-in runout (default 3000)
+  nextHandDelayMs: number; // delay before starting next hand after result (default 6000)
 }
 
 export const DEFAULT_SETTINGS: TableSettings = {
@@ -48,6 +50,8 @@ export const DEFAULT_SETTINGS: TableSettings = {
   bigBlind: 2,
   tickRateHz: 6,
   disconnectGracePeriod: 5000,
+  runoutDelayMs: 3000,
+  nextHandDelayMs: 6000,
 };
 
 export interface TableState {

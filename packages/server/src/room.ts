@@ -1,12 +1,19 @@
 import { nanoid } from 'nanoid';
 import { TableController } from './table';
+import type { TableSettings } from '@blitz-holdem/common';
 
 export class RoomManager {
   private rooms = new Map<string, TableController>();
+  private defaultSettings?: Partial<TableSettings>;
 
-  createRoom(): string {
+  constructor(defaultSettings?: Partial<TableSettings>) {
+    this.defaultSettings = defaultSettings;
+  }
+
+  createRoom(settingsOverrides?: Partial<TableSettings>): string {
     const roomId = nanoid(8);
-    const table = new TableController(roomId);
+    const settings = { ...this.defaultSettings, ...settingsOverrides };
+    const table = new TableController(roomId, settings);
     this.rooms.set(roomId, table);
     console.log(`Room created: ${roomId}`);
     return roomId;
