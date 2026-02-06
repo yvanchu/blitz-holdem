@@ -38,6 +38,10 @@ describe('showCards', () => {
     // Set both players ready
     table.setPlayerReady(player1Id);
     table.setPlayerReady(player2Id);
+
+    // Start the game (owner starts)
+    const startResult = table.startGame(player1Id);
+    expect(startResult.success).toBe(true);
   });
 
   it('should broadcast CARDS_SHOWN to all players when a player shows cards after folding', () => {

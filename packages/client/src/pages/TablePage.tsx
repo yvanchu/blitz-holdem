@@ -1,16 +1,15 @@
-import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useGameStore } from '../store/gameStore';
 import { useSocket } from '../hooks/useSocket';
 import Table from '../components/Table';
 import ActionBar from '../components/ActionBar';
-import WaitingRoom from '../components/WaitingRoom';
 
 export default function TablePage() {
   const { roomId } = useParams<{ roomId: string }>();
-  const { connected, error, send } = useSocket(roomId ?? '');
-  const { isHandInProgress, yourPlayerId } = useGameStore();
-  const [isReady, setIsReady] = useState(false);
+  const navigate = useNavigate();
+  const { connected, error, send, ownerLeft } = useSocket(roomId ?? '');
+  const { isHandInProgress, yourPlayerId, yourSeatIndex, settings } = useGameStore();
 
   const alias = sessionStorage.getItem('playerAlias') || 'Player';
 
@@ -21,10 +20,12 @@ export default function TablePage() {
     }
   }, [connected, roomId, yourPlayerId, send, alias]);
 
-  const handleReady = () => {
-    send({ type: 'READY' });
-    setIsReady(true);
-  };
+  // Redirect to home if owner left
+  useEffect(() => {
+    if (ownerLeft) {
+      navigate('/');
+    }
+  }, [ownerLeft, navigate]);
 
   if (error) {
     return (
@@ -46,28 +47,35 @@ export default function TablePage() {
     );
   }
 
+  // Wait for room state to be received (yourSeatIndex will be set)
+  if (yourSeatIndex === null) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen">
+        <div className="animate-spin text-4xl mb-4">⏳</div>
+        <p className="text-gray-400">Joining table...</p>
+      </div>
+    );
+  }
+
+  const isJoiner = yourSeatIndex === 1;
+
   return (
     <div className="flex flex-col h-[100dvh] overflow-hidden bg-felt">
-      {/* Share link - compact header */}
-      <div className="bg-gray-800/80 px-4 py-2 flex items-center justify-between shrink-0">
-        <div className="text-sm text-gray-400">
-          Room: <span className="text-white font-mono">{roomId}</span>
+      {/* Stakes display for joiner - top right */}
+      {isJoiner && settings && (
+        <div className="absolute top-3 right-3 z-10">
+          <div className="bg-gray-800/90 px-3 py-1.5 rounded-lg text-sm">
+            <span className="text-gray-400">Stakes: </span>
+            <span className="text-white font-medium">
+              {settings.smallBlind}/{settings.bigBlind}
+            </span>
+          </div>
         </div>
-        <button
-          onClick={() => navigator.clipboard.writeText(window.location.href)}
-          className="text-sm text-blue-400 hover:text-blue-300"
-        >
-          📋 Copy Link
-        </button>
-      </div>
+      )}
 
-      {/* Main table area - stable height on PC to prevent bouncing */}
+      {/* Main table area */}
       <div className="flex-1 flex items-start sm:items-center justify-center px-2 sm:px-4 pt-2 sm:pt-0 min-h-0 sm:min-h-[500px]">
-        {!isHandInProgress && !isReady ? (
-          <WaitingRoom onReady={handleReady} send={send} />
-        ) : (
-          <Table send={send} />
-        )}
+        <Table send={send} />
       </div>
 
       {/* Action bar */}

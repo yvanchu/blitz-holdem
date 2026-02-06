@@ -19,6 +19,9 @@ interface GameState {
   players: [PlayerPublic | null, PlayerPublic | null];
   settings: TableSettings | null;
 
+  // Lobby state
+  readyState: [boolean, boolean]; // Track ready status per seat
+
   // Hand
   handNumber: number;
   isHandInProgress: boolean;
@@ -55,6 +58,7 @@ interface GameState {
     seat0: [Card, Card] | null;
     seat1: [Card, Card] | null;
   }) => void;
+  setPlayerReady: (seatIndex: 0 | 1, isReady: boolean) => void;
   syncServerTime: (serverTime: number) => void;
   reset: () => void;
 }
@@ -66,6 +70,7 @@ const initialState = {
   roomId: null,
   players: [null, null] as [PlayerPublic | null, PlayerPublic | null],
   settings: null,
+  readyState: [false, false] as [boolean, boolean],
   handNumber: 0,
   isHandInProgress: false,
   dealerIndex: 0 as const,
@@ -115,6 +120,14 @@ export const useGameStore = create<GameState>((set) => ({
     })),
 
   setRevealedCards: (revealedCards) => set({ revealedCards }),
+
+  setPlayerReady: (seatIndex, isReady) =>
+    set((state) => ({
+      readyState: [
+        seatIndex === 0 ? isReady : state.readyState[0],
+        seatIndex === 1 ? isReady : state.readyState[1],
+      ] as [boolean, boolean],
+    })),
 
   syncServerTime: (serverTime) => {
     const clientTime = Date.now();

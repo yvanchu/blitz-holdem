@@ -6,6 +6,7 @@ export function useSocket(_roomId: string) {
   const wsRef = useRef<WebSocket | null>(null);
   const [connected, setConnected] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [ownerLeft, setOwnerLeft] = useState(false);
   const reconnectAttempts = useRef(0);
   const maxReconnectAttempts = 5;
   const isConnecting = useRef(false);
@@ -52,6 +53,10 @@ export function useSocket(_roomId: string) {
       ws.onmessage = (event) => {
         try {
           const message = JSON.parse(event.data) as S2CMessage;
+          // Handle owner left specially - set local state
+          if (message.type === 'OWNER_LEFT') {
+            setOwnerLeft(true);
+          }
           handleMessage(message);
         } catch (err) {
           console.error('Failed to parse message:', err);
@@ -102,7 +107,7 @@ export function useSocket(_roomId: string) {
     return () => clearInterval(pingInterval);
   }, []);
 
-  return { connected, error, send };
+  return { connected, error, send, ownerLeft };
 }
 
 function handleMessage(message: S2CMessage) {
@@ -202,6 +207,8 @@ function handleMessage(message: S2CMessage) {
       ];
       leftPlayers[message.seatIndex] = null;
       store.updatePlayers(leftPlayers);
+      // Reset ready state for the player who left
+      store.setPlayerReady(message.seatIndex, false);
       break;
     }
 
@@ -239,6 +246,15 @@ function handleMessage(message: S2CMessage) {
       // Set revealed cards for all-in runout (both players' cards visible)
       store.setRevealedCards(message.revealedCards);
       store.syncServerTime(message.serverTime);
+      break;
+
+    case 'PLAYER_READY':
+      store.setPlayerReady(message.seatIndex, message.isReady);
+      break;
+
+    case 'OWNER_LEFT':
+      // Handled in useSocket via local state
+      console.log('Owner left the room');
       break;
   }
 }

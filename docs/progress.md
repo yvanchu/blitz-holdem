@@ -57,12 +57,14 @@ The `useSocket` hook had a dependency array issue. The `useEffect` depended on `
 - [ ] Add unit tests for game engine
 - [ ] Add integration tests for server
 - [ ] Implement auto-check on timeout when check is valid
-- [ ] Implement proper all-in showdown (deal remaining streets)
+- [x] Implement proper all-in showdown (deal remaining streets)
+- [ ] Implement play again button and show a victory counter badge
+- [ ] Implement a basic ledger that contains hand history and can be shared
 
 ### Low Priority
 
+- [ ] Add in equity calculation when both players are all in
 - [ ] Add sound effects
-- [ ] Add animations for card dealing
 - [ ] Add hand history display
 - [ ] Mobile responsive improvements
 

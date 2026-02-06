@@ -94,6 +94,23 @@ function handleMessage(ws: ExtendedWebSocket, message: C2SMessage, roomManager: 
       break;
     }
 
+    case 'START': {
+      if (!ws.roomId || !ws.playerId) {
+        sendError(ws, 'NOT_IN_ROOM', 'Join a room first');
+        return;
+      }
+      const room = roomManager.getRoom(ws.roomId);
+      if (!room) {
+        sendError(ws, 'ROOM_NOT_FOUND', 'Room no longer exists');
+        return;
+      }
+      const startResult = room.startGame(ws.playerId, message.force);
+      if (!startResult.success) {
+        sendError(ws, 'START_FAILED', startResult.error ?? 'Could not start game');
+      }
+      break;
+    }
+
     case 'ACTION': {
       if (!ws.roomId || !ws.playerId) {
         sendError(ws, 'NOT_IN_ROOM', 'Join a room first');

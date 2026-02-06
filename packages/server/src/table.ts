@@ -94,10 +94,44 @@ export class TableController {
     connected.isReady = true;
     console.log(`Player ${playerId} is ready`);
 
-    // Check if both players are ready
-    if (this.players.size === 2 && this.allPlayersReady() && !this.state.isHandInProgress) {
-      this.startNewHand();
+    // Broadcast ready state to all players
+    this.broadcastPlayerReady(connected.player.seatIndex, true);
+  }
+
+  startGame(playerId: string, force?: boolean): { success: boolean; error?: string } {
+    // Only seat 0 (owner) can start the game
+    const connected = this.players.get(playerId);
+    if (!connected || connected.player.seatIndex !== 0) {
+      return { success: false, error: 'Only the room creator can start the game' };
     }
+
+    // Need 2 players
+    if (this.players.size < 2) {
+      return { success: false, error: 'Need 2 players to start' };
+    }
+
+    // Check if game already in progress
+    if (this.state.isHandInProgress) {
+      return { success: false, error: 'Game already in progress' };
+    }
+
+    // Check if opponent is ready (unless force start)
+    const opponent = Array.from(this.players.values()).find((p) => p.player.seatIndex === 1);
+    if (!opponent?.isReady && !force) {
+      return { success: false, error: 'Opponent is not ready' };
+    }
+
+    // Mark owner as ready implicitly
+    connected.isReady = true;
+
+    // Start the game
+    this.startNewHand();
+    return { success: true };
+  }
+
+  isOpponentReady(): boolean {
+    const opponent = Array.from(this.players.values()).find((p) => p.player.seatIndex === 1);
+    return opponent?.isReady ?? false;
   }
 
   handleAction(
@@ -195,8 +229,14 @@ export class TableController {
     const connected = this.players.get(playerId);
     if (!connected) return;
 
+    const seatIndex = connected.player.seatIndex;
     connected.disconnectedAt = Date.now();
     connected.player.isConnected = false;
+
+    // If owner (seat 0) disconnects, notify joiner immediately
+    if (seatIndex === 0) {
+      this.broadcastOwnerLeft();
+    }
 
     // Update state
     const playerIndex = this.state.players.findIndex((p) => p?.id === playerId);
@@ -303,13 +343,6 @@ export class TableController {
   // ─────────────────────────────────────────────────────────────
   // Private Methods
   // ─────────────────────────────────────────────────────────────
-
-  private allPlayersReady(): boolean {
-    for (const connected of this.players.values()) {
-      if (!connected.isReady) return false;
-    }
-    return true;
-  }
 
   private canContinue(): boolean {
     const p0 = this.state.players[0];
@@ -681,6 +714,23 @@ export class TableController {
       player: this.toPublicPlayer(player)!,
       seatIndex: player.seatIndex,
     });
+  }
+
+  private broadcastPlayerReady(seatIndex: 0 | 1, isReady: boolean) {
+    this.broadcast({
+      type: 'PLAYER_READY',
+      seatIndex,
+      isReady,
+    });
+  }
+
+  private broadcastOwnerLeft() {
+    // Only send to non-owner players (joiner)
+    for (const connected of this.players.values()) {
+      if (connected.player.seatIndex !== 0 && connected.ws.readyState === WebSocket.OPEN) {
+        connected.ws.send(JSON.stringify({ type: 'OWNER_LEFT' }));
+      }
+    }
   }
 
   private broadcastHandStart() {

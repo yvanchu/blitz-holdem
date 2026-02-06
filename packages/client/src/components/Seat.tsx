@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import type { Card, PlayerPublic } from '@blitz-holdem/common';
 import { evaluateHand } from '@blitz-holdem/common';
 import { useGameStore } from '../store/gameStore';
@@ -10,8 +10,11 @@ interface SeatProps {
   isDealer: boolean;
   position: 'top' | 'bottom';
   showCards?: boolean;
+  hideCards?: boolean; // Hide cards entirely (e.g., in lobby before game starts)
   revealedCards?: [Card, Card] | null; // Cards revealed at showdown
   winningCards?: Card[]; // Cards that make the winning hand
+  isSetupMode?: boolean; // Show name input + ready button (for joiner before clicking ready)
+  onReady?: (alias: string) => void; // Called when ready button clicked in setup mode
 }
 
 // Helper to check if a card is part of the winning hand
@@ -25,12 +28,17 @@ export default function Seat({
   isDealer,
   position,
   showCards = false,
+  hideCards = false,
   revealedCards,
   winningCards,
+  isSetupMode = false,
+  onReady,
 }: SeatProps) {
-  const { activePlayerIndex, result, communityCards, street } = useGameStore();
+  const { activePlayerIndex, result, communityCards, street, settings } = useGameStore();
+  const [aliasInput, setAliasInput] = useState('');
 
   // Evaluate hand strength when we have enough cards
+  // NOTE: All hooks must be called before any conditional returns
   const handStrength = useMemo(() => {
     if (!player || player.folded) return null;
 
@@ -66,13 +74,60 @@ export default function Seat({
     return false;
   }, [handStrength, position, player, result, revealedCards, street]);
 
+  // Setup mode: show name input and ready button
+  if (isSetupMode && player) {
+    return (
+      <div className="flex flex-col items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 sm:py-3 rounded-full bg-gray-800/80">
+          {/* Avatar */}
+          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center font-bold text-white text-sm sm:text-base">
+            {(aliasInput || 'P').charAt(0).toUpperCase()}
+          </div>
+
+          {/* Name input */}
+          <input
+            type="text"
+            value={aliasInput}
+            onChange={(e) => setAliasInput(e.target.value.slice(0, 20))}
+            placeholder="Player"
+            className="w-24 sm:w-32 px-2 py-1 bg-gray-700 border border-gray-600 rounded text-white text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            maxLength={20}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && onReady) {
+                onReady(aliasInput || 'Player');
+              }
+            }}
+          />
+
+          {/* Time bank display */}
+          <div className="px-2 sm:px-3 py-1 rounded-full bg-gray-700 text-white font-mono text-xs sm:text-sm">
+            {settings?.initialTimeBank ?? 300}s
+          </div>
+        </div>
+
+        {/* Ready button */}
+        <button
+          onClick={() => onReady?.(aliasInput || 'Player')}
+          className="px-6 py-2 bg-green-600 hover:bg-green-500 text-white font-bold rounded-lg shadow-lg transition-colors flex items-center gap-2"
+        >
+          ✓ Ready
+        </button>
+      </div>
+    );
+  }
+
   if (!player) {
     return (
-      <div className="flex flex-col items-center gap-2 opacity-50">
-        <div className="w-20 h-20 rounded-full bg-gray-700 flex items-center justify-center">
-          <span className="text-gray-500 text-2xl">?</span>
+      <div className="flex flex-col items-center gap-2">
+        {/* Empty seat - pill shape like a regular player */}
+        <div className="flex items-center gap-2 sm:gap-3 px-2 sm:px-4 py-1 sm:py-2 rounded-full bg-gray-800/80">
+          {/* Empty avatar */}
+          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full border-2 border-dashed border-gray-600 flex items-center justify-center">
+            <span className="text-gray-600 text-lg sm:text-xl">?</span>
+          </div>
+          {/* Waiting text */}
+          <span className="text-gray-500 text-xs sm:text-sm">Waiting for player...</span>
         </div>
-        <span className="text-gray-500 text-sm">Waiting...</span>
       </div>
     );
   }
@@ -107,33 +162,35 @@ export default function Seat({
       {/* For TOP position: Cards first, then player info, then bet (closest to center) */}
       {position === 'top' && (
         <>
-          {/* Cards with hand strength badge */}
-          <div className="relative flex gap-1 mb-1 sm:mb-2">
-            {shouldShowCards && cardsToShow ? (
-              <>
-                <CardComponent
-                  card={cardsToShow[0]}
-                  size="small"
-                  highlight={isWinningCard(cardsToShow[0], winningCards)}
-                />
-                <CardComponent
-                  card={cardsToShow[1]}
-                  size="small"
-                  highlight={isWinningCard(cardsToShow[1], winningCards)}
-                />
-                {shouldShowHandStrength && (
-                  <div className="absolute -bottom-2 -right-2 px-2 py-0.5 rounded bg-red-500 text-white text-xs font-bold uppercase whitespace-nowrap shadow-lg">
-                    {handStrength}
-                  </div>
-                )}
-              </>
-            ) : (
-              <>
-                <CardComponent hidden size="small" />
-                <CardComponent hidden size="small" />
-              </>
-            )}
-          </div>
+          {/* Cards with hand strength badge - hidden in lobby mode */}
+          {!hideCards && (
+            <div className="relative flex gap-1 mb-1 sm:mb-2">
+              {shouldShowCards && cardsToShow ? (
+                <>
+                  <CardComponent
+                    card={cardsToShow[0]}
+                    size="small"
+                    highlight={isWinningCard(cardsToShow[0], winningCards)}
+                  />
+                  <CardComponent
+                    card={cardsToShow[1]}
+                    size="small"
+                    highlight={isWinningCard(cardsToShow[1], winningCards)}
+                  />
+                  {shouldShowHandStrength && (
+                    <div className="absolute -bottom-2 -right-2 px-2 py-0.5 rounded bg-red-500 text-white text-xs font-bold uppercase whitespace-nowrap shadow-lg">
+                      {handStrength}
+                    </div>
+                  )}
+                </>
+              ) : (
+                <>
+                  <CardComponent hidden size="small" />
+                  <CardComponent hidden size="small" />
+                </>
+              )}
+            </div>
+          )}
 
           {/* Player info */}
           <PlayerInfo player={player} isActive={isActive} isDealer={isDealer} result={result} />
@@ -152,33 +209,35 @@ export default function Seat({
           {/* Player info */}
           <PlayerInfo player={player} isActive={isActive} isDealer={isDealer} result={result} />
 
-          {/* Cards with hand strength badge */}
-          <div className="relative flex gap-1 mt-1 sm:mt-2">
-            {shouldShowCards && cardsToShow ? (
-              <>
-                <CardComponent
-                  card={cardsToShow[0]}
-                  size="small"
-                  highlight={isWinningCard(cardsToShow[0], winningCards)}
-                />
-                <CardComponent
-                  card={cardsToShow[1]}
-                  size="small"
-                  highlight={isWinningCard(cardsToShow[1], winningCards)}
-                />
-                {shouldShowHandStrength && (
-                  <div className="absolute -bottom-2 -right-2 px-2 py-0.5 rounded bg-red-500 text-white text-xs font-bold uppercase whitespace-nowrap shadow-lg">
-                    {handStrength}
-                  </div>
-                )}
-              </>
-            ) : (
-              <>
-                <CardComponent hidden size="small" />
-                <CardComponent hidden size="small" />
-              </>
-            )}
-          </div>
+          {/* Cards with hand strength badge - hidden in lobby mode */}
+          {!hideCards && (
+            <div className="relative flex gap-1 mt-1 sm:mt-2">
+              {shouldShowCards && cardsToShow ? (
+                <>
+                  <CardComponent
+                    card={cardsToShow[0]}
+                    size="small"
+                    highlight={isWinningCard(cardsToShow[0], winningCards)}
+                  />
+                  <CardComponent
+                    card={cardsToShow[1]}
+                    size="small"
+                    highlight={isWinningCard(cardsToShow[1], winningCards)}
+                  />
+                  {shouldShowHandStrength && (
+                    <div className="absolute -bottom-2 -right-2 px-2 py-0.5 rounded bg-red-500 text-white text-xs font-bold uppercase whitespace-nowrap shadow-lg">
+                      {handStrength}
+                    </div>
+                  )}
+                </>
+              ) : (
+                <>
+                  <CardComponent hidden size="small" />
+                  <CardComponent hidden size="small" />
+                </>
+              )}
+            </div>
+          )}
         </>
       )}
     </div>

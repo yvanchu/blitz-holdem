@@ -18,6 +18,11 @@ export interface C2S_Ready {
   type: 'READY';
 }
 
+export interface C2S_Start {
+  type: 'START';
+  force?: boolean; // Start even if opponent not ready
+}
+
 export interface C2S_UpdateSettings {
   type: 'UPDATE_SETTINGS';
   settings: {
@@ -50,6 +55,7 @@ export interface C2S_ShowCards {
 export type C2SMessage =
   | C2S_Join
   | C2S_Ready
+  | C2S_Start
   | C2S_UpdateSettings
   | C2S_UpdateAlias
   | C2S_Action
@@ -208,6 +214,16 @@ export interface S2C_AllInShowdown {
   serverTime: number;
 }
 
+export interface S2C_PlayerReady {
+  type: 'PLAYER_READY';
+  seatIndex: 0 | 1;
+  isReady: boolean;
+}
+
+export interface S2C_OwnerLeft {
+  type: 'OWNER_LEFT';
+}
+
 export type S2CMessage =
   | S2C_RoomState
   | S2C_HandStart
@@ -224,4 +240,6 @@ export type S2CMessage =
   | S2C_PlayerUpdated
   | S2C_PlayersUpdate
   | S2C_CardsShown
-  | S2C_AllInShowdown;
+  | S2C_AllInShowdown
+  | S2C_PlayerReady
+  | S2C_OwnerLeft;
