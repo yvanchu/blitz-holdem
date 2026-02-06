@@ -256,5 +256,13 @@ function handleMessage(message: S2CMessage) {
       // Handled in useSocket via local state
       console.log('Owner left the room');
       break;
+
+    case 'GAME_OVER':
+      store.setGameOver({
+        winnerId: message.winnerId,
+        winnerSeatIndex: message.winnerSeatIndex,
+        reason: message.reason,
+      });
+      break;
   }
 }

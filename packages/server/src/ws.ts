@@ -187,6 +187,21 @@ function handleMessage(ws: ExtendedWebSocket, message: C2SMessage, roomManager: 
       room.showCards(ws.playerId);
       break;
     }
+
+    case 'REMATCH': {
+      if (!ws.roomId || !ws.playerId) {
+        sendError(ws, 'NOT_IN_ROOM', 'Join a room first');
+        return;
+      }
+      const room = roomManager.getRoom(ws.roomId);
+      if (!room) {
+        sendError(ws, 'ROOM_NOT_FOUND', 'Room no longer exists');
+        return;
+      }
+
+      room.requestRematch(ws.playerId);
+      break;
+    }
   }
 }
 

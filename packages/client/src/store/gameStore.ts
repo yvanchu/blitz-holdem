@@ -37,6 +37,10 @@ interface GameState {
   result: HandResult | null;
   revealedCards: { seat0: [Card, Card] | null; seat1: [Card, Card] | null } | null;
 
+  // Game over state
+  gameOver: { winnerId: string; winnerSeatIndex: 0 | 1; reason: string } | null;
+  sessionWins: [number, number]; // [seat0 wins, seat1 wins]
+
   // Server time offset for clock sync
   serverTimeOffset: number;
 
@@ -59,6 +63,8 @@ interface GameState {
     seat1: [Card, Card] | null;
   }) => void;
   setPlayerReady: (seatIndex: 0 | 1, isReady: boolean) => void;
+  setGameOver: (gameOver: { winnerId: string; winnerSeatIndex: 0 | 1; reason: string }) => void;
+  clearGameOver: () => void;
   syncServerTime: (serverTime: number) => void;
   reset: () => void;
 }
@@ -82,6 +88,8 @@ const initialState = {
   minRaise: 2,
   result: null,
   revealedCards: null,
+  gameOver: null,
+  sessionWins: [0, 0] as [number, number],
   serverTimeOffset: 0,
 };
 
@@ -128,6 +136,22 @@ export const useGameStore = create<GameState>((set) => ({
         seatIndex === 1 ? isReady : state.readyState[1],
       ] as [boolean, boolean],
     })),
+
+  setGameOver: (gameOver) =>
+    set((state) => ({
+      gameOver,
+      isHandInProgress: false,
+      sessionWins: [
+        gameOver.winnerSeatIndex === 0 ? state.sessionWins[0] + 1 : state.sessionWins[0],
+        gameOver.winnerSeatIndex === 1 ? state.sessionWins[1] + 1 : state.sessionWins[1],
+      ] as [number, number],
+    })),
+
+  clearGameOver: () =>
+    set({
+      gameOver: null,
+      readyState: [false, false],
+    }),
 
   syncServerTime: (serverTime) => {
     const clientTime = Date.now();

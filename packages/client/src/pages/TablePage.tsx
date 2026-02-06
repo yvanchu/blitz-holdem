@@ -4,12 +4,13 @@ import { useGameStore } from '../store/gameStore';
 import { useSocket } from '../hooks/useSocket';
 import Table from '../components/Table';
 import ActionBar from '../components/ActionBar';
+import { GameOverOverlay } from '../components/GameOverOverlay';
 
 export default function TablePage() {
   const { roomId } = useParams<{ roomId: string }>();
   const navigate = useNavigate();
   const { connected, error, send, ownerLeft } = useSocket(roomId ?? '');
-  const { isHandInProgress, yourPlayerId, yourSeatIndex, settings } = useGameStore();
+  const { isHandInProgress, yourPlayerId, yourSeatIndex, settings, gameOver, clearGameOver } = useGameStore();
 
   const alias = sessionStorage.getItem('playerAlias') || 'Player';
 
@@ -78,8 +79,22 @@ export default function TablePage() {
 
   const isJoiner = yourSeatIndex === 1;
 
+  const handleRematch = () => {
+    // Clear game over state and reset time banks via server
+    clearGameOver();
+    send({ type: 'REMATCH' });
+  };
+
+  const handleLeave = () => {
+    navigate('/');
+  };
+
   return (
     <div className="flex flex-col h-[100dvh] overflow-hidden bg-felt">
+      {/* Game Over Overlay */}
+      {gameOver && (
+        <GameOverOverlay onRematch={handleRematch} onLeave={handleLeave} />
+      )}
       {/* Stakes display for joiner - top right */}
       {isJoiner && settings && (
         <div className="absolute top-3 right-3 z-10">

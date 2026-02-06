@@ -183,6 +183,8 @@ export class TableController {
         setTimeout(() => {
           if (this.canContinue()) {
             this.startNewHand();
+          } else {
+            this.broadcastGameOver();
           }
         }, 6000); // 6 seconds for players to review showdown
       } else {
@@ -558,6 +560,8 @@ export class TableController {
           setTimeout(() => {
             if (this.canContinue()) {
               this.startNewHand();
+            } else {
+              this.broadcastGameOver();
             }
           }, 6000);
           return;
@@ -590,6 +594,8 @@ export class TableController {
           setTimeout(() => {
             if (this.canContinue()) {
               this.startNewHand();
+            } else {
+              this.broadcastGameOver();
             }
           }, 6000);
         }
@@ -915,5 +921,94 @@ export class TableController {
         cards,
       });
     }
+  }
+
+  private broadcastGameOver(): void {
+    const p0 = this.state.players[0];
+    const p1 = this.state.players[1];
+
+    // Determine winner (the one with time remaining)
+    let winnerId: string;
+    let winnerSeatIndex: 0 | 1;
+
+    if (p0 && p0.timeBank > 0) {
+      winnerId = p0.id;
+      winnerSeatIndex = 0;
+    } else if (p1 && p1.timeBank > 0) {
+      winnerId = p1.id;
+      winnerSeatIndex = 1;
+    } else {
+      // Both ran out? Shouldn't happen, but default to seat 0
+      winnerId = p0?.id ?? '';
+      winnerSeatIndex = 0;
+    }
+
+    this.broadcast({
+      type: 'GAME_OVER',
+      winnerId,
+      winnerSeatIndex,
+      reason: 'time_out',
+    });
+  }
+
+  private rematchRequests = new Set<string>();
+
+  requestRematch(playerId: string): void {
+    // Only allow rematch requests when hand is not in progress
+    if (this.state.isHandInProgress) {
+      return;
+    }
+
+    // Check if player exists
+    const connected = this.players.get(playerId);
+    if (!connected) {
+      return;
+    }
+
+    // Add to rematch requests
+    this.rematchRequests.add(playerId);
+
+    // Check if both players requested rematch
+    const connectedPlayerIds = Array.from(this.players.keys());
+    const allPlayersRequestedRematch = connectedPlayerIds.every((id) =>
+      this.rematchRequests.has(id)
+    );
+
+    if (allPlayersRequestedRematch && this.players.size === 2) {
+      this.startRematch();
+    } else {
+      // Broadcast ready state (use PLAYER_READY for now to show intent)
+      this.broadcastPlayerReady(connected.player.seatIndex, true);
+    }
+  }
+
+  private startRematch(): void {
+    // Reset time banks for both players
+    for (const [, connected] of this.players) {
+      connected.player.timeBank = this.state.settings.initialTimeBank;
+      connected.isReady = false;
+    }
+
+    // Update state players array
+    this.state = {
+      ...this.state,
+      players: this.state.players.map((p) =>
+        p ? { ...p, timeBank: this.state.settings.initialTimeBank } : null
+      ) as [Player | null, Player | null],
+    };
+
+    // Clear rematch requests and game state
+    this.rematchRequests.clear();
+
+    // Broadcast ready states reset
+    this.broadcastPlayerReady(0, false);
+    this.broadcastPlayerReady(1, false);
+
+    // Send updated room state to all players
+    for (const [playerId] of this.players) {
+      this.sendRoomState(playerId);
+    }
+
+    console.log(`Rematch started in room ${this.state.roomId}`);
   }
 }

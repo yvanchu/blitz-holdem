@@ -52,6 +52,10 @@ export interface C2S_ShowCards {
   type: 'SHOW_CARDS';
 }
 
+export interface C2S_Rematch {
+  type: 'REMATCH';
+}
+
 export type C2SMessage =
   | C2S_Join
   | C2S_Ready
@@ -60,7 +64,8 @@ export type C2SMessage =
   | C2S_UpdateAlias
   | C2S_Action
   | C2S_Ping
-  | C2S_ShowCards;
+  | C2S_ShowCards
+  | C2S_Rematch;
 
 // ─────────────────────────────────────────────────────────────
 // Server → Client (S2C) Messages
@@ -224,6 +229,13 @@ export interface S2C_OwnerLeft {
   type: 'OWNER_LEFT';
 }
 
+export interface S2C_GameOver {
+  type: 'GAME_OVER';
+  winnerId: string;
+  winnerSeatIndex: 0 | 1;
+  reason: 'time_out' | 'disconnect';
+}
+
 export type S2CMessage =
   | S2C_RoomState
   | S2C_HandStart
@@ -242,4 +254,5 @@ export type S2CMessage =
   | S2C_CardsShown
   | S2C_AllInShowdown
   | S2C_PlayerReady
-  | S2C_OwnerLeft;
+  | S2C_OwnerLeft
+  | S2C_GameOver;
