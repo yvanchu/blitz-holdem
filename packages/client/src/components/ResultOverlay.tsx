@@ -9,7 +9,10 @@ export default function ResultOverlay() {
   const isWinner = result.winnerId === yourPlayerId;
 
   return (
-    <div data-testid="result-overlay" className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
+    <div
+      data-testid="result-overlay"
+      className="fixed inset-0 bg-black/70 flex items-center justify-center z-50"
+    >
       <div className="bg-gray-800 rounded-xl p-8 max-w-lg w-full mx-4 text-center">
         {/* Result headline */}
         <div className={`text-4xl font-bold mb-4 ${isWinner ? 'text-green-400' : 'text-red-400'}`}>

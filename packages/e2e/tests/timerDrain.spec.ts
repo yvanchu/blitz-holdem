@@ -80,7 +80,9 @@ test.describe('Timer Drain', () => {
 
     // The original active player's timer should no longer be active
     await expect(
-      activePlayer.page.locator('[data-testid="seat-bottom"] [data-testid="timer"][data-timer-active="true"]')
+      activePlayer.page.locator(
+        '[data-testid="seat-bottom"] [data-testid="timer"][data-timer-active="true"]'
+      )
     ).not.toBeVisible();
   });
 

@@ -146,11 +146,11 @@ export class PlayerPage {
     const fold = this.foldButton;
     const check = this.checkButton;
     const call = this.callButton;
-    
+
     const foldDisabled = await fold.isDisabled();
     const checkDisabled = await check.isDisabled();
     const callDisabled = await call.isDisabled();
-    
+
     return !foldDisabled || !checkDisabled || !callDisabled;
   }
 

@@ -172,9 +172,7 @@ describe('Seat', () => {
       // Note: Timer also shows time in "Xs" format, so we look for the specific bet chip styling
       const betChips = screen.queryAllByText(/^\d+s$/);
       // Filter to only those in yellow chip container (bet chips)
-      const yellowChips = betChips.filter(el => 
-        el.closest('.bg-yellow-500') !== null
-      );
+      const yellowChips = betChips.filter((el) => el.closest('.bg-yellow-500') !== null);
       expect(yellowChips).toHaveLength(0);
     });
 

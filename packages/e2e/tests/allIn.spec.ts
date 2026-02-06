@@ -23,7 +23,7 @@ test.describe('All-In Scenarios', () => {
 
     // First player goes all-in via raise
     await firstPlayer.raiseButton.click();
-    
+
     // Set bet to max (all-in) using the All In preset button
     await firstPlayer.page.locator('button:has-text("All In")').click();
     await firstPlayer.confirmRaiseButton.click();
@@ -115,8 +115,8 @@ test.describe('All-In Scenarios', () => {
     await expect(player1.communityCards).toHaveCount(3, { timeout: 5000 });
 
     // Now one player goes all-in on the flop
-    const flopFirstToAct = await player1.isMyTurn() ? player1 : player2;
-    const flopSecondToAct = await player1.isMyTurn() ? player2 : player1;
+    const flopFirstToAct = (await player1.isMyTurn()) ? player1 : player2;
+    const flopSecondToAct = (await player1.isMyTurn()) ? player2 : player1;
 
     await flopFirstToAct.raiseButton.click();
     await flopFirstToAct.page.locator('button:has-text("All In")').click();

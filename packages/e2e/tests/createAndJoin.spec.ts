@@ -107,10 +107,14 @@ test.describe('Create and Join Room', () => {
     await player1Page.locator('[data-testid="start-game-button"]').click();
 
     // Both players should see hole cards
-    await expect(player1Page.locator('[data-testid="hole-cards"] [data-testid="card"]')).toHaveCount(2, {
+    await expect(
+      player1Page.locator('[data-testid="hole-cards"] [data-testid="card"]')
+    ).toHaveCount(2, {
       timeout: 5000,
     });
-    await expect(player2Page.locator('[data-testid="hole-cards"] [data-testid="card"]')).toHaveCount(2, {
+    await expect(
+      player2Page.locator('[data-testid="hole-cards"] [data-testid="card"]')
+    ).toHaveCount(2, {
       timeout: 5000,
     });
 
@@ -144,8 +148,12 @@ test.describe('Create and Join Room', () => {
 
     // Both players should see their own alias in their seat
     // Player info should contain the alias
-    await expect(player1Page.locator('[data-testid="seat-bottom"] [data-testid="player-info"]')).toContainText('PokerPro');
-    await expect(player2Page.locator('[data-testid="seat-bottom"] [data-testid="player-info"]')).toContainText('RiverRat');
+    await expect(
+      player1Page.locator('[data-testid="seat-bottom"] [data-testid="player-info"]')
+    ).toContainText('PokerPro');
+    await expect(
+      player2Page.locator('[data-testid="seat-bottom"] [data-testid="player-info"]')
+    ).toContainText('RiverRat');
   });
 
   test('should copy invite link to clipboard', async () => {

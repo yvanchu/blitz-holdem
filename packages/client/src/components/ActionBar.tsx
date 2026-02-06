@@ -158,7 +158,8 @@ export default function ActionBar({ send, isHandInProgress }: ActionBarProps) {
 
   const canCall = isHandInProgress && validActions.includes('call');
   const canCheck = isHandInProgress && validActions.includes('check');
-  const canRaise = isHandInProgress && (validActions.includes('bet') || validActions.includes('raise'));
+  const canRaise =
+    isHandInProgress && (validActions.includes('bet') || validActions.includes('raise'));
   const canFold = isHandInProgress && validActions.includes('fold');
   const isBet = currentBet === 0; // True if this is a bet, false if it's a raise
 
@@ -187,7 +188,10 @@ export default function ActionBar({ send, isHandInProgress }: ActionBarProps) {
   };
 
   return (
-    <div data-testid="action-bar" className="shrink-0 bg-gray-900/95 backdrop-blur border-t border-gray-700 safe-area-bottom">
+    <div
+      data-testid="action-bar"
+      className="shrink-0 bg-gray-900/95 backdrop-blur border-t border-gray-700 safe-area-bottom"
+    >
       {/* Raise/Bet panel - on mobile overlays the buttons */}
       {showRaisePanel && canRaise && (
         <div className="px-3 sm:px-4 py-3 sm:py-4 border-b sm:border-b border-gray-700 bg-gray-800/95 sm:bg-gray-800/50">

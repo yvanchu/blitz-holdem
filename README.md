@@ -56,14 +56,18 @@ blitz-holdem/
 │   │   │   ├── ws.ts        # WebSocket handler
 │   │   │   ├── room.ts      # Room manager
 │   │   │   └── table.ts     # Table controller
-│   └── client/          # React frontend
-│       ├── src/
-│       │   ├── pages/       # Home & Table pages
-│       │   ├── components/  # UI components
-│       │   ├── hooks/       # Custom hooks
-│       │   └── store/       # Zustand store
+│   ├── client/          # React frontend
+│   │   ├── src/
+│   │   │   ├── pages/       # Home & Table pages
+│   │   │   ├── components/  # UI components
+│   │   │   ├── hooks/       # Custom hooks
+│   │   │   └── store/       # Zustand store
+│   └── e2e/             # Playwright E2E tests
+│       ├── fixtures/        # Page Object Models
+│       └── tests/           # Test specs
 ├── docs/
 │   ├── prd.md               # Product Requirements
+│   ├── testing.md           # Test Coverage Guide
 │   └── implementation-plan.md
 └── README.md
 ```
@@ -103,18 +107,42 @@ pnpm lint
 # Type check
 pnpm typecheck
 
-# Run tests
+# Run all tests
 pnpm test
+
+# Run specific test suites
+pnpm --filter @blitz-holdem/common test    # Unit tests (engine, deck, timer)
+pnpm --filter @blitz-holdem/server test    # Server + integration tests
+pnpm --filter @blitz-holdem/client test    # Component tests
+
+# E2E tests (requires Playwright)
+pnpm --filter e2e test                     # Headless
+pnpm --filter e2e test:headed              # With browser visible
+pnpm --filter e2e test:debug               # Debug mode
 
 # Build for production
 pnpm build
 ```
 
+### Testing
+
+We have comprehensive test coverage across all packages:
+
+| Package | Tests | Coverage |
+|---------|-------|----------|
+| common | 34 | Engine, deck, timer, evaluation |
+| server | 80 | WebSocket, game flow, reconnection |
+| client | 183 | Components, store, formatters |
+| e2e | 38 | Full user flows with Playwright |
+
+See [docs/testing.md](docs/testing.md) for detailed test coverage information.
+
 ### Tech Stack
 
 - **Frontend**: React, TypeScript, Vite, TailwindCSS, Zustand
 - **Backend**: Node.js, Express, WebSocket (ws)
-- **Shared**: TypeScript, Zod (validation)
+- **Shared**: TypeScript
+- **Testing**: Vitest, React Testing Library, Playwright
 
 ## ⌨️ Keyboard Shortcuts
 

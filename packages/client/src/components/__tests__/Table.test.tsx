@@ -92,7 +92,7 @@ describe('Table', () => {
 
     it('should copy URL to clipboard when copy button clicked', async () => {
       render(<Table send={mockSend} />);
-      
+
       const copyButton = screen.getByTestId('copy-link-button');
       fireEvent.click(copyButton);
 
@@ -108,9 +108,9 @@ describe('Table', () => {
 
     it('should open settings modal when settings button clicked', () => {
       render(<Table send={mockSend} />);
-      
+
       fireEvent.click(screen.getByTestId('settings-button'));
-      
+
       expect(screen.getByTestId('settings-modal')).toBeInTheDocument();
     });
 
@@ -119,7 +119,7 @@ describe('Table', () => {
         readyState: [true, true],
       });
       render(<Table send={mockSend} />);
-      
+
       expect(screen.getByTestId('start-game-button')).toBeInTheDocument();
     });
 
@@ -128,9 +128,9 @@ describe('Table', () => {
         readyState: [true, true],
       });
       render(<Table send={mockSend} />);
-      
+
       fireEvent.click(screen.getByTestId('start-game-button'));
-      
+
       expect(mockSend).toHaveBeenCalledWith({ type: 'START' });
     });
   });
@@ -224,7 +224,7 @@ describe('Table', () => {
         },
       });
       render(<Table send={mockSend} />);
-      
+
       expect(screen.getByTestId('show-cards-button')).toBeInTheDocument();
     });
 
@@ -238,9 +238,9 @@ describe('Table', () => {
         },
       });
       render(<Table send={mockSend} />);
-      
+
       fireEvent.click(screen.getByTestId('show-cards-button'));
-      
+
       expect(mockSend).toHaveBeenCalledWith({ type: 'SHOW_CARDS' });
     });
   });

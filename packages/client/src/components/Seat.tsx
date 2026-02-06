@@ -199,7 +199,13 @@ export default function Seat({
           )}
 
           {/* Player info */}
-          <PlayerInfo player={player} isActive={isActive} isDealer={isDealer} result={result} wins={wins} />
+          <PlayerInfo
+            player={player}
+            isActive={isActive}
+            isDealer={isDealer}
+            result={result}
+            wins={wins}
+          />
 
           {/* Bet chip - at bottom for opponent (closest to center) */}
           <BetChip />
@@ -213,7 +219,13 @@ export default function Seat({
           <BetChip />
 
           {/* Player info */}
-          <PlayerInfo player={player} isActive={isActive} isDealer={isDealer} result={result} wins={wins} />
+          <PlayerInfo
+            player={player}
+            isActive={isActive}
+            isDealer={isDealer}
+            result={result}
+            wins={wins}
+          />
 
           {/* Cards with hand strength badge - hidden in lobby mode */}
           {!hideCards && (

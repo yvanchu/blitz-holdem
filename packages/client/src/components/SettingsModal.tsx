@@ -54,7 +54,10 @@ export default function SettingsModal({ isOpen, onClose, send }: SettingsModalPr
       className="fixed inset-0 bg-black/70 flex items-center justify-center z-50"
       onClick={handleBackdropClick}
     >
-      <div data-testid="settings-modal" className="bg-gray-800 rounded-xl p-6 w-full max-w-sm mx-4 shadow-2xl">
+      <div
+        data-testid="settings-modal"
+        className="bg-gray-800 rounded-xl p-6 w-full max-w-sm mx-4 shadow-2xl"
+      >
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-bold text-white">⚙️ Game Settings</h2>
           <button

@@ -42,10 +42,9 @@ test.describe('Reconnection', () => {
     await player1Page.locator('[data-testid="start-game-button"]').click();
 
     // Wait for cards to be dealt
-    await expect(player1Page.locator('[data-testid="hole-cards"] [data-testid="card"]')).toHaveCount(
-      2,
-      { timeout: 5000 }
-    );
+    await expect(
+      player1Page.locator('[data-testid="hole-cards"] [data-testid="card"]')
+    ).toHaveCount(2, { timeout: 5000 });
 
     // Get current pot value
     const potBefore = await player1Page.locator('[data-testid="pot-value"]').textContent();
@@ -54,13 +53,14 @@ test.describe('Reconnection', () => {
     await player1Page.reload();
 
     // Wait for reconnection
-    await expect(player1Page.locator('[data-testid="poker-table"]')).toBeVisible({ timeout: 10000 });
+    await expect(player1Page.locator('[data-testid="poker-table"]')).toBeVisible({
+      timeout: 10000,
+    });
 
     // Cards should be visible again
-    await expect(player1Page.locator('[data-testid="hole-cards"] [data-testid="card"]')).toHaveCount(
-      2,
-      { timeout: 5000 }
-    );
+    await expect(
+      player1Page.locator('[data-testid="hole-cards"] [data-testid="card"]')
+    ).toHaveCount(2, { timeout: 5000 });
 
     // Pot should be preserved
     const potAfter = await player1Page.locator('[data-testid="pot-value"]').textContent();
@@ -82,10 +82,9 @@ test.describe('Reconnection', () => {
     await player1Page.locator('[data-testid="start-game-button"]').waitFor();
     await player1Page.locator('[data-testid="start-game-button"]').click();
 
-    await expect(player1Page.locator('[data-testid="hole-cards"] [data-testid="card"]')).toHaveCount(
-      2,
-      { timeout: 5000 }
-    );
+    await expect(
+      player1Page.locator('[data-testid="hole-cards"] [data-testid="card"]')
+    ).toHaveCount(2, { timeout: 5000 });
 
     // Close player 2's connection (simulate disconnect)
     await player2Page.close();
@@ -111,15 +110,12 @@ test.describe('Reconnection', () => {
     await player1Page.locator('[data-testid="start-game-button"]').waitFor();
     await player1Page.locator('[data-testid="start-game-button"]').click();
 
-    await expect(player1Page.locator('[data-testid="hole-cards"] [data-testid="card"]')).toHaveCount(
-      2,
-      { timeout: 5000 }
-    );
+    await expect(
+      player1Page.locator('[data-testid="hole-cards"] [data-testid="card"]')
+    ).toHaveCount(2, { timeout: 5000 });
 
     // Determine who has action
-    const p1FoldEnabled = await player1Page
-      .locator('[data-testid="fold-button"]')
-      .isEnabled();
+    const p1FoldEnabled = await player1Page.locator('[data-testid="fold-button"]').isEnabled();
     const activePlayer = p1FoldEnabled ? player1Page : player2Page;
     const waitingPlayer = p1FoldEnabled ? player2Page : player1Page;
 
@@ -130,7 +126,9 @@ test.describe('Reconnection', () => {
     await waitingPlayer.reload();
 
     // Wait for reconnection
-    await expect(waitingPlayer.locator('[data-testid="poker-table"]')).toBeVisible({ timeout: 10000 });
+    await expect(waitingPlayer.locator('[data-testid="poker-table"]')).toBeVisible({
+      timeout: 10000,
+    });
 
     // Waiting player should now have action (BB to check)
     await expect(waitingPlayer.locator('[data-testid="check-button"]')).toBeEnabled({
@@ -141,10 +139,9 @@ test.describe('Reconnection', () => {
     await waitingPlayer.locator('[data-testid="check-button"]').click();
 
     // Flop should appear
-    await expect(player1Page.locator('[data-testid="community-cards"] [data-testid="card"]')).toHaveCount(
-      3,
-      { timeout: 5000 }
-    );
+    await expect(
+      player1Page.locator('[data-testid="community-cards"] [data-testid="card"]')
+    ).toHaveCount(3, { timeout: 5000 });
   });
 
   test('should preserve community cards after refresh', async () => {
@@ -162,15 +159,12 @@ test.describe('Reconnection', () => {
     await player1Page.locator('[data-testid="start-game-button"]').waitFor();
     await player1Page.locator('[data-testid="start-game-button"]').click();
 
-    await expect(player1Page.locator('[data-testid="hole-cards"] [data-testid="card"]')).toHaveCount(
-      2,
-      { timeout: 5000 }
-    );
+    await expect(
+      player1Page.locator('[data-testid="hole-cards"] [data-testid="card"]')
+    ).toHaveCount(2, { timeout: 5000 });
 
     // Play to flop
-    const p1FoldEnabled = await player1Page
-      .locator('[data-testid="fold-button"]')
-      .isEnabled();
+    const p1FoldEnabled = await player1Page.locator('[data-testid="fold-button"]').isEnabled();
     const dealer = p1FoldEnabled ? player1Page : player2Page;
     const bb = p1FoldEnabled ? player2Page : player1Page;
 
@@ -178,10 +172,9 @@ test.describe('Reconnection', () => {
     await bb.locator('[data-testid="check-button"]').click();
 
     // Wait for flop
-    await expect(player1Page.locator('[data-testid="community-cards"] [data-testid="card"]')).toHaveCount(
-      3,
-      { timeout: 5000 }
-    );
+    await expect(
+      player1Page.locator('[data-testid="community-cards"] [data-testid="card"]')
+    ).toHaveCount(3, { timeout: 5000 });
 
     // Get the flop cards' data attributes
     const getCardData = async (page: Page) => {
@@ -200,11 +193,12 @@ test.describe('Reconnection', () => {
 
     // Refresh
     await player1Page.reload();
-    await expect(player1Page.locator('[data-testid="poker-table"]')).toBeVisible({ timeout: 10000 });
-    await expect(player1Page.locator('[data-testid="community-cards"] [data-testid="card"]')).toHaveCount(
-      3,
-      { timeout: 5000 }
-    );
+    await expect(player1Page.locator('[data-testid="poker-table"]')).toBeVisible({
+      timeout: 10000,
+    });
+    await expect(
+      player1Page.locator('[data-testid="community-cards"] [data-testid="card"]')
+    ).toHaveCount(3, { timeout: 5000 });
 
     const flopAfter = await getCardData(player1Page);
 
