@@ -266,86 +266,50 @@ pnpm --filter @blitz-holdem/server test:integration
 
 ---
 
-### Phase 2: E2E Browser Tests with Playwright (Priority: High)
+### Phase 2: E2E Browser Tests with Playwright ✅ COMPLETE
 
 **Goal:** Test complete user flows in real browsers.
 
-**Location:** `packages/e2e/` (new package)
+**Location:** `packages/e2e/`
 
-**Setup:**
-
-```bash
-pnpm create playwright@latest packages/e2e
-```
-
-**Tests to Add:**
+**Tests Implemented:** 38 tests across 7 files
 
 ```
 e2e/
-├── playwright.config.ts
+├── playwright.config.ts         # Chromium, webServer for client/server
 ├── fixtures/
-│   └── game.fixture.ts          # Reusable game setup
+│   └── game.fixture.ts          # PlayerPage POM, createGame helper
 └── tests/
-    ├── createAndJoin.spec.ts    # Room creation & joining
-    ├── playHand.spec.ts         # Complete hand from deal to showdown
-    ├── allIn.spec.ts            # All-in scenarios
-    ├── fold.spec.ts             # Fold and show cards
-    ├── settings.spec.ts         # Settings modal
-    ├── timerDrain.spec.ts       # Time bank countdown accuracy
-    └── reconnect.spec.ts        # Browser refresh mid-hand
+    ├── createAndJoin.spec.ts    # 6 tests - Room creation & joining
+    ├── playHand.spec.ts         # 6 tests - Complete hand lifecycle
+    ├── allIn.spec.ts            # 4 tests - All-in scenarios
+    ├── fold.spec.ts             # 6 tests - Fold and show cards
+    ├── settings.spec.ts         # 7 tests - Settings modal
+    ├── timerDrain.spec.ts       # 5 tests - Timer countdown accuracy
+    └── reconnect.spec.ts        # 4 tests - Browser refresh mid-hand
 ```
 
-| Test File               | User Flow                                                  | Bug Prevented                  |
-| ----------------------- | ---------------------------------------------------------- | ------------------------------ |
-| `createAndJoin.spec.ts` | Create room, copy link, open in 2nd tab, join              | Broken room links              |
-| `playHand.spec.ts`      | Deal, bet, call, flop, check, turn, raise, river, showdown | UI not reflecting game state   |
-| `allIn.spec.ts`         | All-in, call, see runout cards dealt                       | Missing cards on all-in runout |
-| `fold.spec.ts`          | Fold, click "Show Cards", verify opponent sees             | Show cards feature broken      |
-| `timerDrain.spec.ts`    | Verify timer decrements ~1s/s on active turn               | Timer not draining correctly   |
-| `reconnect.spec.ts`     | Mid-hand refresh, verify state restored                    | Lost state on page refresh     |
+| Test File               | Tests | User Flow                                                  | Bug Prevented                  |
+| ----------------------- | ----- | ---------------------------------------------------------- | ------------------------------ |
+| `createAndJoin.spec.ts` | 6     | Create room, copy link, open in 2nd tab, join              | Broken room links              |
+| `playHand.spec.ts`      | 6     | Deal, bet, call, flop, check, turn, raise, river, showdown | UI not reflecting game state   |
+| `allIn.spec.ts`         | 4     | All-in, call, see runout cards dealt                       | Missing cards on all-in runout |
+| `fold.spec.ts`          | 6     | Fold, click "Show Cards", verify opponent sees             | Show cards feature broken      |
+| `settings.spec.ts`      | 7     | Settings modal open/close, input validation                | Settings not saving            |
+| `timerDrain.spec.ts`    | 5     | Verify timer decrements ~1s/s on active turn               | Timer not draining correctly   |
+| `reconnect.spec.ts`     | 4     | Mid-hand refresh, verify state restored                    | Lost state on page refresh     |
 
-**Implementation Approach:**
+**Client Components with data-testid:**
 
-```typescript
-// Example: playHand.spec.ts
-import { test, expect } from '@playwright/test';
-import { GameFixture } from '../fixtures/game.fixture';
-
-test.describe('Play a complete hand', () => {
-  let game: GameFixture;
-
-  test.beforeEach(async ({ browser }) => {
-    game = new GameFixture(browser);
-    await game.createAndJoinRoom();
-    await game.startGame();
-  });
-
-  test('should complete a hand with betting on all streets', async () => {
-    // Preflop
-    await game.player1.waitForTurn();
-    await game.player1.call();
-    await game.player2.check();
-
-    // Flop
-    await expect(game.player1.communityCards).toHaveCount(3);
-    await game.player1.bet(5);
-    await game.player2.call();
-
-    // Turn
-    await expect(game.player1.communityCards).toHaveCount(4);
-    await game.player1.check();
-    await game.player2.check();
-
-    // River
-    await expect(game.player1.communityCards).toHaveCount(5);
-    await game.player1.check();
-    await game.player2.check();
-
-    // Showdown
-    await expect(game.player1.resultOverlay).toBeVisible();
-  });
-});
-```
+Added `data-testid` attributes to all components for reliable E2E selectors:
+- `Table.tsx`: poker-table, community-cards, pot, copy-link-button, settings-button, start-game-button, show-cards-button
+- `Card.tsx`: card (with data-card-rank, data-card-suit, data-card-hidden)
+- `Seat.tsx`: seat-top/bottom, hole-cards, player-info, ready-button (with data-seat-active, data-seat-folded)
+- `Timer.tsx`: timer (with data-timer-active, data-timer-allin)
+- `ActionBar.tsx`: action-bar, call-button, check-button, fold-button, raise-button, bet-input, bet-slider, confirm-raise-button
+- `SettingsModal.tsx`: settings-modal, settings-save-button
+- `ResultOverlay.tsx`: result-overlay
+- `HomePage.tsx`: alias-input, create-table-button
 
 **Commands to Run:**
 
@@ -353,6 +317,7 @@ test.describe('Play a complete hand', () => {
 pnpm --filter e2e test           # Run all E2E tests
 pnpm --filter e2e test:headed    # Run with browser visible
 pnpm --filter e2e test:debug     # Debug mode with Playwright inspector
+pnpm --filter e2e test:ui        # Playwright UI mode
 ```
 
 ---
