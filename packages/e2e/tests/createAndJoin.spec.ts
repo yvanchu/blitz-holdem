@@ -106,14 +106,14 @@ test.describe('Create and Join Room', () => {
     // Player 1 starts the game
     await player1Page.locator('[data-testid="start-game-button"]').click();
 
-    // Both players should see hole cards
+    // Both players should see hole cards (scoped to their own seat)
     await expect(
-      player1Page.locator('[data-testid="hole-cards"] [data-testid="card"]')
+      player1Page.locator('[data-testid="seat-bottom"] [data-testid="hole-cards"] [data-testid="card"]')
     ).toHaveCount(2, {
       timeout: 5000,
     });
     await expect(
-      player2Page.locator('[data-testid="hole-cards"] [data-testid="card"]')
+      player2Page.locator('[data-testid="seat-bottom"] [data-testid="hole-cards"] [data-testid="card"]')
     ).toHaveCount(2, {
       timeout: 5000,
     });

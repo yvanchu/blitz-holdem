@@ -22,7 +22,8 @@ export class PlayerPage {
   }
 
   get holeCards() {
-    return this.page.locator('[data-testid="hole-cards"] [data-testid="card"]');
+    // Select cards only from the player's own seat (bottom), not opponent's seat (top)
+    return this.page.locator('[data-testid="seat-bottom"] [data-testid="hole-cards"] [data-testid="card"]');
   }
 
   get pot() {
@@ -269,11 +270,11 @@ export async function startGameWithBothReady(game: GameFixture): Promise<void> {
   await game.player2.ready();
   await game.player1.startGame();
 
-  // Wait for game to start (hole cards dealt)
-  await game.player1.page.waitForSelector('[data-testid="hole-cards"] [data-testid="card"]', {
+  // Wait for game to start (hole cards dealt) - scope to player's own seat (bottom)
+  await game.player1.page.waitForSelector('[data-testid="seat-bottom"] [data-testid="hole-cards"] [data-testid="card"]', {
     timeout: 10000,
   });
-  await game.player2.page.waitForSelector('[data-testid="hole-cards"] [data-testid="card"]', {
+  await game.player2.page.waitForSelector('[data-testid="seat-bottom"] [data-testid="hole-cards"] [data-testid="card"]', {
     timeout: 10000,
   });
 }

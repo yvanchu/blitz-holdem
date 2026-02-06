@@ -41,9 +41,9 @@ test.describe('Reconnection', () => {
     await player1Page.locator('[data-testid="start-game-button"]').waitFor();
     await player1Page.locator('[data-testid="start-game-button"]').click();
 
-    // Wait for cards to be dealt
+    // Wait for cards to be dealt (scoped to player's own seat)
     await expect(
-      player1Page.locator('[data-testid="hole-cards"] [data-testid="card"]')
+      player1Page.locator('[data-testid="seat-bottom"] [data-testid="hole-cards"] [data-testid="card"]')
     ).toHaveCount(2, { timeout: 5000 });
 
     // Get current pot value
@@ -57,9 +57,9 @@ test.describe('Reconnection', () => {
       timeout: 10000,
     });
 
-    // Cards should be visible again
+    // Cards should be visible again (scoped to player's own seat)
     await expect(
-      player1Page.locator('[data-testid="hole-cards"] [data-testid="card"]')
+      player1Page.locator('[data-testid="seat-bottom"] [data-testid="hole-cards"] [data-testid="card"]')
     ).toHaveCount(2, { timeout: 5000 });
 
     // Pot should be preserved
@@ -83,7 +83,7 @@ test.describe('Reconnection', () => {
     await player1Page.locator('[data-testid="start-game-button"]').click();
 
     await expect(
-      player1Page.locator('[data-testid="hole-cards"] [data-testid="card"]')
+      player1Page.locator('[data-testid="seat-bottom"] [data-testid="hole-cards"] [data-testid="card"]')
     ).toHaveCount(2, { timeout: 5000 });
 
     // Close player 2's connection (simulate disconnect)
@@ -111,7 +111,7 @@ test.describe('Reconnection', () => {
     await player1Page.locator('[data-testid="start-game-button"]').click();
 
     await expect(
-      player1Page.locator('[data-testid="hole-cards"] [data-testid="card"]')
+      player1Page.locator('[data-testid="seat-bottom"] [data-testid="hole-cards"] [data-testid="card"]')
     ).toHaveCount(2, { timeout: 5000 });
 
     // Determine who has action
@@ -160,7 +160,7 @@ test.describe('Reconnection', () => {
     await player1Page.locator('[data-testid="start-game-button"]').click();
 
     await expect(
-      player1Page.locator('[data-testid="hole-cards"] [data-testid="card"]')
+      player1Page.locator('[data-testid="seat-bottom"] [data-testid="hole-cards"] [data-testid="card"]')
     ).toHaveCount(2, { timeout: 5000 });
 
     // Play to flop
