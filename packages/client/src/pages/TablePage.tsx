@@ -61,8 +61,8 @@ export default function TablePage() {
         </button>
       </div>
 
-      {/* Main table area - flex-1 to fill remaining space */}
-      <div className="flex-1 flex items-center justify-center px-2 sm:px-4 min-h-0">
+      {/* Main table area - stable height on PC to prevent bouncing */}
+      <div className="flex-1 flex items-start sm:items-center justify-center px-2 sm:px-4 pt-2 sm:pt-0 min-h-0 sm:min-h-[500px]">
         {!isHandInProgress && !isReady ? (
           <WaitingRoom onReady={handleReady} send={send} />
         ) : (
