@@ -85,10 +85,10 @@ export default function Seat({
   const cardsToShow = player.holeCards || revealedCards;
   const shouldShowCards = position === 'bottom' || showCards || (revealedCards && result?.showdown);
 
-  // Bet chip component
+  // Bet chip component - with margin for spacing from other elements
   const BetChip = () =>
     player.currentBet > 0 ? (
-      <div className="flex items-center gap-1 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full bg-yellow-500 text-black text-xs sm:text-sm font-bold shadow-lg">
+      <div className="my-1 flex items-center gap-1 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full bg-yellow-500 text-black text-xs sm:text-sm font-bold shadow-lg">
         <svg className="w-3 h-3 sm:w-4 sm:h-4" viewBox="0 0 24 24" fill="currentColor">
           <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="none" />
           <circle cx="12" cy="12" r="6" fill="currentColor" />
@@ -99,7 +99,7 @@ export default function Seat({
 
   return (
     <div
-      className={`flex flex-col items-center gap-1 sm:gap-2 transition-opacity ${
+      className={`flex flex-col items-center gap-1.5 sm:gap-2 transition-opacity ${
         isFolded ? 'opacity-50' : ''
       }`}
     >
