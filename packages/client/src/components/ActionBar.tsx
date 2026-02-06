@@ -36,8 +36,16 @@ export default function ActionBar({ send }: ActionBarProps) {
   // Max bet is your current bet plus your entire time bank
   const maxTotalBet = yourCurrentBet + (yourPlayer?.timeBank ?? 0);
 
-  // Check if current input is a valid raise amount
-  const isValidRaise = betAmount >= minTotalBet && betAmount <= maxTotalBet;
+  // Only invalid if raise is too SMALL - too large will auto-clamp to all-in
+  const isRaiseTooSmall = betAmount < minTotalBet;
+
+  // Auto-clamp betAmount to maxTotalBet when timebank decreases (tick down with all-in)
+  useEffect(() => {
+    if (betAmount > maxTotalBet) {
+      setBetAmount(maxTotalBet);
+      setInputValue(String(maxTotalBet));
+    }
+  }, [maxTotalBet]);
 
   // Only reset bet amount when it's a new betting action (not every tick)
   // Reset when: raise panel opens, or when minTotalBet increases beyond current bet
@@ -135,13 +143,19 @@ export default function ActionBar({ send }: ActionBarProps) {
   const canFold = validActions.includes('fold');
   const isBet = currentBet === 0; // True if this is a bet, false if it's a raise
 
-  // Handle input change for exact amount - allow any value, validity checked separately
+  // Handle input change for exact amount - clamp to max if too high, allow low values for red indicator
   const handleInputChange = (value: string) => {
     setInputValue(value);
     setHasUserModified(true);
     const num = parseInt(value);
     if (!isNaN(num)) {
-      setBetAmount(num);
+      // Auto-clamp to maxTotalBet if exceeding (shows as all-in)
+      if (num > maxTotalBet) {
+        setBetAmount(maxTotalBet);
+        setInputValue(String(maxTotalBet));
+      } else {
+        setBetAmount(num);
+      }
     }
   };
 
@@ -182,17 +196,20 @@ export default function ActionBar({ send }: ActionBarProps) {
                   value={inputValue}
                   onChange={(e) => handleInputChange(e.target.value)}
                   onBlur={() => {
-                    // Don't clamp on blur - let user see invalid value
+                    // Auto-clamp to max on blur if too high
                     const num = parseInt(inputValue);
                     if (isNaN(num)) {
                       setBetAmount(minTotalBet);
                       setInputValue(String(minTotalBet));
+                    } else if (num > maxTotalBet) {
+                      setBetAmount(maxTotalBet);
+                      setInputValue(String(maxTotalBet));
                     } else {
                       setBetAmount(num);
                     }
                   }}
                   className={`w-20 px-2 py-1 border rounded text-white text-center text-sm ${
-                    isValidRaise
+                    !isRaiseTooSmall
                       ? 'bg-gray-700 border-gray-600'
                       : 'bg-red-900/50 border-red-500'
                   }`}
@@ -292,7 +309,7 @@ export default function ActionBar({ send }: ActionBarProps) {
           <button
             onClick={() => {
               if (showRaisePanel) {
-                if (!isValidRaise) return; // Don't submit invalid raise
+                if (isRaiseTooSmall) return; // Don't submit if raise is too small
                 // Calculate the delta (amount to add to reach total)
                 const raiseAmount = betAmount - yourCurrentBet;
                 // Send the bet/raise with all-in if at max
@@ -305,14 +322,14 @@ export default function ActionBar({ send }: ActionBarProps) {
                 setShowRaisePanel(true);
               }
             }}
-            disabled={!isYourTurn || !canRaise || (showRaisePanel && !isValidRaise)}
+            disabled={!isYourTurn || !canRaise || (showRaisePanel && isRaiseTooSmall)}
             className={`
               py-4 rounded-lg font-semibold text-sm sm:text-base uppercase tracking-wide
               border-2 transition-all
               ${
                 canRaise && isYourTurn
                   ? showRaisePanel
-                    ? isValidRaise
+                    ? !isRaiseTooSmall
                       ? 'border-green-500 bg-green-500/20 text-green-400'
                       : 'border-red-500 bg-red-500/20 text-red-400'
                     : 'border-green-500 text-green-400 hover:bg-green-500/20 active:bg-green-500/30'
