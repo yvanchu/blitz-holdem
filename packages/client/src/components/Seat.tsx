@@ -103,88 +103,155 @@ export default function Seat({
         isFolded ? 'opacity-50' : ''
       }`}
     >
-      {/* Bet chip for TOP position (opponent) - show BELOW cards (closer to center) */}
-      {position === 'top' && <BetChip />}
-
-      {/* Cards with hand strength badge */}
-      <div className="relative flex gap-1 mb-2">
-        {shouldShowCards && cardsToShow ? (
-          <>
-            <CardComponent
-              card={cardsToShow[0]}
-              size="small"
-              highlight={isWinningCard(cardsToShow[0], winningCards)}
-            />
-            <CardComponent
-              card={cardsToShow[1]}
-              size="small"
-              highlight={isWinningCard(cardsToShow[1], winningCards)}
-            />
-            {/* Hand strength badge */}
-            {shouldShowHandStrength && (
-              <div className="absolute -bottom-2 -right-2 px-2 py-0.5 rounded bg-red-500 text-white text-xs font-bold uppercase whitespace-nowrap shadow-lg">
-                {handStrength}
-              </div>
+      {/* For TOP position: Cards first, then player info, then bet (closest to center) */}
+      {position === 'top' && (
+        <>
+          {/* Cards with hand strength badge */}
+          <div className="relative flex gap-1 mb-2">
+            {shouldShowCards && cardsToShow ? (
+              <>
+                <CardComponent
+                  card={cardsToShow[0]}
+                  size="small"
+                  highlight={isWinningCard(cardsToShow[0], winningCards)}
+                />
+                <CardComponent
+                  card={cardsToShow[1]}
+                  size="small"
+                  highlight={isWinningCard(cardsToShow[1], winningCards)}
+                />
+                {shouldShowHandStrength && (
+                  <div className="absolute -bottom-2 -right-2 px-2 py-0.5 rounded bg-red-500 text-white text-xs font-bold uppercase whitespace-nowrap shadow-lg">
+                    {handStrength}
+                  </div>
+                )}
+              </>
+            ) : (
+              <>
+                <CardComponent hidden size="small" />
+                <CardComponent hidden size="small" />
+              </>
             )}
-          </>
-        ) : (
-          <>
-            <CardComponent hidden size="small" />
-            <CardComponent hidden size="small" />
-          </>
+          </div>
+
+          {/* Player info */}
+          <PlayerInfo
+            player={player}
+            isActive={isActive}
+            isDealer={isDealer}
+            result={result}
+          />
+
+          {/* Bet chip - at bottom for opponent (closest to center) */}
+          <BetChip />
+        </>
+      )}
+
+      {/* For BOTTOM position: Bet first (closest to center), then player info, then cards */}
+      {position === 'bottom' && (
+        <>
+          {/* Bet chip - at top for you (closest to center) */}
+          <BetChip />
+
+          {/* Player info */}
+          <PlayerInfo
+            player={player}
+            isActive={isActive}
+            isDealer={isDealer}
+            result={result}
+          />
+
+          {/* Cards with hand strength badge */}
+          <div className="relative flex gap-1 mt-2">
+            {shouldShowCards && cardsToShow ? (
+              <>
+                <CardComponent
+                  card={cardsToShow[0]}
+                  size="small"
+                  highlight={isWinningCard(cardsToShow[0], winningCards)}
+                />
+                <CardComponent
+                  card={cardsToShow[1]}
+                  size="small"
+                  highlight={isWinningCard(cardsToShow[1], winningCards)}
+                />
+                {shouldShowHandStrength && (
+                  <div className="absolute -bottom-2 -right-2 px-2 py-0.5 rounded bg-red-500 text-white text-xs font-bold uppercase whitespace-nowrap shadow-lg">
+                    {handStrength}
+                  </div>
+                )}
+              </>
+            ) : (
+              <>
+                <CardComponent hidden size="small" />
+                <CardComponent hidden size="small" />
+              </>
+            )}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+// Player info component to avoid duplication
+function PlayerInfo({
+  player,
+  isActive,
+  isDealer,
+  result,
+}: {
+  player: PlayerPublic;
+  isActive: boolean;
+  isDealer: boolean;
+  result: { winnerId: string; potAwarded: number } | null;
+}) {
+  return (
+    <div
+      className={`relative flex items-center gap-3 px-4 py-2 rounded-full ${
+        isActive ? 'bg-yellow-500/20 ring-2 ring-yellow-400' : 'bg-gray-800/80'
+      }`}
+    >
+      {/* Avatar */}
+      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center font-bold text-white">
+        {player.alias.charAt(0).toUpperCase()}
+      </div>
+
+      {/* Name */}
+      <div className="flex flex-col">
+        <span className="text-white font-medium text-sm">{player.alias}</span>
+      </div>
+
+      {/* Timer with gain indicator */}
+      <div className="flex items-center gap-1">
+        <Timer timeBank={player.timeBank} isActive={isActive} isAllIn={player.isAllIn} />
+        {result && result.winnerId === player.id && (
+          <span className="text-green-400 font-bold text-sm animate-pulse">
+            +{result.potAwarded}s
+          </span>
         )}
       </div>
 
-      {/* Bet chip for BOTTOM position (you) - show ABOVE player info (closer to center) */}
-      {position === 'bottom' && <BetChip />}
-
-      {/* Player info */}
-      <div
-        className={`relative flex items-center gap-3 px-4 py-2 rounded-full ${
-          isActive ? 'bg-yellow-500/20 ring-2 ring-yellow-400' : 'bg-gray-800/80'
-        }`}
-      >
-        {/* Avatar */}
-        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center font-bold text-white">
-          {player.alias.charAt(0).toUpperCase()}
+      {/* Dealer button */}
+      {isDealer && (
+        <div className="absolute -right-2 -top-2 w-6 h-6 rounded-full bg-white text-black text-xs font-bold flex items-center justify-center shadow-lg">
+          D
         </div>
+      )}
 
-        {/* Name */}
-        <div className="flex flex-col">
-          <span className="text-white font-medium text-sm">{player.alias}</span>
+      {/* All-in badge */}
+      {player.isAllIn && (
+        <div className="absolute -left-2 -top-2 px-2 py-0.5 rounded-full bg-red-600 text-white text-xs font-bold">
+          ALL IN
         </div>
+      )}
 
-        {/* Timer with gain indicator */}
-        <div className="flex items-center gap-1">
-          <Timer timeBank={player.timeBank} isActive={isActive} isAllIn={player.isAllIn} />
-          {result && result.winnerId === player.id && (
-            <span className="text-green-400 font-bold text-sm animate-pulse">
-              +{result.potAwarded}s
-            </span>
-          )}
+      {/* Folded badge */}
+      {player.folded && (
+        <div className="absolute -left-2 -top-2 px-2 py-0.5 rounded-full bg-gray-600 text-white text-xs font-bold">
+          FOLD
         </div>
-
-        {/* Dealer button */}
-        {isDealer && (
-          <div className="absolute -right-2 -top-2 w-6 h-6 rounded-full bg-white text-black text-xs font-bold flex items-center justify-center shadow-lg">
-            D
-          </div>
-        )}
-
-        {/* All-in badge */}
-        {player.isAllIn && (
-          <div className="absolute -left-2 -top-2 px-2 py-0.5 rounded-full bg-red-600 text-white text-xs font-bold">
-            ALL IN
-          </div>
-        )}
-
-        {/* Folded badge */}
-        {player.folded && (
-          <div className="absolute -left-2 -top-2 px-2 py-0.5 rounded-full bg-gray-600 text-white text-xs font-bold">
-            FOLD
-          </div>
-        )}
-      </div>
+      )}
     </div>
   );
 }
