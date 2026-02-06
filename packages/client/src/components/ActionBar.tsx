@@ -388,7 +388,7 @@ export default function ActionBar({ send }: ActionBarProps) {
             `}
           >
             {showRaisePanel
-              ? `${isBet ? 'Bet' : 'Raise to'} ${betAmount}s`
+              ? `${isBet ? 'Bet' : 'Raise'} ${betAmount}s`
               : isBet
                 ? 'Bet'
                 : 'Raise'}

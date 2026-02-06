@@ -51,6 +51,7 @@ interface GameState {
   ) => void;
   clearResult: () => void;
   revealCardsForSeat: (seatIndex: 0 | 1, cards: [Card, Card]) => void;
+  setRevealedCards: (revealedCards: { seat0: [Card, Card] | null; seat1: [Card, Card] | null }) => void;
   syncServerTime: (serverTime: number) => void;
   reset: () => void;
 }
@@ -109,6 +110,8 @@ export const useGameStore = create<GameState>((set) => ({
         seat1: seatIndex === 1 ? cards : (state.revealedCards?.seat1 ?? null),
       },
     })),
+
+  setRevealedCards: (revealedCards) => set({ revealedCards }),
 
   syncServerTime: (serverTime) => {
     const clientTime = Date.now();

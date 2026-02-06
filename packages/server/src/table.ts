@@ -168,6 +168,9 @@ export class TableController {
           // (the engine's advanceStreet already did the refund internally)
           this.broadcastPlayersUpdate();
 
+          // Reveal both players' cards immediately when all-in runout begins
+          this.broadcastAllInShowdown();
+
           // Run out remaining streets with delays
           // The first street (flop) was already dealt by the engine, but we delay before showing it
           this.runOutHand();
@@ -738,6 +741,21 @@ export class TableController {
         serverTime: Date.now(),
       });
     }
+  }
+
+  private broadcastAllInShowdown() {
+    // Reveal both players' hole cards when all-in runout begins
+    const p0 = this.state.players[0];
+    const p1 = this.state.players[1];
+
+    this.broadcast({
+      type: 'ALL_IN_SHOWDOWN',
+      revealedCards: {
+        seat0: (p0?.holeCards as [Card, Card]) ?? null,
+        seat1: (p1?.holeCards as [Card, Card]) ?? null,
+      },
+      serverTime: Date.now(),
+    });
   }
 
   private broadcastAction(playerId: string, action: ActionType, amount: number) {

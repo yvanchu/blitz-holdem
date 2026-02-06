@@ -17,12 +17,15 @@ export default function Timer({ timeBank, isActive, isAllIn }: TimerProps) {
     colorClass = 'text-yellow-400';
   }
 
+  // Digital clock style class
+  const digitalStyle = 'font-mono tracking-wider tabular-nums';
+
   // Show actual time bank value - player might have gotten a refund even if all-in
   if (isAllIn) {
     return (
-      <div className="ml-1 sm:ml-2 px-2 sm:px-3 py-0.5 sm:py-1 bg-gray-700 rounded-lg">
+      <div className="ml-1 sm:ml-2 px-2 sm:px-3 py-0.5 sm:py-1 bg-gray-900 rounded-lg border border-gray-700">
         <span
-          className={`font-mono text-xs sm:text-sm ${seconds > 0 ? colorClass : 'text-gray-400'}`}
+          className={`${digitalStyle} text-xs sm:text-sm ${seconds > 0 ? colorClass : 'text-gray-400'}`}
         >
           {formatted}
         </span>
@@ -32,9 +35,9 @@ export default function Timer({ timeBank, isActive, isAllIn }: TimerProps) {
 
   return (
     <div
-      className={`ml-1 sm:ml-2 px-2 sm:px-3 py-0.5 sm:py-1 rounded-lg ${isActive ? 'bg-yellow-500/30' : 'bg-gray-700'}`}
+      className={`ml-1 sm:ml-2 px-2 sm:px-3 py-0.5 sm:py-1 rounded-lg border ${isActive ? 'bg-yellow-500/30 border-yellow-500/50' : 'bg-gray-900 border-gray-700'}`}
     >
-      <span className={`font-mono text-xs sm:text-sm font-bold ${colorClass}`}>{formatted}</span>
+      <span className={`${digitalStyle} text-xs sm:text-sm font-bold ${colorClass}`}>{formatted}</span>
     </div>
   );
 }

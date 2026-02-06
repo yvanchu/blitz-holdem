@@ -138,4 +138,57 @@ describe('showCards', () => {
     expect((ws1.send as ReturnType<typeof vi.fn>).mock.calls.length).toBe(firstCallCount1);
     expect((ws2.send as ReturnType<typeof vi.fn>).mock.calls.length).toBe(firstCallCount2);
   });
+
+  it('should broadcast ALL_IN_SHOWDOWN with both players cards when all-in and called', () => {
+    expect(table.isPlaying()).toBe(true);
+
+    // Clear previous messages
+    (ws1.send as ReturnType<typeof vi.fn>).mockClear();
+    (ws2.send as ReturnType<typeof vi.fn>).mockClear();
+
+    // First player goes all-in
+    let result = table.handleAction(player1Id, 'all-in');
+    if (!result.success) {
+      // Player1 wasn't active, try player2
+      result = table.handleAction(player2Id, 'all-in');
+      expect(result.success).toBe(true);
+
+      // Now player1 should be able to call
+      (ws1.send as ReturnType<typeof vi.fn>).mockClear();
+      (ws2.send as ReturnType<typeof vi.fn>).mockClear();
+
+      const callResult = table.handleAction(player1Id, 'call');
+      expect(callResult.success).toBe(true);
+    } else {
+      // Player1 was active and went all-in, now player2 calls
+      (ws1.send as ReturnType<typeof vi.fn>).mockClear();
+      (ws2.send as ReturnType<typeof vi.fn>).mockClear();
+
+      const callResult = table.handleAction(player2Id, 'call');
+      expect(callResult.success).toBe(true);
+    }
+
+    // Check that ALL_IN_SHOWDOWN was broadcast to both players
+    const ws1Messages = (ws1.send as ReturnType<typeof vi.fn>).mock.calls.map((call) =>
+      JSON.parse(call[0] as string)
+    );
+    const ws2Messages = (ws2.send as ReturnType<typeof vi.fn>).mock.calls.map((call) =>
+      JSON.parse(call[0] as string)
+    );
+
+    const ws1AllIn = ws1Messages.find((m) => m.type === 'ALL_IN_SHOWDOWN');
+    const ws2AllIn = ws2Messages.find((m) => m.type === 'ALL_IN_SHOWDOWN');
+
+    expect(ws1AllIn).toBeDefined();
+    expect(ws2AllIn).toBeDefined();
+
+    // Both players should see both sets of hole cards
+    expect(ws1AllIn.revealedCards.seat0).toHaveLength(2);
+    expect(ws1AllIn.revealedCards.seat1).toHaveLength(2);
+    expect(ws2AllIn.revealedCards.seat0).toHaveLength(2);
+    expect(ws2AllIn.revealedCards.seat1).toHaveLength(2);
+
+    // Both players should see the same cards
+    expect(ws1AllIn.revealedCards).toEqual(ws2AllIn.revealedCards);
+  });
 });

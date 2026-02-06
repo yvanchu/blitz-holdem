@@ -234,5 +234,11 @@ function handleMessage(message: S2CMessage) {
     case 'CARDS_SHOWN':
       store.revealCardsForSeat(message.seatIndex, message.cards);
       break;
+
+    case 'ALL_IN_SHOWDOWN':
+      // Set revealed cards for all-in runout (both players' cards visible)
+      store.setRevealedCards(message.revealedCards);
+      store.syncServerTime(message.serverTime);
+      break;
   }
 }

@@ -199,6 +199,15 @@ export interface S2C_CardsShown {
   cards: [Card, Card];
 }
 
+export interface S2C_AllInShowdown {
+  type: 'ALL_IN_SHOWDOWN';
+  revealedCards: {
+    seat0: [Card, Card] | null;
+    seat1: [Card, Card] | null;
+  };
+  serverTime: number;
+}
+
 export type S2CMessage =
   | S2C_RoomState
   | S2C_HandStart
@@ -214,4 +223,5 @@ export type S2CMessage =
   | S2C_SettingsUpdated
   | S2C_PlayerUpdated
   | S2C_PlayersUpdate
-  | S2C_CardsShown;
+  | S2C_CardsShown
+  | S2C_AllInShowdown;
