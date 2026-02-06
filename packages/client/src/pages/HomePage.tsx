@@ -48,6 +48,7 @@ export default function HomePage() {
           <input
             type="text"
             id="alias"
+            data-testid="alias-input"
             value={alias}
             onChange={(e) => setAlias(e.target.value)}
             placeholder="Enter your name..."
@@ -59,6 +60,7 @@ export default function HomePage() {
         <button
           onClick={createTable}
           disabled={isCreating}
+          data-testid="create-table-button"
           className="w-full py-4 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white font-semibold rounded-lg transition-colors flex items-center justify-center gap-2"
         >
           {isCreating ? (

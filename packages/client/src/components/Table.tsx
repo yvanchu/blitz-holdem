@@ -71,7 +71,10 @@ export default function Table({ send }: TableProps) {
   };
 
   return (
-    <div className="relative w-full h-full max-w-5xl max-h-[450px] sm:max-h-[500px] flex flex-col items-center justify-between py-2 sm:py-4">
+    <div
+      data-testid="poker-table"
+      className="relative w-full h-full max-w-5xl max-h-[450px] sm:max-h-[500px] flex flex-col items-center justify-between py-2 sm:py-4"
+    >
       {/* Opponent seat (top) */}
       <div className="relative">
         <Seat
@@ -157,12 +160,14 @@ export default function Table({ send }: TableProps) {
                 <div className="flex items-center gap-3">
                   <button
                     onClick={handleCopyLink}
+                    data-testid="copy-link-button"
                     className="px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-lg shadow-lg transition-colors flex items-center gap-2"
                   >
                     🔗 Copy Invite Link
                   </button>
                   <button
                     onClick={() => setShowSettings(true)}
+                    data-testid="settings-button"
                     className="p-3 bg-gray-700 hover:bg-gray-600 text-white font-medium rounded-lg transition-colors"
                     title="Settings"
                   >
@@ -174,6 +179,7 @@ export default function Table({ send }: TableProps) {
                 <div className="flex items-center gap-3">
                   <button
                     onClick={handleStart}
+                    data-testid="start-game-button"
                     className="px-8 py-3 bg-green-600 hover:bg-green-500 text-white font-bold rounded-lg shadow-lg transition-colors flex items-center gap-2 text-lg"
                   >
                     ▶ Start Game
@@ -198,7 +204,7 @@ export default function Table({ send }: TableProps) {
           /* Game in progress - show community cards and pot */
           <>
             {/* Community cards - responsive width */}
-            <div className="flex gap-1 sm:gap-2 justify-center">
+            <div data-testid="community-cards" className="flex gap-1 sm:gap-2 justify-center">
               {/* Always render 5 slots, show cards or placeholders */}
               {Array.from({ length: 5 }).map((_, i) => {
                 const card = communityCards[i];
@@ -218,9 +224,15 @@ export default function Table({ send }: TableProps) {
             </div>
 
             {/* Pot */}
-            <div className="bg-gray-900/80 px-4 sm:px-6 py-1 sm:py-2 rounded-full border border-gray-700">
+            <div
+              data-testid="pot"
+              className="bg-gray-900/80 px-4 sm:px-6 py-1 sm:py-2 rounded-full border border-gray-700"
+            >
               <span className="text-gray-400 text-xs sm:text-sm">Pot: </span>
-              <span className="text-yellow-400 font-mono tracking-wider tabular-nums font-bold text-sm sm:text-lg">
+              <span
+                data-testid="pot-value"
+                className="text-yellow-400 font-mono tracking-wider tabular-nums font-bold text-sm sm:text-lg"
+              >
                 {Math.round(pot)}s
               </span>
             </div>
@@ -252,6 +264,7 @@ export default function Table({ send }: TableProps) {
         {result && !isHandInProgress && !result.showdown && !yourRevealedCards && (
           <button
             onClick={() => send({ type: 'SHOW_CARDS' })}
+            data-testid="show-cards-button"
             className="absolute -right-20 sm:-right-24 top-1/2 -translate-y-1/2 px-3 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs sm:text-sm font-semibold rounded-lg shadow-lg transition-colors"
           >
             Show Cards

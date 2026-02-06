@@ -37,6 +37,8 @@ export default function CardComponent({
   if (hidden || !card) {
     return (
       <div
+        data-testid="card"
+        data-card-hidden="true"
         className={`${sizeClasses} rounded-lg bg-gradient-to-br from-blue-800 to-blue-900 shadow-lg flex items-center justify-center`}
         style={{
           backgroundImage: `repeating-linear-gradient(
@@ -59,6 +61,9 @@ export default function CardComponent({
 
   return (
     <div
+      data-testid="card"
+      data-card-rank={card.rank}
+      data-card-suit={card.suit}
       className={`${sizeClasses} rounded-lg bg-white shadow-lg flex flex-col items-center justify-center font-bold ${
         isRed ? 'text-red-600' : 'text-gray-900'
       } ${highlight ? 'ring-2 ring-yellow-400 transform -translate-y-2 transition-transform' : ''}`}

@@ -110,6 +110,7 @@ export default function Seat({
         {/* Ready button */}
         <button
           onClick={() => onReady?.(aliasInput || 'Player')}
+          data-testid="ready-button"
           className="px-6 py-2 bg-green-600 hover:bg-green-500 text-white font-bold rounded-lg shadow-lg transition-colors flex items-center gap-2"
         >
           ✓ Ready
@@ -157,6 +158,9 @@ export default function Seat({
 
   return (
     <div
+      data-testid={`seat-${position}`}
+      data-seat-active={isActive}
+      data-seat-folded={isFolded}
       className={`flex flex-col items-center gap-1.5 sm:gap-2 transition-opacity ${
         isFolded ? 'opacity-50' : ''
       }`}
@@ -166,7 +170,7 @@ export default function Seat({
         <>
           {/* Cards with hand strength badge - hidden in lobby mode */}
           {!hideCards && (
-            <div className="relative flex gap-1 mb-1 sm:mb-2">
+            <div data-testid="hole-cards" className="relative flex gap-1 mb-1 sm:mb-2">
               {shouldShowCards && cardsToShow ? (
                 <>
                   <CardComponent
@@ -213,7 +217,7 @@ export default function Seat({
 
           {/* Cards with hand strength badge - hidden in lobby mode */}
           {!hideCards && (
-            <div className="relative flex gap-1 mt-1 sm:mt-2">
+            <div data-testid="hole-cards" className="relative flex gap-1 mt-1 sm:mt-2">
               {shouldShowCards && cardsToShow ? (
                 <>
                   <CardComponent
@@ -262,6 +266,9 @@ function PlayerInfo({
 }) {
   return (
     <div
+      data-testid="player-info"
+      data-player-id={player.id}
+      data-player-active={isActive}
       className={`relative flex items-center gap-2 sm:gap-3 px-2 sm:px-4 py-1 sm:py-2 rounded-full ${
         isActive ? 'bg-yellow-500/20 ring-2 ring-yellow-400' : 'bg-gray-800/80'
       }`}

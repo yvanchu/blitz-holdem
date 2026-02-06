@@ -187,7 +187,7 @@ export default function ActionBar({ send, isHandInProgress }: ActionBarProps) {
   };
 
   return (
-    <div className="shrink-0 bg-gray-900/95 backdrop-blur border-t border-gray-700 safe-area-bottom">
+    <div data-testid="action-bar" className="shrink-0 bg-gray-900/95 backdrop-blur border-t border-gray-700 safe-area-bottom">
       {/* Raise/Bet panel - on mobile overlays the buttons */}
       {showRaisePanel && canRaise && (
         <div className="px-3 sm:px-4 py-3 sm:py-4 border-b sm:border-b border-gray-700 bg-gray-800/95 sm:bg-gray-800/50">
@@ -204,6 +204,7 @@ export default function ActionBar({ send, isHandInProgress }: ActionBarProps) {
                     type="text"
                     inputMode="numeric"
                     pattern="[0-9]*"
+                    data-testid="bet-input"
                     value={inputValue}
                     onChange={(e) => handleInputChange(e.target.value)}
                     onBlur={() => {
@@ -269,6 +270,7 @@ export default function ActionBar({ send, isHandInProgress }: ActionBarProps) {
                   </button>
                   <input
                     type="range"
+                    data-testid="bet-slider"
                     min={minTotalBet}
                     max={maxTotalBet}
                     value={Math.max(minTotalBet, Math.min(maxTotalBet, betAmount))}
@@ -309,6 +311,7 @@ export default function ActionBar({ send, isHandInProgress }: ActionBarProps) {
                   }
                 }}
                 disabled={isRaiseTooSmall}
+                data-testid="confirm-raise-button"
                 className={`flex-1 py-2.5 rounded-lg font-semibold text-sm uppercase border-2 ${
                   !isRaiseTooSmall
                     ? 'border-green-500 bg-green-500/20 text-green-400'
@@ -364,6 +367,7 @@ export default function ActionBar({ send, isHandInProgress }: ActionBarProps) {
           <button
             onClick={() => sendAction('call', toCall)}
             disabled={!isYourTurn || !canCall}
+            data-testid="call-button"
             className={`
               py-2.5 sm:py-4 rounded-lg font-semibold text-xs sm:text-base uppercase tracking-wide
               border-2 transition-all
@@ -395,6 +399,7 @@ export default function ActionBar({ send, isHandInProgress }: ActionBarProps) {
               }
             }}
             disabled={!isYourTurn || !canRaise || (showRaisePanel && isRaiseTooSmall)}
+            data-testid="raise-button"
             className={`
               py-2.5 sm:py-4 rounded-lg font-semibold text-xs sm:text-base uppercase tracking-wide
               border-2 transition-all
@@ -416,6 +421,7 @@ export default function ActionBar({ send, isHandInProgress }: ActionBarProps) {
           <button
             onClick={() => sendAction('check')}
             disabled={!isYourTurn || !canCheck}
+            data-testid="check-button"
             className={`
               py-2.5 sm:py-4 rounded-lg font-semibold text-xs sm:text-base uppercase tracking-wide
               border-2 transition-all
@@ -433,6 +439,7 @@ export default function ActionBar({ send, isHandInProgress }: ActionBarProps) {
           <button
             onClick={() => sendAction('fold')}
             disabled={!isYourTurn || !canFold}
+            data-testid="fold-button"
             className={`
               py-2.5 sm:py-4 rounded-lg font-semibold text-xs sm:text-base uppercase tracking-wide
               border-2 transition-all
