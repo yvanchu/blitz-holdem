@@ -142,8 +142,6 @@ test.describe('Settings Persistence', () => {
     await page.locator('[data-testid="create-table-button"]').click();
     await page.waitForURL(/\/table\/.+/);
 
-    const roomUrl = page.url();
-
     // Change settings
     await page.locator('[data-testid="settings-button"]').click();
     const smallBlindInput = page.locator('[data-testid="settings-modal"] input').first();
