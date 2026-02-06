@@ -230,5 +230,9 @@ function handleMessage(message: S2CMessage) {
       store.updatePlayers(updatedPlayers);
       break;
     }
+
+    case 'CARDS_SHOWN':
+      store.revealCardsForSeat(message.seatIndex, message.cards);
+      break;
   }
 }

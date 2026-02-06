@@ -43,13 +43,18 @@ export interface C2S_Ping {
   clientTime: number;
 }
 
+export interface C2S_ShowCards {
+  type: 'SHOW_CARDS';
+}
+
 export type C2SMessage =
   | C2S_Join
   | C2S_Ready
   | C2S_UpdateSettings
   | C2S_UpdateAlias
   | C2S_Action
-  | C2S_Ping;
+  | C2S_Ping
+  | C2S_ShowCards;
 
 // ─────────────────────────────────────────────────────────────
 // Server → Client (S2C) Messages
@@ -187,6 +192,13 @@ export interface S2C_PlayersUpdate {
   serverTime: number;
 }
 
+export interface S2C_CardsShown {
+  type: 'CARDS_SHOWN';
+  playerId: string;
+  seatIndex: 0 | 1;
+  cards: [Card, Card];
+}
+
 export type S2CMessage =
   | S2C_RoomState
   | S2C_HandStart
@@ -201,4 +213,5 @@ export type S2CMessage =
   | S2C_PlayerLeft
   | S2C_SettingsUpdated
   | S2C_PlayerUpdated
-  | S2C_PlayersUpdate;
+  | S2C_PlayersUpdate
+  | S2C_CardsShown;

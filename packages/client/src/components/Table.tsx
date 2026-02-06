@@ -1,7 +1,11 @@
 import { useGameStore, selectYourPlayer, selectOpponentPlayer } from '../store/gameStore';
 import Seat from './Seat';
 import CardComponent from './Card';
-import type { Card } from '@blitz-holdem/common';
+import type { Card, C2SMessage } from '@blitz-holdem/common';
+
+interface TableProps {
+  send: (message: C2SMessage) => void;
+}
 
 // Helper to check if a card is in the winning hand
 function isWinningCard(card: Card, winningCards?: Card[]): boolean {
@@ -9,8 +13,8 @@ function isWinningCard(card: Card, winningCards?: Card[]): boolean {
   return winningCards.some((wc) => wc.rank === card.rank && wc.suit === card.suit);
 }
 
-export default function Table() {
-  const { communityCards, pot, dealerIndex, yourSeatIndex, result, revealedCards } = useGameStore();
+export default function Table({ send }: TableProps) {
+  const { communityCards, pot, dealerIndex, yourSeatIndex, result, revealedCards, isHandInProgress } = useGameStore();
   const yourPlayer = useGameStore(selectYourPlayer);
   const opponentPlayer = useGameStore(selectOpponentPlayer);
 
@@ -70,6 +74,15 @@ export default function Table() {
           revealedCards={yourRevealedCards}
           winningCards={winningCards}
         />
+        {/* Show Cards button - visible after hand ends when cards not yet revealed */}
+        {result && !isHandInProgress && !result.showdown && !yourRevealedCards && (
+          <button
+            onClick={() => send({ type: 'SHOW_CARDS' })}
+            className="absolute -right-20 sm:-right-24 top-1/2 -translate-y-1/2 px-3 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs sm:text-sm font-semibold rounded-lg shadow-lg transition-colors"
+          >
+            Show Cards
+          </button>
+        )}
       </div>
     </div>
   );

@@ -66,7 +66,7 @@ export default function TablePage() {
         {!isHandInProgress && !isReady ? (
           <WaitingRoom onReady={handleReady} send={send} />
         ) : (
-          <Table />
+          <Table send={send} />
         )}
       </div>
 

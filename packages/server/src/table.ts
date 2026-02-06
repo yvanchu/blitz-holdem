@@ -30,6 +30,13 @@ export class TableController {
   private deck: Card[] = [];
   private tickInterval: NodeJS.Timeout | null = null;
   private lastTickTime: number = Date.now();
+  // For "show cards" feature after hand ends
+  private lastHandHoleCards: {
+    seat0: [Card, Card] | null;
+    seat1: [Card, Card] | null;
+    alreadyShown: Set<string>; // player IDs that already showed
+    showdown: boolean; // if true, cards were already revealed
+  } = { seat0: null, seat1: null, alreadyShown: new Set(), showdown: false };
 
   constructor(roomId: string) {
     this.state = createInitialState(roomId);
@@ -774,6 +781,14 @@ export class TableController {
     const p0 = this.state.players[0];
     const p1 = this.state.players[1];
 
+    // Store hole cards for "show cards" feature
+    this.lastHandHoleCards = {
+      seat0: (p0?.holeCards as [Card, Card]) ?? null,
+      seat1: (p1?.holeCards as [Card, Card]) ?? null,
+      alreadyShown: new Set(),
+      showdown: result.showdown,
+    };
+
     for (const [pid] of this.players) {
       this.send(pid, {
         type: 'RESULT',
@@ -785,6 +800,53 @@ export class TableController {
         },
         communityCards: this.state.communityCards,
         serverTime: Date.now(),
+      });
+    }
+  }
+
+  showCards(playerId: string): void {
+    // Can only show cards after a hand has ended and before the next one starts
+    if (this.state.isHandInProgress) {
+      return;
+    }
+
+    // Check if player already showed
+    if (this.lastHandHoleCards.alreadyShown.has(playerId)) {
+      return;
+    }
+
+    // Find the player's seat
+    const connected = this.players.get(playerId);
+    if (!connected) {
+      return;
+    }
+
+    const seatIndex = this.state.players.findIndex((p) => p?.id === playerId);
+    if (seatIndex === -1) {
+      return;
+    }
+
+    // Get the hole cards from last hand
+    const cards = seatIndex === 0 ? this.lastHandHoleCards.seat0 : this.lastHandHoleCards.seat1;
+    if (!cards) {
+      return;
+    }
+
+    // If showdown happened, cards were already revealed
+    if (this.lastHandHoleCards.showdown) {
+      return;
+    }
+
+    // Mark as shown
+    this.lastHandHoleCards.alreadyShown.add(playerId);
+
+    // Broadcast to all players
+    for (const [pid] of this.players) {
+      this.send(pid, {
+        type: 'CARDS_SHOWN',
+        playerId,
+        seatIndex: seatIndex as 0 | 1,
+        cards,
       });
     }
   }
