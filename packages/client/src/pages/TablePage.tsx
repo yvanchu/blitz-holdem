@@ -13,6 +13,19 @@ export default function TablePage() {
 
   const alias = sessionStorage.getItem('playerAlias') || 'Player';
 
+  // Warn before leaving if game is in progress
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (isHandInProgress) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [isHandInProgress]);
+
   // Join room on connect
   useEffect(() => {
     if (connected && roomId && !yourPlayerId) {
