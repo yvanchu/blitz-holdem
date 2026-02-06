@@ -198,6 +198,8 @@ The `shouldShowCards` condition required `result.showdown` to be true, but volun
 - Added GameOverOverlay component with victory/defeat UI
 - Implemented session wins tracking (games won per player)
 - Added rematch functionality (resets time banks, returns to lobby state)
+- Fixed rematch to properly reset game state (community cards, street, pot cleared)
+- Added in-game session wins badge (yellow circle on player info)
 
 ### 2026-02-05 / 2026-02-06
 
