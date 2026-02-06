@@ -171,10 +171,10 @@ export default function ActionBar({ send }: ActionBarProps) {
     <div className="fixed bottom-0 left-0 right-0 bg-gray-900/95 backdrop-blur border-t border-gray-700 safe-area-bottom">
       {/* Raise/Bet panel */}
       {showRaisePanel && canRaise && (
-        <div className="px-4 py-3 border-b border-gray-700 bg-gray-800/50">
+        <div className="px-3 sm:px-4 py-2 sm:py-3 border-b border-gray-700 bg-gray-800/50">
           <div className="max-w-lg mx-auto">
             {/* Slider with input - values are TOTAL bet amount */}
-            <div className="flex items-center gap-3 mb-3">
+            <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-3">
               <input
                 type="range"
                 min={minTotalBet}
@@ -256,13 +256,13 @@ export default function ActionBar({ send }: ActionBarProps) {
       )}
 
       {/* Main buttons */}
-      <div className="px-4 py-3">
+      <div className="px-3 sm:px-4 py-2 sm:py-3">
         {/* Auto All-In checkbox */}
-        <div className="max-w-lg mx-auto mb-3">
+        <div className="max-w-lg mx-auto mb-2 sm:mb-3">
           <label
             className={`
               flex items-center gap-2 cursor-pointer select-none
-              px-3 py-2 rounded-lg border-2 transition-all
+              px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg border-2 transition-all
               ${
                 autoAllIn
                   ? 'border-yellow-500 bg-yellow-500/20 text-yellow-400'
@@ -276,10 +276,10 @@ export default function ActionBar({ send }: ActionBarProps) {
               onChange={(e) => setAutoAllIn(e.target.checked)}
               className="w-4 h-4 accent-yellow-500"
             />
-            <span className="text-sm font-medium">
+            <span className="text-xs sm:text-sm font-medium">
               Auto All-In
               {autoAllIn && (
-                <span className="ml-2 text-xs text-yellow-500/80">
+                <span className="ml-2 text-xs text-yellow-500/80 hidden sm:inline">
                   (Will go all-in on your turn)
                 </span>
               )}
@@ -287,13 +287,13 @@ export default function ActionBar({ send }: ActionBarProps) {
           </label>
         </div>
 
-        <div className="max-w-lg mx-auto grid grid-cols-4 gap-2">
+        <div className="max-w-lg mx-auto grid grid-cols-4 gap-1.5 sm:gap-2">
           {/* CALL button */}
           <button
             onClick={() => sendAction('call', toCall)}
             disabled={!isYourTurn || !canCall}
             className={`
-              py-4 rounded-lg font-semibold text-sm sm:text-base uppercase tracking-wide
+              py-2.5 sm:py-4 rounded-lg font-semibold text-xs sm:text-base uppercase tracking-wide
               border-2 transition-all
               ${
                 canCall && isYourTurn
@@ -324,7 +324,7 @@ export default function ActionBar({ send }: ActionBarProps) {
             }}
             disabled={!isYourTurn || !canRaise || (showRaisePanel && isRaiseTooSmall)}
             className={`
-              py-4 rounded-lg font-semibold text-sm sm:text-base uppercase tracking-wide
+              py-2.5 sm:py-4 rounded-lg font-semibold text-xs sm:text-base uppercase tracking-wide
               border-2 transition-all
               ${
                 canRaise && isYourTurn
@@ -349,7 +349,7 @@ export default function ActionBar({ send }: ActionBarProps) {
             onClick={() => sendAction('check')}
             disabled={!isYourTurn || !canCheck}
             className={`
-              py-4 rounded-lg font-semibold text-sm sm:text-base uppercase tracking-wide
+              py-2.5 sm:py-4 rounded-lg font-semibold text-xs sm:text-base uppercase tracking-wide
               border-2 transition-all
               ${
                 canCheck && isYourTurn
@@ -366,7 +366,7 @@ export default function ActionBar({ send }: ActionBarProps) {
             onClick={() => sendAction('fold')}
             disabled={!isYourTurn || !canFold}
             className={`
-              py-4 rounded-lg font-semibold text-sm sm:text-base uppercase tracking-wide
+              py-2.5 sm:py-4 rounded-lg font-semibold text-xs sm:text-base uppercase tracking-wide
               border-2 transition-all
               ${
                 canFold && isYourTurn

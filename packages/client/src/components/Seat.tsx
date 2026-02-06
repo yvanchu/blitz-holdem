@@ -88,8 +88,8 @@ export default function Seat({
   // Bet chip component
   const BetChip = () =>
     player.currentBet > 0 ? (
-      <div className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-yellow-500 text-black text-sm font-bold shadow-lg">
-        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+      <div className="flex items-center gap-1 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full bg-yellow-500 text-black text-xs sm:text-sm font-bold shadow-lg">
+        <svg className="w-3 h-3 sm:w-4 sm:h-4" viewBox="0 0 24 24" fill="currentColor">
           <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="none" />
           <circle cx="12" cy="12" r="6" fill="currentColor" />
         </svg>
@@ -99,7 +99,7 @@ export default function Seat({
 
   return (
     <div
-      className={`flex flex-col items-center gap-2 transition-opacity ${
+      className={`flex flex-col items-center gap-1 sm:gap-2 transition-opacity ${
         isFolded ? 'opacity-50' : ''
       }`}
     >
@@ -107,7 +107,7 @@ export default function Seat({
       {position === 'top' && (
         <>
           {/* Cards with hand strength badge */}
-          <div className="relative flex gap-1 mb-2">
+          <div className="relative flex gap-1 mb-1 sm:mb-2">
             {shouldShowCards && cardsToShow ? (
               <>
                 <CardComponent
@@ -162,7 +162,7 @@ export default function Seat({
           />
 
           {/* Cards with hand strength badge */}
-          <div className="relative flex gap-1 mt-2">
+          <div className="relative flex gap-1 mt-1 sm:mt-2">
             {shouldShowCards && cardsToShow ? (
               <>
                 <CardComponent
@@ -208,25 +208,25 @@ function PlayerInfo({
 }) {
   return (
     <div
-      className={`relative flex items-center gap-3 px-4 py-2 rounded-full ${
+      className={`relative flex items-center gap-2 sm:gap-3 px-2 sm:px-4 py-1 sm:py-2 rounded-full ${
         isActive ? 'bg-yellow-500/20 ring-2 ring-yellow-400' : 'bg-gray-800/80'
       }`}
     >
       {/* Avatar */}
-      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center font-bold text-white">
+      <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center font-bold text-white text-sm sm:text-base">
         {player.alias.charAt(0).toUpperCase()}
       </div>
 
       {/* Name */}
       <div className="flex flex-col">
-        <span className="text-white font-medium text-sm">{player.alias}</span>
+        <span className="text-white font-medium text-xs sm:text-sm">{player.alias}</span>
       </div>
 
       {/* Timer with gain indicator */}
       <div className="flex items-center gap-1">
         <Timer timeBank={player.timeBank} isActive={isActive} isAllIn={player.isAllIn} />
         {result && result.winnerId === player.id && (
-          <span className="text-green-400 font-bold text-sm animate-pulse">
+          <span className="text-green-400 font-bold text-xs sm:text-sm animate-pulse">
             +{result.potAwarded}s
           </span>
         )}
@@ -234,21 +234,21 @@ function PlayerInfo({
 
       {/* Dealer button */}
       {isDealer && (
-        <div className="absolute -right-2 -top-2 w-6 h-6 rounded-full bg-white text-black text-xs font-bold flex items-center justify-center shadow-lg">
+        <div className="absolute -right-1 sm:-right-2 -top-1 sm:-top-2 w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-white text-black text-[10px] sm:text-xs font-bold flex items-center justify-center shadow-lg">
           D
         </div>
       )}
 
       {/* All-in badge */}
       {player.isAllIn && (
-        <div className="absolute -left-2 -top-2 px-2 py-0.5 rounded-full bg-red-600 text-white text-xs font-bold">
+        <div className="absolute -left-1 sm:-left-2 -top-1 sm:-top-2 px-1.5 sm:px-2 py-0.5 rounded-full bg-red-600 text-white text-[10px] sm:text-xs font-bold">
           ALL IN
         </div>
       )}
 
       {/* Folded badge */}
       {player.folded && (
-        <div className="absolute -left-2 -top-2 px-2 py-0.5 rounded-full bg-gray-600 text-white text-xs font-bold">
+        <div className="absolute -left-1 sm:-left-2 -top-1 sm:-top-2 px-1.5 sm:px-2 py-0.5 rounded-full bg-gray-600 text-white text-[10px] sm:text-xs font-bold">
           FOLD
         </div>
       )}

@@ -28,7 +28,11 @@ export default function CardComponent({
   size = 'normal',
   highlight = false,
 }: CardProps) {
-  const sizeClasses = size === 'small' ? 'w-[45px] h-[63px] text-sm' : 'w-[60px] h-[84px] text-lg';
+  // Responsive sizes: smaller on mobile
+  const sizeClasses =
+    size === 'small'
+      ? 'w-[36px] h-[50px] sm:w-[45px] sm:h-[63px] text-xs sm:text-sm'
+      : 'w-[40px] h-[56px] sm:w-[60px] sm:h-[84px] text-sm sm:text-lg';
 
   if (hidden || !card) {
     return (

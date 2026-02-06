@@ -23,7 +23,7 @@ export default function Table() {
     opponentSeatIndex === 0 ? revealedCards?.seat0 : revealedCards?.seat1;
 
   return (
-    <div className="relative w-full max-w-4xl aspect-[16/10] bg-felt rounded-[50%] border-8 border-amber-900 shadow-2xl flex flex-col items-center justify-between p-8">
+    <div className="relative w-full h-full max-w-5xl max-h-[70vh] sm:max-h-[80vh] bg-felt rounded-[40%] sm:rounded-[50%] border-4 sm:border-8 border-amber-900 shadow-2xl flex flex-col items-center justify-between p-3 sm:p-6 lg:p-8">
       {/* Opponent seat (top) */}
       <div className="relative">
         <Seat
@@ -36,9 +36,9 @@ export default function Table() {
       </div>
 
       {/* Community cards & pot (center) */}
-      <div className="flex flex-col items-center gap-4">
-        {/* Community cards - fixed width container for consistent alignment */}
-        <div className="flex gap-2 justify-center" style={{ width: '340px' }}>
+      <div className="flex flex-col items-center gap-2 sm:gap-4">
+        {/* Community cards - responsive width */}
+        <div className="flex gap-1 sm:gap-2 justify-center">
           {/* Always render 5 slots, show cards or placeholders */}
           {Array.from({ length: 5 }).map((_, i) => {
             const card = communityCards[i];
@@ -47,16 +47,16 @@ export default function Table() {
             ) : (
               <div
                 key={i}
-                className="w-[60px] h-[84px] rounded-lg border-2 border-dashed border-white/20"
+                className="w-[40px] h-[56px] sm:w-[60px] sm:h-[84px] rounded-lg border-2 border-dashed border-white/20"
               />
             );
           })}
         </div>
 
         {/* Pot */}
-        <div className="bg-black/40 px-6 py-2 rounded-full">
-          <span className="text-gray-400 text-sm">Pot: </span>
-          <span className="text-white font-bold text-lg">{Math.round(pot)}s</span>
+        <div className="bg-black/40 px-4 sm:px-6 py-1 sm:py-2 rounded-full">
+          <span className="text-gray-400 text-xs sm:text-sm">Pot: </span>
+          <span className="text-white font-bold text-sm sm:text-lg">{Math.round(pot)}s</span>
         </div>
       </div>
 

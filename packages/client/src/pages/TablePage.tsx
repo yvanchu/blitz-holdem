@@ -47,9 +47,9 @@ export default function TablePage() {
   }
 
   return (
-    <div className="flex flex-col min-h-screen">
-      {/* Share link */}
-      <div className="bg-gray-800 px-4 py-2 flex items-center justify-between">
+    <div className="flex flex-col h-[100dvh] overflow-hidden">
+      {/* Share link - compact header */}
+      <div className="bg-gray-800 px-4 py-2 flex items-center justify-between shrink-0">
         <div className="text-sm text-gray-400">
           Room: <span className="text-white font-mono">{roomId}</span>
         </div>
@@ -61,8 +61,8 @@ export default function TablePage() {
         </button>
       </div>
 
-      {/* Main table area */}
-      <div className="flex-1 flex items-center justify-center p-4">
+      {/* Main table area - flex-1 to fill remaining space */}
+      <div className="flex-1 flex items-center justify-center p-2 sm:p-4 min-h-0">
         {!isHandInProgress && !isReady ? (
           <WaitingRoom onReady={handleReady} send={send} />
         ) : (
