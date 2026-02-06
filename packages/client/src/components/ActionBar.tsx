@@ -168,7 +168,7 @@ export default function ActionBar({ send }: ActionBarProps) {
   };
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-gray-900/95 backdrop-blur border-t border-gray-700 safe-area-bottom">
+    <div className="shrink-0 bg-gray-900/95 backdrop-blur border-t border-gray-700 safe-area-bottom">
       {/* Raise/Bet panel */}
       {showRaisePanel && canRaise && (
         <div className="px-3 sm:px-4 py-2 sm:py-3 border-b border-gray-700 bg-gray-800/50">
