@@ -286,6 +286,8 @@ export { expect } from '@playwright/test';
  */
 export async function startGameWithBothReady(game: GameFixture): Promise<void> {
   await game.player2.ready();
+  // Wait for the ready state to propagate to player1 before clicking start
+  await game.player1.startButton.waitFor({ state: 'visible', timeout: 10000 });
   await game.player1.startGame();
 
   // Wait for game to start (hole cards dealt) - scope to player's own seat (bottom)

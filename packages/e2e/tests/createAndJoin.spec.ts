@@ -81,8 +81,9 @@ test.describe('Create and Join Room', () => {
     await player2Page.locator('[data-testid="ready-button"]').click();
 
     // Player 1 should now see the start game button
+    // Use 10s timeout to account for WebSocket message propagation under load
     await expect(player1Page.locator('[data-testid="start-game-button"]')).toBeVisible({
-      timeout: 5000,
+      timeout: 10000,
     });
   });
 
