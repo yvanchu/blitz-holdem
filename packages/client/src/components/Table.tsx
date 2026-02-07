@@ -260,16 +260,6 @@ export default function Table({ send }: TableProps) {
           }}
           wins={sessionWins[yourSeatIndex ?? 0]}
         />
-        {/* Show Cards button - visible after hand ends when cards not yet revealed */}
-        {result && !isHandInProgress && !result.showdown && !yourRevealedCards && (
-          <button
-            onClick={() => send({ type: 'SHOW_CARDS' })}
-            data-testid="show-cards-button"
-            className="absolute -right-20 sm:-right-24 top-1/2 -translate-y-1/2 px-3 py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs sm:text-sm font-semibold rounded-lg shadow-lg transition-colors"
-          >
-            Show Cards
-          </button>
-        )}
       </div>
 
       {/* Settings Modal */}

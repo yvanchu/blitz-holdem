@@ -213,36 +213,6 @@ describe('Table', () => {
         },
       });
     });
-
-    it('should display show cards button after fold win (not showdown)', () => {
-      useGameStore.setState({
-        result: {
-          showdown: false,
-          winnerId: 'player-1',
-          winnerHandRank: 'Fold',
-          potAwarded: 10,
-        },
-      });
-      render(<Table send={mockSend} />);
-
-      expect(screen.getByTestId('show-cards-button')).toBeInTheDocument();
-    });
-
-    it('should send SHOW_CARDS message when show cards clicked', () => {
-      useGameStore.setState({
-        result: {
-          showdown: false,
-          winnerId: 'player-1',
-          winnerHandRank: 'Fold',
-          potAwarded: 10,
-        },
-      });
-      render(<Table send={mockSend} />);
-
-      fireEvent.click(screen.getByTestId('show-cards-button'));
-
-      expect(mockSend).toHaveBeenCalledWith({ type: 'SHOW_CARDS' });
-    });
   });
 
   describe('session wins', () => {

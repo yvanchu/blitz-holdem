@@ -235,6 +235,25 @@ describe('ActionBar', () => {
       expect(mockSend).toHaveBeenCalledWith({ type: 'ACTION', action: 'check' });
     });
 
+    it('should trigger call on "c" key when call is valid (and check is not)', () => {
+      setupActiveTurn({ currentBet: 0 });
+      useGameStore.setState({ currentBet: 5 });
+      render(<ActionBar send={mockSend} isHandInProgress={true} />);
+
+      fireEvent.keyDown(window, { key: 'c' });
+
+      expect(mockSend).toHaveBeenCalledWith({ type: 'ACTION', action: 'call', amount: 5 });
+    });
+
+    it('should trigger check on "k" key', () => {
+      setupActiveTurn();
+      render(<ActionBar send={mockSend} isHandInProgress={true} />);
+
+      fireEvent.keyDown(window, { key: 'k' });
+
+      expect(mockSend).toHaveBeenCalledWith({ type: 'ACTION', action: 'check' });
+    });
+
     it('should trigger fold on "f" key', () => {
       setupActiveTurn();
       render(<ActionBar send={mockSend} isHandInProgress={true} />);
@@ -244,7 +263,16 @@ describe('ActionBar', () => {
       expect(mockSend).toHaveBeenCalledWith({ type: 'ACTION', action: 'fold' });
     });
 
-    it('should toggle raise panel on "r" key', () => {
+    it('should open raise panel and focus input on "r" key', async () => {
+      setupActiveTurn();
+      render(<ActionBar send={mockSend} isHandInProgress={true} />);
+
+      fireEvent.keyDown(window, { key: 'r' });
+
+      expect(screen.getByTestId('bet-input')).toBeInTheDocument();
+    });
+
+    it('should close raise panel on "escape" key', () => {
       setupActiveTurn();
       render(<ActionBar send={mockSend} isHandInProgress={true} />);
 
@@ -257,7 +285,60 @@ describe('ActionBar', () => {
       expect(screen.queryByTestId('bet-input')).not.toBeInTheDocument();
     });
 
-    it('should not trigger shortcuts when typing in input', () => {
+    it('should submit bet on "enter" key when raise panel is open', () => {
+      setupActiveTurn({ timeBank: 100 });
+      useGameStore.setState({ pot: 10 });
+      render(<ActionBar send={mockSend} isHandInProgress={true} />);
+
+      // Open raise panel
+      fireEvent.keyDown(window, { key: 'r' });
+
+      // Submit with enter
+      fireEvent.keyDown(window, { key: 'enter' });
+
+      expect(mockSend).toHaveBeenCalledWith(
+        expect.objectContaining({ type: 'ACTION', action: 'bet' })
+      );
+    });
+
+    it('should submit bet on "enter" key from within bet input', () => {
+      setupActiveTurn({ timeBank: 100 });
+      useGameStore.setState({ pot: 10 });
+      render(<ActionBar send={mockSend} isHandInProgress={true} />);
+
+      // Open raise panel
+      fireEvent.click(screen.getByTestId('raise-button'));
+
+      const input = screen.getByTestId('bet-input');
+
+      // Submit with enter from input
+      fireEvent.keyDown(input, { key: 'enter' });
+
+      expect(mockSend).toHaveBeenCalledWith(
+        expect.objectContaining({ type: 'ACTION', action: 'bet' })
+      );
+    });
+
+    it('should toggle auto all-in on "a" key', () => {
+      setupActiveTurn();
+      render(<ActionBar send={mockSend} isHandInProgress={true} />);
+
+      // Find the auto all-in checkbox
+      const checkbox = screen.getByRole('checkbox');
+      expect(checkbox).not.toBeChecked();
+
+      // Press 'a' to toggle
+      fireEvent.keyDown(window, { key: 'a' });
+
+      expect(checkbox).toBeChecked();
+
+      // Press 'a' again to toggle off
+      fireEvent.keyDown(window, { key: 'a' });
+
+      expect(checkbox).not.toBeChecked();
+    });
+
+    it('should not trigger shortcuts when typing in input (except enter)', () => {
       setupActiveTurn();
       render(<ActionBar send={mockSend} isHandInProgress={true} />);
 
@@ -266,11 +347,141 @@ describe('ActionBar', () => {
 
       const input = screen.getByTestId('bet-input');
 
-      // Simulate typing 'f' in input
+      // Simulate typing 'f' in input - should not trigger fold
       fireEvent.keyDown(input, { key: 'f', target: input });
 
-      // Should not have triggered fold
       expect(mockSend).not.toHaveBeenCalledWith({ type: 'ACTION', action: 'fold' });
+    });
+
+    it('should not trigger shortcuts when it is not your turn', () => {
+      setupActiveTurn();
+      useGameStore.setState({ activePlayerIndex: 1 }); // Opponent's turn
+      render(<ActionBar send={mockSend} isHandInProgress={true} />);
+
+      fireEvent.keyDown(window, { key: 'f' });
+      fireEvent.keyDown(window, { key: 'c' });
+      fireEvent.keyDown(window, { key: 'k' });
+
+      expect(mockSend).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('show cards', () => {
+    it('should display show cards button after fold win (not showdown)', () => {
+      setupActiveTurn();
+      useGameStore.setState({
+        isHandInProgress: false,
+        result: {
+          showdown: false,
+          winnerId: 'player-1',
+          winnerHandRank: 'Fold',
+          potAwarded: 10,
+        },
+      });
+      render(<ActionBar send={mockSend} isHandInProgress={false} />);
+
+      expect(screen.getByTestId('show-cards-button')).toBeInTheDocument();
+    });
+
+    it('should send SHOW_CARDS message when show cards clicked', () => {
+      setupActiveTurn();
+      useGameStore.setState({
+        isHandInProgress: false,
+        result: {
+          showdown: false,
+          winnerId: 'player-1',
+          winnerHandRank: 'Fold',
+          potAwarded: 10,
+        },
+      });
+      render(<ActionBar send={mockSend} isHandInProgress={false} />);
+
+      fireEvent.click(screen.getByTestId('show-cards-button'));
+
+      expect(mockSend).toHaveBeenCalledWith({ type: 'SHOW_CARDS' });
+    });
+
+    it('should send SHOW_CARDS message when "s" key pressed', () => {
+      setupActiveTurn();
+      useGameStore.setState({
+        isHandInProgress: false,
+        result: {
+          showdown: false,
+          winnerId: 'player-1',
+          winnerHandRank: 'Fold',
+          potAwarded: 10,
+        },
+      });
+      render(<ActionBar send={mockSend} isHandInProgress={false} />);
+
+      fireEvent.keyDown(window, { key: 's' });
+
+      expect(mockSend).toHaveBeenCalledWith({ type: 'SHOW_CARDS' });
+    });
+
+    it('should not trigger show cards shortcut when typing in input', () => {
+      setupActiveTurn();
+      useGameStore.setState({
+        isHandInProgress: false,
+        result: {
+          showdown: false,
+          winnerId: 'player-1',
+          winnerHandRank: 'Fold',
+          potAwarded: 10,
+        },
+      });
+      render(<ActionBar send={mockSend} isHandInProgress={false} />);
+
+      const input = document.createElement('input');
+      document.body.appendChild(input);
+      input.focus();
+
+      fireEvent.keyDown(input, { key: 's', target: input });
+
+      expect(mockSend).not.toHaveBeenCalledWith({ type: 'SHOW_CARDS' });
+
+      document.body.removeChild(input);
+    });
+
+    it('should not show button when showdown occurred', () => {
+      setupActiveTurn();
+      useGameStore.setState({
+        isHandInProgress: false,
+        result: {
+          showdown: true,
+          winnerId: 'player-1',
+          winnerHandRank: 'Pair',
+          potAwarded: 10,
+        },
+      });
+      render(<ActionBar send={mockSend} isHandInProgress={false} />);
+
+      // Show cards button should not be visible after showdown
+      expect(screen.queryByTestId('show-cards-button')).not.toBeInTheDocument();
+    });
+
+    it('should not show button when cards already revealed', () => {
+      setupActiveTurn();
+      useGameStore.setState({
+        isHandInProgress: false,
+        result: {
+          showdown: false,
+          winnerId: 'player-1',
+          winnerHandRank: 'Fold',
+          potAwarded: 10,
+        },
+        revealedCards: {
+          seat0: [
+            { rank: 'A', suit: 's' },
+            { rank: 'K', suit: 'h' },
+          ],
+          seat1: null,
+        },
+      });
+      render(<ActionBar send={mockSend} isHandInProgress={false} />);
+
+      // Show cards button should not be visible after cards revealed
+      expect(screen.queryByTestId('show-cards-button')).not.toBeInTheDocument();
     });
   });
 

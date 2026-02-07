@@ -146,12 +146,16 @@ See [docs/testing.md](docs/testing.md) for detailed test coverage information.
 
 ## ⌨️ Keyboard Shortcuts
 
-| Key | Action       |
-| --- | ------------ |
-| F   | Fold         |
-| C   | Check / Call |
-| B   | Bet / Raise  |
-| A   | All-in       |
+| Key | Action |
+| --- | ------ |
+| F | Fold |
+| C | Call (or Check if no bet) |
+| K | Check |
+| R | Bet / Raise (opens panel, focuses input) |
+| A | Toggle Auto All-In |
+| S | Show Cards (after hand ends) |
+| Enter | Submit bet/raise |
+| Esc | Close raise panel |
 
 ## 📄 License
 

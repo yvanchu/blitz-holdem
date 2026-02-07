@@ -9,13 +9,16 @@ import {
 import type { ActionType, C2SMessage } from '@blitz-holdem/common';
 import { HandHistoryButton } from './HandHistoryButton';
 
+// Ref for bet input focus from keyboard shortcut
+let betInputRef: HTMLInputElement | null = null;
+
 interface ActionBarProps {
   send: (message: C2SMessage) => void;
   isHandInProgress: boolean;
 }
 
 export default function ActionBar({ send, isHandInProgress }: ActionBarProps) {
-  const { minRaise, currentBet, pot } = useGameStore();
+  const { minRaise, currentBet, pot, result, revealedCards, yourSeatIndex } = useGameStore();
   const yourPlayer = useGameStore(selectYourPlayer);
   const isYourTurn = useGameStore(selectIsYourTurn);
   const toCall = useGameStore(selectToCall);
@@ -40,6 +43,15 @@ export default function ActionBar({ send, isHandInProgress }: ActionBarProps) {
 
   // Only invalid if raise is too SMALL - too large will auto-clamp to all-in
   const isRaiseTooSmall = betAmount < minTotalBet;
+
+  // Can show cards: hand ended, not showdown, cards not yet revealed
+  const yourRevealedCards = yourSeatIndex === 0 ? revealedCards?.seat0 : revealedCards?.seat1;
+  const canShowCards = result && !isHandInProgress && !result.showdown && !yourRevealedCards;
+
+  // Handler for show cards
+  const handleShowCards = useCallback(() => {
+    send({ type: 'SHOW_CARDS' });
+  }, [send]);
 
   // Auto-clamp betAmount to maxTotalBet when timebank decreases (tick down with all-in)
   useEffect(() => {
@@ -104,24 +116,43 @@ export default function ActionBar({ send, isHandInProgress }: ActionBarProps) {
     if (!isYourTurn) return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.target instanceof HTMLInputElement) return;
+      // Allow Enter key in input fields for raise submission
+      if (e.target instanceof HTMLInputElement && e.key.toLowerCase() !== 'enter') return;
 
       switch (e.key.toLowerCase()) {
         case 'f':
           if (validActions.includes('fold')) sendAction('fold');
           break;
         case 'c':
+          if (validActions.includes('call')) sendAction('call', toCall);
+          else if (validActions.includes('check')) sendAction('check');
+          break;
+        case 'k':
           if (validActions.includes('check')) sendAction('check');
-          else if (validActions.includes('call')) sendAction('call', toCall);
           break;
         case 'r':
           if (validActions.includes('bet') || validActions.includes('raise')) {
-            setShowRaisePanel(!showRaisePanel);
+            if (!showRaisePanel) {
+              setShowRaisePanel(true);
+              // Focus input after panel opens
+              setTimeout(() => betInputRef?.focus(), 50);
+            } else {
+              // If panel already open, focus input
+              betInputRef?.focus();
+            }
           }
           break;
+        case 'a':
+          setAutoAllIn(!autoAllIn);
+          break;
         case 'enter':
-          if (showRaisePanel) {
-            sendAction(currentBet === 0 ? 'bet' : 'raise', betAmount);
+          if (showRaisePanel && !isRaiseTooSmall) {
+            const raiseAmount = betAmount - yourCurrentBet;
+            if (betAmount >= maxTotalBet) {
+              sendAction('all-in', raiseAmount);
+            } else {
+              sendAction(currentBet === 0 ? 'bet' : 'raise', raiseAmount);
+            }
           }
           break;
         case 'escape':
@@ -141,7 +172,26 @@ export default function ActionBar({ send, isHandInProgress }: ActionBarProps) {
     yourPlayer,
     showRaisePanel,
     currentBet,
+    autoAllIn,
+    isRaiseTooSmall,
+    yourCurrentBet,
+    maxTotalBet,
   ]);
+
+  // Keyboard shortcut for show cards (S key) - separate from turn-based shortcuts
+  useEffect(() => {
+    if (!canShowCards) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.target instanceof HTMLInputElement) return;
+      if (e.key.toLowerCase() === 's') {
+        handleShowCards();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [canShowCards, handleShowCards]);
 
   if (!yourPlayer) {
     // Return minimal action bar with just Hand History when no player (shouldn't normally happen)
@@ -209,8 +259,10 @@ export default function ActionBar({ send, isHandInProgress }: ActionBarProps) {
                     inputMode="numeric"
                     pattern="[0-9]*"
                     data-testid="bet-input"
+                    ref={(el) => { betInputRef = el; }}
                     value={inputValue}
                     onChange={(e) => handleInputChange(e.target.value)}
+                    onFocus={(e) => e.target.select()}
                     onBlur={() => {
                       const num = parseInt(inputValue);
                       if (isNaN(num)) {
@@ -331,7 +383,7 @@ export default function ActionBar({ send, isHandInProgress }: ActionBarProps) {
 
       {/* Main buttons - hidden on mobile when raise panel is open */}
       <div className={`px-3 sm:px-4 py-2 sm:py-3 ${showRaisePanel ? 'hidden sm:block' : ''}`}>
-        {/* Hand History Button + Auto All-In checkbox row - hidden when raise panel is open */}
+        {/* Hand History Button + Auto All-In + Show Cards row - hidden when raise panel is open */}
         {!showRaisePanel && (
           <div className="max-w-lg mx-auto mb-2 sm:mb-3 flex items-center gap-2">
             <HandHistoryButton />
@@ -361,7 +413,23 @@ export default function ActionBar({ send, isHandInProgress }: ActionBarProps) {
                     </span>
                   )}
                 </span>
+                <span className="hidden sm:block ml-auto px-1.5 py-0.5 text-[10px] font-bold bg-gray-800 border border-gray-600 rounded text-gray-400">
+                  A
+                </span>
               </label>
+            )}
+            {/* Show Cards button - visible after hand ends when cards not yet revealed */}
+            {canShowCards && (
+              <button
+                onClick={handleShowCards}
+                data-testid="show-cards-button"
+                className="relative ml-auto px-3 py-1.5 sm:py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs sm:text-sm font-semibold rounded-lg shadow-lg transition-colors"
+              >
+                Show Cards
+                <span className="hidden sm:block absolute -top-2 -right-1 px-1.5 py-0.5 text-[10px] font-bold bg-gray-800 border border-gray-600 rounded text-gray-400">
+                  S
+                </span>
+              </button>
             )}
           </div>
         )}
@@ -373,7 +441,7 @@ export default function ActionBar({ send, isHandInProgress }: ActionBarProps) {
             disabled={!isYourTurn || !canCall}
             data-testid="call-button"
             className={`
-              py-2.5 sm:py-4 rounded-lg font-semibold text-xs sm:text-base uppercase tracking-wide
+              relative py-2.5 sm:py-4 rounded-lg font-semibold text-xs sm:text-base uppercase tracking-wide
               border-2 transition-all
               ${
                 canCall && isYourTurn
@@ -383,6 +451,9 @@ export default function ActionBar({ send, isHandInProgress }: ActionBarProps) {
             `}
           >
             {canCall ? `Call ${Math.min(toCall, yourPlayer?.timeBank ?? 0)}s` : 'Call'}
+            <span className="hidden sm:block absolute -top-2 -right-1 px-1.5 py-0.5 text-[10px] font-bold bg-gray-800 border border-gray-600 rounded text-gray-400">
+              C
+            </span>
           </button>
 
           {/* BET/RAISE button */}
@@ -405,7 +476,7 @@ export default function ActionBar({ send, isHandInProgress }: ActionBarProps) {
             disabled={!isYourTurn || !canRaise || (showRaisePanel && isRaiseTooSmall)}
             data-testid="raise-button"
             className={`
-              py-2.5 sm:py-4 rounded-lg font-semibold text-xs sm:text-base uppercase tracking-wide
+              relative py-2.5 sm:py-4 rounded-lg font-semibold text-xs sm:text-base uppercase tracking-wide
               border-2 transition-all
               ${
                 canRaise && isYourTurn
@@ -419,6 +490,9 @@ export default function ActionBar({ send, isHandInProgress }: ActionBarProps) {
             `}
           >
             {showRaisePanel ? `${isBet ? 'Bet' : 'Raise'} ${betAmount}s` : isBet ? 'Bet' : 'Raise'}
+            <span className="hidden sm:block absolute -top-2 -right-1 px-1.5 py-0.5 text-[10px] font-bold bg-gray-800 border border-gray-600 rounded text-gray-400">
+              R
+            </span>
           </button>
 
           {/* CHECK button */}
@@ -427,7 +501,7 @@ export default function ActionBar({ send, isHandInProgress }: ActionBarProps) {
             disabled={!isYourTurn || !canCheck}
             data-testid="check-button"
             className={`
-              py-2.5 sm:py-4 rounded-lg font-semibold text-xs sm:text-base uppercase tracking-wide
+              relative py-2.5 sm:py-4 rounded-lg font-semibold text-xs sm:text-base uppercase tracking-wide
               border-2 transition-all
               ${
                 canCheck && isYourTurn
@@ -437,6 +511,9 @@ export default function ActionBar({ send, isHandInProgress }: ActionBarProps) {
             `}
           >
             Check
+            <span className="hidden sm:block absolute -top-2 -right-1 px-1.5 py-0.5 text-[10px] font-bold bg-gray-800 border border-gray-600 rounded text-gray-400">
+              K
+            </span>
           </button>
 
           {/* FOLD button */}
@@ -445,7 +522,7 @@ export default function ActionBar({ send, isHandInProgress }: ActionBarProps) {
             disabled={!isYourTurn || !canFold}
             data-testid="fold-button"
             className={`
-              py-2.5 sm:py-4 rounded-lg font-semibold text-xs sm:text-base uppercase tracking-wide
+              relative py-2.5 sm:py-4 rounded-lg font-semibold text-xs sm:text-base uppercase tracking-wide
               border-2 transition-all
               ${
                 canFold && isYourTurn
@@ -455,6 +532,9 @@ export default function ActionBar({ send, isHandInProgress }: ActionBarProps) {
             `}
           >
             Fold
+            <span className="hidden sm:block absolute -top-2 -right-1 px-1.5 py-0.5 text-[10px] font-bold bg-gray-800 border border-gray-600 rounded text-gray-400">
+              F
+            </span>
           </button>
         </div>
       </div>
