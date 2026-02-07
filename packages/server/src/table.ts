@@ -57,6 +57,12 @@ export class TableController {
   }
 
   addPlayer(ws: WebSocket, alias: string): { success: boolean; playerId?: string; error?: string } {
+    // Check for reconnection - player with same alias who is disconnected
+    const disconnectedPlayer = this.findDisconnectedPlayer(alias);
+    if (disconnectedPlayer) {
+      return this.reconnectPlayer(ws, disconnectedPlayer);
+    }
+
     if (this.players.size >= 2) {
       return { success: false, error: 'Room is full' };
     }
@@ -276,6 +282,49 @@ export class TableController {
     if (!connected) return true; // Already removed
     if (!connected.disconnectedAt) return false; // Still connected
     return Date.now() - connected.disconnectedAt >= this.state.settings.disconnectGracePeriod;
+  }
+
+  /**
+   * Find a disconnected player by alias (for reconnection)
+   */
+  private findDisconnectedPlayer(alias: string): ConnectedPlayer | null {
+    for (const connected of this.players.values()) {
+      if (connected.disconnectedAt && connected.player.alias === alias) {
+        return connected;
+      }
+    }
+    return null;
+  }
+
+  /**
+   * Reconnect a player to their existing seat
+   */
+  private reconnectPlayer(
+    ws: WebSocket,
+    disconnected: ConnectedPlayer
+  ): { success: boolean; playerId?: string; error?: string } {
+    const playerId = disconnected.player.id;
+
+    // Update the connection
+    disconnected.ws = ws;
+    disconnected.disconnectedAt = null;
+    disconnected.player.isConnected = true;
+
+    // Update state
+    const playerIndex = this.state.players.findIndex((p) => p?.id === playerId);
+    if (playerIndex !== -1 && this.state.players[playerIndex]) {
+      this.state.players[playerIndex]!.isConnected = true;
+    }
+
+    // Send current room state to reconnected player
+    this.sendRoomState(playerId);
+
+    // Notify opponent of reconnection
+    this.broadcastPlayerReconnected(disconnected.player.seatIndex);
+
+    console.log(`Player ${disconnected.player.alias} (${playerId}) reconnected to room ${this.state.roomId}`);
+
+    return { success: true, playerId };
   }
 
   /**
@@ -763,6 +812,13 @@ export class TableController {
     this.broadcast({
       type: 'PLAYER_LEFT',
       playerId,
+      seatIndex,
+    });
+  }
+
+  private broadcastPlayerReconnected(seatIndex: 0 | 1) {
+    this.broadcast({
+      type: 'PLAYER_RECONNECTED',
       seatIndex,
     });
   }

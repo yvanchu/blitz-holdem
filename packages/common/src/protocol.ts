@@ -185,6 +185,11 @@ export interface S2C_PlayerLeft {
   seatIndex: 0 | 1;
 }
 
+export interface S2C_PlayerReconnected {
+  type: 'PLAYER_RECONNECTED';
+  seatIndex: 0 | 1;
+}
+
 export interface S2C_SettingsUpdated {
   type: 'SETTINGS_UPDATED';
   settings: TableSettings;
@@ -248,6 +253,7 @@ export type S2CMessage =
   | S2C_Pong
   | S2C_PlayerJoined
   | S2C_PlayerLeft
+  | S2C_PlayerReconnected
   | S2C_SettingsUpdated
   | S2C_PlayerUpdated
   | S2C_PlayersUpdate
