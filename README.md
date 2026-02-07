@@ -128,12 +128,12 @@ pnpm build
 
 We have comprehensive test coverage across all packages:
 
-| Package | Tests | Coverage |
-|---------|-------|----------|
-| common | 34 | Engine, deck, timer, evaluation |
-| server | 80 | WebSocket, game flow, reconnection |
-| client | 183 | Components, store, formatters |
-| e2e | 38 | Full user flows with Playwright |
+| Package | Tests | Coverage                           |
+| ------- | ----- | ---------------------------------- |
+| common  | 34    | Engine, deck, timer, evaluation    |
+| server  | 80    | WebSocket, game flow, reconnection |
+| client  | 183   | Components, store, formatters      |
+| e2e     | 38    | Full user flows with Playwright    |
 
 See [docs/testing.md](docs/testing.md) for detailed test coverage information.
 
@@ -146,16 +146,16 @@ See [docs/testing.md](docs/testing.md) for detailed test coverage information.
 
 ## ⌨️ Keyboard Shortcuts
 
-| Key | Action |
-| --- | ------ |
-| F | Fold |
-| C | Call (or Check if no bet) |
-| K | Check |
-| R | Bet / Raise (opens panel, focuses input) |
-| A | Toggle Auto All-In |
-| S | Show Cards (after hand ends) |
-| Enter | Submit bet/raise |
-| Esc | Close raise panel |
+| Key   | Action                                   |
+| ----- | ---------------------------------------- |
+| F     | Fold                                     |
+| C     | Call (or Check if no bet)                |
+| K     | Check                                    |
+| R     | Bet / Raise (opens panel, focuses input) |
+| A     | Toggle Auto All-In                       |
+| S     | Show Cards (after hand ends)             |
+| Enter | Submit bet/raise                         |
+| Esc   | Close raise panel                        |
 
 ## 📄 License
 

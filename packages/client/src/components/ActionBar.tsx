@@ -259,7 +259,9 @@ export default function ActionBar({ send, isHandInProgress }: ActionBarProps) {
                     inputMode="numeric"
                     pattern="[0-9]*"
                     data-testid="bet-input"
-                    ref={(el) => { betInputRef = el; }}
+                    ref={(el) => {
+                      betInputRef = el;
+                    }}
                     value={inputValue}
                     onChange={(e) => handleInputChange(e.target.value)}
                     onFocus={(e) => e.target.select()}
