@@ -39,7 +39,6 @@
 - [ ] **SECURITY**: Implement room TTL / reaper (rooms are never cleaned up, `deleteRoom` is never called)
 - [ ] **SECURITY**: Restrict CORS from wildcard `*` to actual client origins
 - [ ] **SECURITY**: Validate WebSocket `Origin` header against allowlist
-- [ ] **UX**: Add spatial separation for Fold button (UX doc requires "Fold Zone" with extra whitespace, currently adjacent to Check)
 - [ ] **UX**: Increase timer font size (currently `text-xs sm:text-sm` ~12-14px, UX doc specifies 16-20px bold)
 - [ ] **UX**: Make ResultOverlay non-blocking (currently a full-screen modal, violates "no modal dialogs during gameplay" rule)
 - [ ] **UX**: Use amber color for Raise/Bet button (currently green like Check/Call, violates color language spec)
@@ -63,6 +62,11 @@
 - [ ] **UX**: Add copy-link success feedback (currently no toast or button text change after clipboard copy)
 - [ ] **UX**: Add last-action indicator ("Opponent checked", "Opponent raised to 12s") for clarity
 - [ ] **UX**: Add `prefers-reduced-motion` media query support (required by UX accessibility spec)
+- [ ] **UX**: Raise slider accent color is `accent-green-500`, should be amber per color language (UX §7: amber = betting/neutral)
+- [ ] **UX**: Hand strength badge uses `bg-red-500` for all hand ranks — red implies danger/loss (UX §7), should use a neutral color like gray or cyan since it's informational
+- [ ] **UX**: Card sizes are smaller than spec on mobile — UX spec says 40–60px wide mobile, current small cards are 36px (`w-[36px]`); normal cards are 40px which is the bare minimum
+- [ ] **UX**: Stakes display only visible to joiner (`isJoiner && settings`) — both players should see current blinds/stakes for clarity (UX §5: "What's the pot?" is #5 priority)
+- [ ] **UX**: SettingsModal opens during gameplay (via ⚙️ button in game-over/lobby) — modal is a `fixed inset-0 z-50` overlay; ensure settings button is never reachable during active hand (UX §Anti-patterns: "No modal dialogs during gameplay")
 
 ### Nice to Have (Post-Launch)
 
@@ -76,9 +80,14 @@
 - [ ] **UX**: Show calculated values in bet presets (e.g., "33% (4s)" instead of just "33%")
 - [ ] **UX**: Add lobby → game transition animation (dealing feel when host clicks Start)
 - [ ] **UX**: Make empty community card slots more visible (currently `border-white/20` is nearly invisible on felt)
-- [ ] Integration tests
+- [ ] **UX**: Winning cards use `ring-2 ring-yellow-400` + `-translate-y-2` but UX spec calls for a "golden glow" pulse — add a subtle `animate-pulse` or `shadow-yellow-400/50` glow effect to better match spec
+- [ ] **UX**: HomePage background is plain dark (`min-h-screen`) with no felt/branding — should match the felt green or have a cohesive transition into the table aesthetic
+- [ ] **UX**: Timer `animate-pulse` at ≤10s applies to the text, not the container — the pulsing text can feel jittery; consider pulsing the timer background/border instead for a smoother urgency indicator
+- [ ] **UX**: Auto All-In checkbox is a non-standard game control — UX doc doesn't account for it; it should have a confirmation state or undo mechanism since accidental toggle could be costly
+- [ ] **UX**: Bet preset percentages are pot-relative but pot context isn't shown alongside them — showing absolute values (e.g., "75% (12s)") would help quick decision making per existing todo
+- [x] Integration tests
 - [ ] Add sound effects (optional, mutable)
-- [ ] Add hand history display
+- [x] Add hand history display
 - [ ] Add equity calculation during all-in runout
 - [ ] Landing page / how-to-play guide
 
@@ -226,6 +235,24 @@ The `shouldShowCards` condition required `result.showdown` to be true, but volun
 
 ### 2026-02-10
 
+- **Full UX review** of all frontend components against UX design spec (`ux.md`)
+- **Timer**: Font size still `text-xs sm:text-sm` (~12–14px), UX spec requires 16–20px bold — this is the core mechanic and should be the most prominent number on screen
+- **ResultOverlay**: Still a `fixed inset-0 z-50` full-screen blocking modal with "Next hand starting soon..." — violates the anti-pattern "No modal dialogs during gameplay"; should be a non-blocking inline banner or toast
+- **ActionBar color language**: Raise/Bet button uses `border-green-500 text-green-400` (green) instead of amber — UX §7 explicitly maps green to safe actions (Check/Call) and amber to betting; raise slider accent is also green
+- **ActionBar button order**: Currently `Call | Raise | Check | Fold` in a 4-column grid — UX spec §3 says layout should be `Fold | Call/Check | Raise` and Fold should be "visually distinct (outlined, not filled)" with spatial separation from safe actions to prevent misclicks
+- **Fold button**: Uses same border-only style as all other buttons, no extra spatial separation — Fold is adjacent to Check, making accidental fold likely; needs a divider, extra gap, or distinct visual treatment
+- **Card sizes**: Small cards are 36px wide on mobile (`w-[36px]`), UX spec says 40–60px; normal cards at 40px are at spec minimum — slightly undersized for comfortable glancing
+- **Hand strength badge**: Always `bg-red-500` regardless of hand rank — using danger color (red) for an informational element violates color language; should be neutral
+- **Stakes display**: Only shown to joiner via `isJoiner && settings` check in TablePage — host never sees current blinds during play
+- **Background color**: Tailwind config still defines felt as `#0d5c2e` (too saturated) vs UX spec `#0D1F12` (deep forest green)
+- **Empty board slots**: Still `border-white/20` which is nearly invisible on felt background
+- **No street transition indicators**: No visual feedback when moving from preflop → flop → turn → river
+- **No card animations**: Cards appear instantly with no slide/fade dealing animation
+- **Copy-link button**: No feedback after clipboard copy (no toast, button text change, or checkmark)
+- **Winning card highlight**: Uses ring + translate-y but no glow/pulse effect as specified in UX doc
+- **HomePage**: No thematic connection to the game table aesthetic; no how-to-play explanation for new users
+- Added 7 new medium-priority UX items and 8 new nice-to-have UX items to Pre-Release Checklist
+- **Decisions**: Fold button corner placement is intentional (no spatial separation needed). Button order `Call | Raise | Check | Fold` is correct — updated UX spec §3 and Action Bar guidelines to match. Removed street transition indicators (cards are self-evident), mobile keyboard shortcut discoverability (not expected use case), and how-to-play onboarding (target audience knows poker) from backlog.
 - **UX audit** of full frontend flow against UX design spec
 - Found 5 high-impact issues: Fold button lacks spatial separation (misclick risk), timer font too small for core mechanic, ResultOverlay is a blocking modal (violates anti-pattern), Raise/Bet uses green instead of amber (wrong color language), no card dealing animations
 - Found 5 medium-impact issues: no `prefers-reduced-motion` support, no copy-link feedback, no last-action indicator, background color doesn't match spec (#0d5c2e vs #0D1F12), empty board slots nearly invisible

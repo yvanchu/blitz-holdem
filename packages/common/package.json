@@ -9,6 +9,7 @@
     "build": "tsc --noEmit",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
+    "test:all": "vitest run",
     "test:watch": "vitest"
   },
   "devDependencies": {

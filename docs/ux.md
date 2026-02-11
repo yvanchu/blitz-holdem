@@ -31,7 +31,6 @@
 
 - Time banks use monospace/digital font (numbers should feel like a countdown)
 - Color progression: white → yellow (< 30s) → red (< 10s)
-- Subtle pulse animation at critical levels (< 10s)
 - No screen shake or aggressive animations—tension comes from the number itself
 
 **Anti-pattern**: Don't hide the timer or make it small. It's the central mechanic.
@@ -44,13 +43,11 @@
 
 **Implementation**:
 
-- FOLD button is visually distinct (outlined, not filled) and has extra padding
-- Destructive actions require deliberate targeting
+- FOLD button is visually distinct (outlined, not filled) and placed in the far-right corner
+- Button order: Call | Raise | Check | Fold — safe actions first, destructive action in the corner
 - RAISE requires two taps: first to open panel, second to confirm amount
 - Call/Check are safe defaults (green, prominent)
 - No confirmation dialogs—speed matters—but layout prevents accidents
-
-**The Fold Zone**: Extra whitespace around the fold button. It should never be adjacent to Call/Raise.
 
 ---
 
@@ -65,6 +62,7 @@
 - Important info in the center vertical third (easy to see without adjusting grip)
 - Slider for raise amounts (more natural than +/- buttons on mobile)
 - Preset buttons (33%, 75%, 150%, MAX) for quick betting
+- No scrolling required to access the whole app
 
 **Test**: Can you play a full hand holding your phone in one hand without repositioning?
 
@@ -102,7 +100,7 @@ Every game state should be immediately obvious:
 | All-in           | Red "ALL IN" badge, cards revealed during runout    |
 | Folded           | Gray "FOLD" badge, cards removed/dimmed             |
 | Hand won         | Winner's cards highlighted golden, "+Xs" gain shown |
-| Low time (< 10s) | Timer red + pulse animation                         |
+| Low time (< 10s) | Timer red                                           |
 
 ---
 
@@ -207,7 +205,7 @@ Colors have meaning. Use them consistently:
 ### Action Bar
 
 - Position: Fixed to bottom
-- Layout: 3 buttons minimum (Fold | Call/Check | Raise)
+- Layout: 4 buttons in a row (Call | Raise | Check | Fold) — Fold is in the far-right corner to reduce misclicks
 - Expanded: Slider + presets + amount display
 - Height: ~120px default, ~200px expanded
 
