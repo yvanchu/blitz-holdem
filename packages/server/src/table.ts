@@ -17,7 +17,7 @@ import {
   getValidActions,
   drainTime,
   isTimeout,
-} from '@blitz-holdem/common';
+} from '@bullet-poker/common';
 
 interface ConnectedPlayer {
   ws: WebSocket;
@@ -322,7 +322,9 @@ export class TableController {
     // Notify opponent of reconnection
     this.broadcastPlayerReconnected(disconnected.player.seatIndex);
 
-    console.log(`Player ${disconnected.player.alias} (${playerId}) reconnected to room ${this.state.roomId}`);
+    console.log(
+      `Player ${disconnected.player.alias} (${playerId}) reconnected to room ${this.state.roomId}`
+    );
 
     return { success: true, playerId };
   }

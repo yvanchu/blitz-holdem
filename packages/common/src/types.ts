@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────
-// Core Types for Blitz Hold'em
+// Core Types for Bullet Poker
 // ─────────────────────────────────────────────────────────────
 
 export type Suit = 'h' | 'd' | 'c' | 's'; // hearts, diamonds, clubs, spades

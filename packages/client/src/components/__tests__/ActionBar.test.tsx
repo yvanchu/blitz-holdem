@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
 import ActionBar from '../ActionBar';
 import { useGameStore } from '../../store/gameStore';
-import type { PlayerPublic } from '@blitz-holdem/common';
+import type { PlayerPublic } from '@bullet-poker/common';
 
 // Helper to create a test player
 function createPlayer(overrides: Partial<PlayerPublic> = {}): PlayerPublic {

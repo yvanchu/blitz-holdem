@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useGameStore } from '../store/gameStore';
-import type { C2SMessage } from '@blitz-holdem/common';
+import type { C2SMessage } from '@bullet-poker/common';
 
 interface SettingsModalProps {
   isOpen: boolean;

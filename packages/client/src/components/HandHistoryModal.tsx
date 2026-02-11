@@ -6,9 +6,9 @@ import {
   formatCard,
   SUIT_COLORS,
 } from '../utils/handHistoryFormatter';
-import type { Card } from '@blitz-holdem/common';
+import type { Card } from '@bullet-poker/common';
 
-const SITE_URL = 'https://blitz-holdem-client-production.up.railway.app';
+const SITE_URL = 'https://bullet-poker-client-production.up.railway.app';
 
 // Card component for inline rendering
 function CardDisplay({ card }: { card: Card }) {
@@ -56,7 +56,7 @@ export function HandHistoryModal() {
     const handText = formatHandHistory(currentHand);
     const shareText = `${handText}
 
-🃏 Played on Blitz Hold'em - ${SITE_URL}
+🃏 Played on Bullet Poker - ${SITE_URL}
 ⏱️ Fast-paced heads-up poker where time is money!`;
 
     try {

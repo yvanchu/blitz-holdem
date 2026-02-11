@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
-import type { Card, PlayerPublic } from '@blitz-holdem/common';
-import { evaluateHand } from '@blitz-holdem/common';
+import type { Card, PlayerPublic } from '@bullet-poker/common';
+import { evaluateHand } from '@bullet-poker/common';
 import { useGameStore } from '../store/gameStore';
 import CardComponent from './Card';
 import Timer from './Timer';

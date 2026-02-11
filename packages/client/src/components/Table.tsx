@@ -3,7 +3,7 @@ import { useGameStore, selectYourPlayer, selectOpponentPlayer } from '../store/g
 import Seat from './Seat';
 import CardComponent from './Card';
 import SettingsModal from './SettingsModal';
-import type { Card, C2SMessage } from '@blitz-holdem/common';
+import type { Card, C2SMessage } from '@bullet-poker/common';
 
 interface TableProps {
   send: (message: C2SMessage) => void;

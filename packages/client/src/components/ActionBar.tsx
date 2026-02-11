@@ -6,7 +6,7 @@ import {
   selectToCall,
   selectValidActions,
 } from '../store/gameStore';
-import type { ActionType, C2SMessage } from '@blitz-holdem/common';
+import type { ActionType, C2SMessage } from '@bullet-poker/common';
 import { HandHistoryButton } from './HandHistoryButton';
 
 // Ref for bet input focus from keyboard shortcut

@@ -1,5 +1,5 @@
 {
-  "name": "@blitz-holdem/server",
+  "name": "@bullet-poker/server",
   "version": "0.1.0",
   "private": true,
   "type": "module",
@@ -15,7 +15,7 @@
     "test:all": "vitest run"
   },
   "dependencies": {
-    "@blitz-holdem/common": "workspace:*",
+    "@bullet-poker/common": "workspace:*",
     "express": "^4.18.2",
     "nanoid": "^5.0.4",
     "tsx": "^4.7.0",

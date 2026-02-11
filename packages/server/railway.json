@@ -2,10 +2,10 @@
   "$schema": "https://railway.app/railway.schema.json",
   "build": {
     "builder": "NIXPACKS",
-    "buildCommand": "pnpm install && pnpm --filter @blitz-holdem/common run typecheck && pnpm --filter @blitz-holdem/server run typecheck"
+    "buildCommand": "pnpm install && pnpm --filter @bullet-poker/common run typecheck && pnpm --filter @bullet-poker/server run typecheck"
   },
   "deploy": {
-    "startCommand": "pnpm --filter @blitz-holdem/server run start",
+    "startCommand": "pnpm --filter @bullet-poker/server run start",
     "healthcheckPath": "/health",
     "healthcheckTimeout": 30,
     "restartPolicyType": "ON_FAILURE",

@@ -1,6 +1,6 @@
 import { nanoid } from 'nanoid';
 import { TableController } from './table';
-import type { TableSettings } from '@blitz-holdem/common';
+import type { TableSettings } from '@bullet-poker/common';
 
 export class RoomManager {
   private rooms = new Map<string, TableController>();

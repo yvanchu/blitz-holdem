@@ -1,4 +1,4 @@
-# Blitz Hold'em — MVP Implementation Plan
+# Bullet Poker — MVP Implementation Plan
 
 This plan breaks the PRD into discrete, shippable milestones. Each milestone lists scope, deliverables, and estimated effort. The dependency order is mostly linear, but frontend and backend work can be parallelized after **M1**.
 
@@ -277,7 +277,7 @@ Ship MVP to a publicly accessible URL.
 ## Directory Structure (Target)
 
 ```
-blitz-holdem/
+bullet-poker/
 ├── docs/
 │   ├── prd.md
 │   └── implementation-plan.md

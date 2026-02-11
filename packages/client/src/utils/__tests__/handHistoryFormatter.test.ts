@@ -8,7 +8,7 @@ import {
   SUIT_COLORS,
 } from '../handHistoryFormatter';
 import type { CompletedHand } from '../../store/handHistoryStore';
-import type { Card } from '@blitz-holdem/common';
+import type { Card } from '@bullet-poker/common';
 
 describe('handHistoryFormatter', () => {
   describe('formatCard', () => {
@@ -112,8 +112,8 @@ describe('handHistoryFormatter', () => {
           ohh: {
             spec_version: '1.4.6',
             internal_version: '1.4.6',
-            network_name: 'Blitz Holdem',
-            site_name: 'Blitz Holdem',
+            network_name: 'Bullet Poker',
+            site_name: 'Bullet Poker',
             game_type: 'Holdem',
             table_name: 'test-room',
             table_size: 2,
@@ -162,7 +162,7 @@ describe('handHistoryFormatter', () => {
     it('should include hand number in header', () => {
       const hand = createTestHand({ handNumber: 5 });
       const result = formatHandHistory(hand);
-      expect(result).toContain("BLITZ HOLD'EM HAND #5");
+      expect(result).toContain('BULLET POKER HAND #5');
     });
 
     it('should include room name and blinds', () => {
@@ -287,8 +287,8 @@ describe('handHistoryFormatter', () => {
           ohh: {
             spec_version: '1.4.6',
             internal_version: '1.4.6',
-            network_name: 'Blitz Holdem',
-            site_name: 'Blitz Holdem',
+            network_name: 'Bullet Poker',
+            site_name: 'Bullet Poker',
             game_type: 'Holdem',
             table_name: 'test-room',
             table_size: 2,
@@ -403,8 +403,8 @@ describe('handHistoryFormatter', () => {
           ohh: {
             spec_version: '1.4.6',
             internal_version: '1.4.6',
-            network_name: "Blitz Hold'em",
-            site_name: "Blitz Hold'em",
+            network_name: 'Bullet Poker',
+            site_name: 'Bullet Poker',
             game_type: 'Holdem',
             table_name: 'test-room',
             table_size: 2,

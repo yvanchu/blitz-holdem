@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { useHandHistoryStore } from '../handHistoryStore';
-import type { Card } from '@blitz-holdem/common';
+import type { Card } from '@bullet-poker/common';
 
 // Reset store before each test
 beforeEach(() => {

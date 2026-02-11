@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { OpenHandHistory } from 'open-hand-tracker';
-import type { Card, Street, ActionType } from '@blitz-holdem/common';
+import type { Card, Street, ActionType } from '@bullet-poker/common';
 
 // Types for completed hand data (serializable snapshot)
 export interface CompletedHand {
@@ -174,8 +174,8 @@ export const useHandHistoryStore = create<HandHistoryState>((set, get) => ({
     nextPlayerId = 1;
 
     const ohh = new OpenHandHistory({
-      siteName: 'Blitz Holdem',
-      networkName: 'Blitz Holdem',
+      siteName: 'Bullet Poker',
+      networkName: 'Bullet Poker',
       tableName: roomId,
       tableSize: 2,
       gameNumber: String(handNumber),
@@ -404,7 +404,7 @@ export const useHandHistoryStore = create<HandHistoryState>((set, get) => ({
     // Create export data with all hands in OHH format
     const exportData = {
       exportedAt: new Date().toISOString(),
-      siteName: 'Blitz Holdem',
+      siteName: 'Bullet Poker',
       totalHands: completedHands.length,
       hands: completedHands.map((h) => h.ohhData),
     };
@@ -414,7 +414,7 @@ export const useHandHistoryStore = create<HandHistoryState>((set, get) => ({
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `blitz-holdem-hands-${new Date().toISOString().split('T')[0]}.json`;
+    a.download = `bullet-poker-hands-${new Date().toISOString().split('T')[0]}.json`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);

@@ -1,8 +1,8 @@
-# Blitz Hold'em - UX Design Principles
+# Bullet Poker - UX Design Principles
 
 ## Product Philosophy
 
-**Blitz Hold'em** is heads-up No-Limit Texas Hold'em where time is the currency. Players bet seconds from their time bank—hit zero, you lose. Every design decision should reinforce that **time is precious** and **every second matters**.
+**Bullet Poker** is heads-up No-Limit Texas Hold'em where time is the currency. Players bet seconds from their time bank—hit zero, you lose. Every design decision should reinforce that **time is precious** and **every second matters**.
 
 ---
 

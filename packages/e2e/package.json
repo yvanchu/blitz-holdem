@@ -1,8 +1,8 @@
 {
-  "name": "@blitz-holdem/e2e",
+  "name": "@bullet-poker/e2e",
   "version": "0.1.0",
   "private": true,
-  "description": "End-to-end tests for Blitz Hold'em",
+  "description": "End-to-end tests for Bullet Poker",
   "scripts": {
     "test": "playwright test",
     "test:headed": "playwright test --headed",

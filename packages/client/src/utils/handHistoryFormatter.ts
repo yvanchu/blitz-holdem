@@ -1,5 +1,5 @@
 import type { CompletedHand } from '../store/handHistoryStore';
-import type { Card } from '@blitz-holdem/common';
+import type { Card } from '@bullet-poker/common';
 
 // Suit symbols
 const SUIT_SYMBOLS: Record<string, string> = {
@@ -59,7 +59,7 @@ export function formatHandHistory(hand: CompletedHand): string {
 
   // Header
   lines.push('═══════════════════════════════════════════════════');
-  lines.push(`BLITZ HOLD'EM HAND #${hand.handNumber}`);
+  lines.push(`BULLET POKER HAND #${hand.handNumber}`);
 
   const date = new Date(hand.timestamp);
   const dateStr = date.toLocaleDateString('en-US', {
@@ -229,7 +229,7 @@ export function formatHandHistoryStructured(hand: CompletedHand): FormattedLine[
 
   // Header
   lines.push({ type: 'divider', text: '═══════════════════════════════════════════════════' });
-  lines.push({ type: 'header', text: `BLITZ HOLD'EM HAND #${hand.handNumber}` });
+  lines.push({ type: 'header', text: `BULLET POKER HAND #${hand.handNumber}` });
 
   const date = new Date(hand.timestamp);
   const dateStr = date.toLocaleDateString('en-US', {

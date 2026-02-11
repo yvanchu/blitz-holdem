@@ -11,7 +11,7 @@ import type {
   C2SMessage,
   S2C_RoomState,
   S2C_ActionConfirm,
-} from '@blitz-holdem/common';
+} from '@bullet-poker/common';
 
 export interface TestClient {
   ws: WebSocket;

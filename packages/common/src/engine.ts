@@ -1,5 +1,5 @@
 // ─────────────────────────────────────────────────────────────
-// Game Engine - Pure State Management for Blitz Hold'em
+// Game Engine - Pure State Management for Bullet Poker
 // ─────────────────────────────────────────────────────────────
 
 import type {

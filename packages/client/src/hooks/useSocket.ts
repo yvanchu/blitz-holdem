@@ -1,7 +1,7 @@
 import { useEffect, useRef, useCallback, useState } from 'react';
 import { useGameStore } from '../store/gameStore';
 import { useHandHistoryStore } from '../store/handHistoryStore';
-import type { C2SMessage, S2CMessage } from '@blitz-holdem/common';
+import type { C2SMessage, S2CMessage } from '@bullet-poker/common';
 
 export function useSocket(_roomId: string) {
   const wsRef = useRef<WebSocket | null>(null);

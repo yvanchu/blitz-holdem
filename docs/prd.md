@@ -1,8 +1,8 @@
-# Blitz Hold'em — MVP Product Requirements Document (PRD)
+# Bullet Poker — MVP Product Requirements Document (PRD)
 
 ## Summary
 
-Blitz Hold'em is a heads-up (2-player) no-limit Texas Hold'em poker variant where the currency is time rather than chips. Each player has a time bank measured in seconds. On a player's turn, their time bank continuously decreases; betting, calling, and raising commit seconds from their time bank into the pot. The winner of a hand receives the pot (in seconds) back into their time bank. The MVP delivers a fast, fair, and simple real-time web experience.
+Bullet Poker is a heads-up (2-player) no-limit Texas Hold'em poker variant where the currency is time rather than chips. Each player has a time bank measured in seconds. On a player's turn, their time bank continuously decreases; betting, calling, and raising commit seconds from their time bank into the pot. The winner of a hand receives the pot (in seconds) back into their time bank. The MVP delivers a fast, fair, and simple real-time web experience.
 
 ## Goals
 

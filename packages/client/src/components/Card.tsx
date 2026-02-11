@@ -1,4 +1,4 @@
-import type { Card as CardType } from '@blitz-holdem/common';
+import type { Card as CardType } from '@bullet-poker/common';
 
 interface CardProps {
   card?: CardType;

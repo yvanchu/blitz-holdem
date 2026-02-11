@@ -33,7 +33,7 @@ export default function HomePage() {
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-8">
-      <h1 className="text-5xl font-bold text-white mb-4">⚡ Blitz Hold'em</h1>
+      <h1 className="text-5xl font-bold text-white mb-4">💥 Bullet Poker</h1>
       <p className="text-gray-400 mb-8 text-center max-w-lg text-lg">
         Fast-paced heads-up poker where{' '}
         <span className="text-white font-medium">time is your bankroll</span>. No chips, no

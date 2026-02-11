@@ -1,4 +1,4 @@
-// @blitz-holdem/common - Shared types, engine, and protocol
+// @bullet-poker/common - Shared types, engine, and protocol
 
 export * from './types';
 export * from './protocol';

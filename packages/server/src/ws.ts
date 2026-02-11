@@ -2,7 +2,7 @@ import { WebSocketServer, WebSocket } from 'ws';
 import type { Server } from 'http';
 import type { IncomingMessage } from 'http';
 import type { RoomManager } from './room';
-import type { C2SMessage } from '@blitz-holdem/common';
+import type { C2SMessage } from '@bullet-poker/common';
 
 interface ExtendedWebSocket extends WebSocket {
   roomId?: string;

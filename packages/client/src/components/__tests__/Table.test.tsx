@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import Table from '../Table';
 import { useGameStore } from '../../store/gameStore';
-import type { PlayerPublic, Card } from '@blitz-holdem/common';
+import type { PlayerPublic, Card } from '@bullet-poker/common';
 
 // Helper to create a test player
 function createPlayer(overrides: Partial<PlayerPublic> = {}): PlayerPublic {

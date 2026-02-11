@@ -6,7 +6,7 @@ import type {
   TableSettings,
   HandResult,
   ActionType,
-} from '@blitz-holdem/common';
+} from '@bullet-poker/common';
 
 interface GameState {
   // Connection

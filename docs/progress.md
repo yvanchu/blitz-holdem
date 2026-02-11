@@ -1,8 +1,8 @@
-# Blitz Hold'em — Development Progress
+# Bullet Poker — Development Progress
 
 ## Current Status: MVP Complete - Pre-Release
 
-**Last Updated:** February 7, 2026
+**Last Updated:** February 10, 2026
 
 ---
 
@@ -27,11 +27,22 @@
 ### Critical (Must Fix Before Public Release)
 
 - [x] **SECURITY**: Remove `allowedHosts: ['all']` from vite.config.ts (added for ngrok testing)
+- [ ] **SECURITY**: Add Zod validation for all incoming WebSocket messages (currently raw `JSON.parse` + `as` cast, no runtime validation)
+- [ ] **SECURITY**: Replace alias-based reconnection with a secret reconnect token (current system allows session hijacking by guessing alias)
+- [ ] **SECURITY**: Set `maxPayload` on WebSocketServer (no limit = DoS via oversized messages)
 - [ ] End-to-end testing with real users (2-player full game)
 - [x] Error handling for edge cases (network drops mid-hand, etc.)
 
 ### Important (Should Fix or implement)
 
+- [ ] **SECURITY**: Add rate limiting + room cap on `POST /api/rooms` (unbounded room creation = memory DoS)
+- [ ] **SECURITY**: Implement room TTL / reaper (rooms are never cleaned up, `deleteRoom` is never called)
+- [ ] **SECURITY**: Restrict CORS from wildcard `*` to actual client origins
+- [ ] **SECURITY**: Validate WebSocket `Origin` header against allowlist
+- [ ] **UX**: Add spatial separation for Fold button (UX doc requires "Fold Zone" with extra whitespace, currently adjacent to Check)
+- [ ] **UX**: Increase timer font size (currently `text-xs sm:text-sm` ~12-14px, UX doc specifies 16-20px bold)
+- [ ] **UX**: Make ResultOverlay non-blocking (currently a full-screen modal, violates "no modal dialogs during gameplay" rule)
+- [ ] **UX**: Use amber color for Raise/Bet button (currently green like Check/Call, violates color language spec)
 - [x] Add loading states for network operations
 - [x] Add error messages for failed actions
 - [ ] Mobile testing on real devices (iOS Safari, Android Chrome)
@@ -40,8 +51,31 @@
 - [x] Victory counter (for each game not hand)
 - [x] Basic text based hand history for the session
 
+### Medium Priority
+
+- [ ] **SECURITY**: Sanitize aliases on join (only truncated on update, not on initial join; potential XSS)
+- [ ] **SECURITY**: Validate `action` type against ActionType enum before passing to engine
+- [ ] **SECURITY**: Add upper bounds to settings values (smallBlind, bigBlind, initialTimeBank)
+- [ ] **SECURITY**: Stop leaking player IDs to opponents in `PlayerPublic`
+- [ ] **SECURITY**: Remove or restrict `force` start option (bypasses opponent ready check)
+- [ ] **UX**: Add card dealing animations (subtle slide + fade, per UX doc)
+- [ ] **UX**: Fix background color to match UX spec (`#0D1F12` deep forest green, current felt `#0d5c2e` is too saturated)
+- [ ] **UX**: Add copy-link success feedback (currently no toast or button text change after clipboard copy)
+- [ ] **UX**: Add last-action indicator ("Opponent checked", "Opponent raised to 12s") for clarity
+- [ ] **UX**: Add `prefers-reduced-motion` media query support (required by UX accessibility spec)
+
 ### Nice to Have (Post-Launch)
 
+- [ ] **SECURITY**: Fix CSPRNG modulo bias in card shuffle (`Uint32 % max`)
+- [ ] **SECURITY**: Replace `console.log` with structured logger, redact sensitive fields in prod
+- [ ] **SECURITY**: Add `helmet` middleware for HTTP security headers
+- [ ] **SECURITY**: Set `express.json({ limit: '1kb' })` to cap request body size
+- [ ] **UX**: Show hand number during play (e.g., "Hand #5")
+- [ ] **UX**: Add ARIA labels to action buttons (accessibility requirement)
+- [ ] **UX**: Remove unused `GameOverOverlay` component (dead code, superseded by inline game-over state in Table)
+- [ ] **UX**: Show calculated values in bet presets (e.g., "33% (4s)" instead of just "33%")
+- [ ] **UX**: Add lobby → game transition animation (dealing feel when host clicks Start)
+- [ ] **UX**: Make empty community card slots more visible (currently `border-white/20` is nearly invisible on felt)
 - [ ] Integration tests
 - [ ] Add sound effects (optional, mutable)
 - [ ] Add hand history display
@@ -189,6 +223,20 @@ The `shouldShowCards` condition required `result.showdown` to be true, but volun
 ---
 
 ## Session Log
+
+### 2026-02-10
+
+- **UX audit** of full frontend flow against UX design spec
+- Found 5 high-impact issues: Fold button lacks spatial separation (misclick risk), timer font too small for core mechanic, ResultOverlay is a blocking modal (violates anti-pattern), Raise/Bet uses green instead of amber (wrong color language), no card dealing animations
+- Found 5 medium-impact issues: no `prefers-reduced-motion` support, no copy-link feedback, no last-action indicator, background color doesn't match spec (#0d5c2e vs #0D1F12), empty board slots nearly invisible
+- Found 5 polish items: hand number not shown during play, no ARIA labels on action buttons, unused GameOverOverlay component (dead code), bet preset labels ambiguous, inconsistent alias input flow between owner/joiner
+- Added all findings to Pre-Release Checklist with priority tiers
+- **Security audit** of full codebase (server focus)
+- Found 3 critical issues: no WS input validation (Zod unused), alias-only reconnection (hijackable), no WS message size limit (DoS)
+- Found 4 high-severity issues: unbounded room creation, rooms never reaped, wildcard CORS, no WS origin checking
+- Found 5 medium issues: alias not sanitized on join, action type not pre-validated, no upper bounds on settings, player IDs leaked, force-start bypass
+- Found 4 low-severity items: CSPRNG modulo bias in shuffle, sensitive data in logs, no helmet, no JSON body limit
+- Added all findings to Pre-Release Checklist with priority tiers
 
 ### 2026-02-07
 

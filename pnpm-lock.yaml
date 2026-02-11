@@ -35,7 +35,7 @@ importers:
 
   packages/client:
     dependencies:
-      '@blitz-holdem/common':
+      '@bullet-poker/common':
         specifier: workspace:*
         version: link:../common
       open-hand-tracker:
@@ -111,7 +111,7 @@ importers:
 
   packages/server:
     dependencies:
-      '@blitz-holdem/common':
+      '@bullet-poker/common':
         specifier: workspace:*
         version: link:../common
       express:

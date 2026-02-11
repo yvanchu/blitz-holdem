@@ -1,6 +1,6 @@
 # Testing Guide
 
-This document describes the testing infrastructure and strategy for Blitz Hold'em.
+This document describes the testing infrastructure and strategy for Bullet Poker.
 
 ## Overview
 
@@ -254,7 +254,7 @@ describe('WebSocket Integration', () => {
 **Commands to Run:**
 
 ```bash
-pnpm --filter @blitz-holdem/server test:integration
+pnpm --filter @bullet-poker/server test:integration
 ```
 
 **Key Features Tested:**
@@ -353,8 +353,8 @@ components/__tests__/
 **Commands to Run:**
 
 ```bash
-pnpm --filter @blitz-holdem/client test       # Run client tests
-pnpm --filter @blitz-holdem/client test:watch # Watch mode
+pnpm --filter @bullet-poker/client test       # Run client tests
+pnpm --filter @bullet-poker/client test:watch # Watch mode
 ```
 
 ---
@@ -454,7 +454,7 @@ pnpm test                          # All unit tests
 pnpm test:watch                    # Watch mode
 
 # Integration tests (Phase 1)
-pnpm --filter @blitz-holdem/server test:integration
+pnpm --filter @bullet-poker/server test:integration
 
 # E2E tests (Phase 2)
 pnpm --filter e2e test             # Headless

@@ -48,7 +48,7 @@ const server = createServer(app);
 setupWebSocket(server, roomManager);
 
 server.listen(PORT, () => {
-  console.log(`🃏 Blitz Hold'em server running on port ${PORT}`);
+  console.log(`🃏 Bullet Poker server running on port ${PORT}`);
 });
 
 export { app, server };

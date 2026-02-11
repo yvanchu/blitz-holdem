@@ -1,7 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 
 /**
- * Playwright configuration for Blitz Hold'em E2E tests.
+ * Playwright configuration for Bullet Poker E2E tests.
  *
  * Tests run against a local dev server with both client and server running.
  */
@@ -40,13 +40,13 @@ export default defineConfig({
   /* Run local dev server before starting tests */
   webServer: [
     {
-      command: 'pnpm --filter @blitz-holdem/server dev',
+      command: 'pnpm --filter @bullet-poker/server dev',
       port: 3001,
       reuseExistingServer: !process.env.CI,
       cwd: '../..',
     },
     {
-      command: 'pnpm --filter @blitz-holdem/client dev',
+      command: 'pnpm --filter @bullet-poker/client dev',
       url: 'http://localhost:5173',
       reuseExistingServer: !process.env.CI,
       cwd: '../..',

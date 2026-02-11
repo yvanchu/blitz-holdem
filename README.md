@@ -1,4 +1,4 @@
-# ⚡ Blitz Hold'em
+# 💥 Bullet Poker
 
 A heads-up no-limit Texas Hold'em poker variant where you bet with **time** instead of chips. Every second you spend thinking drains your time bank!
 
@@ -40,7 +40,7 @@ The client will be available at `http://localhost:5173` and the server at `http:
 ## 📁 Project Structure
 
 ```
-blitz-holdem/
+bullet-poker/
 ├── packages/
 │   ├── common/          # Shared types, engine, protocol
 │   │   ├── src/
@@ -111,9 +111,9 @@ pnpm typecheck
 pnpm test
 
 # Run specific test suites
-pnpm --filter @blitz-holdem/common test    # Unit tests (engine, deck, timer)
-pnpm --filter @blitz-holdem/server test    # Server + integration tests
-pnpm --filter @blitz-holdem/client test    # Component tests
+pnpm --filter @bullet-poker/common test    # Unit tests (engine, deck, timer)
+pnpm --filter @bullet-poker/server test    # Server + integration tests
+pnpm --filter @bullet-poker/client test    # Component tests
 
 # E2E tests (requires Playwright)
 pnpm --filter e2e test                     # Headless
