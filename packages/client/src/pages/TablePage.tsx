@@ -5,6 +5,7 @@ import { useSocket } from '../hooks/useSocket';
 import Table from '../components/Table';
 import ActionBar from '../components/ActionBar';
 import { HandHistoryModal } from '../components/HandHistoryModal';
+import { SoundToggle } from '../components/SoundToggle';
 
 export default function TablePage() {
   const { roomId } = useParams<{ roomId: string }>();
@@ -77,15 +78,18 @@ export default function TablePage() {
     );
   }
 
-  const isJoiner = yourSeatIndex === 1;
-
   return (
     <div className="flex flex-col h-[100dvh] overflow-hidden bg-felt">
       {/* Hand History Modal */}
       <HandHistoryModal />
 
-      {/* Stakes display for joiner - top right */}
-      {isJoiner && settings && (
+      {/* Sound toggle - static, top left */}
+      <div className="absolute top-3 left-3 z-10">
+        <SoundToggle />
+      </div>
+
+      {/* Stakes display - visible to both players, top right */}
+      {settings && (
         <div className="absolute top-3 right-3 z-10">
           <div className="bg-gray-800/90 px-3 py-1.5 rounded-lg text-sm">
             <span className="text-gray-400">Stakes: </span>
@@ -97,7 +101,7 @@ export default function TablePage() {
       )}
 
       {/* Main table area */}
-      <div className="flex-1 flex items-start sm:items-center justify-center px-2 sm:px-4 pt-2 sm:pt-0 min-h-0 sm:min-h-[500px]">
+      <div className="flex-1 flex items-stretch sm:items-center justify-center px-2 sm:px-4 pt-2 sm:pt-0 min-h-0 sm:min-h-[500px]">
         <Table send={send} />
       </div>
 

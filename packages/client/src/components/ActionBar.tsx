@@ -212,6 +212,7 @@ export default function ActionBar({ send, isHandInProgress }: ActionBarProps) {
     isHandInProgress && (validActions.includes('bet') || validActions.includes('raise'));
   const canFold = isHandInProgress && validActions.includes('fold');
   const isBet = currentBet === 0; // True if this is a bet, false if it's a raise
+  const isRaisePanelOpen = showRaisePanel && canRaise;
 
   // Handle input change for exact amount - clamp to max if too high, allow low values for red indicator
   const handleInputChange = (value: string) => {
@@ -242,45 +243,51 @@ export default function ActionBar({ send, isHandInProgress }: ActionBarProps) {
       data-testid="action-bar"
       className="shrink-0 bg-gray-900/95 backdrop-blur border-t border-gray-700 safe-area-bottom"
     >
-      {/* Raise/Bet panel - on mobile overlays the buttons */}
-      {showRaisePanel && canRaise && (
-        <div className="px-3 sm:px-4 py-3 sm:py-4 border-b sm:border-b border-gray-700 bg-gray-800/95 sm:bg-gray-800/50">
-          <div className="max-w-lg mx-auto">
-            {/* Two column layout: big input on left, presets on right */}
-            <div className="flex gap-3 sm:gap-4">
-              {/* Large bet amount display */}
-              <div className="flex-shrink-0">
-                <div className="text-gray-400 text-xs mb-1">Your {isBet ? 'bet' : 'raise'}</div>
-                <div
-                  className={`relative ${!isRaiseTooSmall ? 'bg-green-600' : 'bg-red-600'} rounded-lg px-3 py-2 sm:px-4 sm:py-3`}
-                >
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    pattern="[0-9]*"
-                    data-testid="bet-input"
-                    ref={(el) => {
-                      betInputRef = el;
-                    }}
-                    value={inputValue}
-                    onChange={(e) => handleInputChange(e.target.value)}
-                    onFocus={(e) => e.target.select()}
-                    onBlur={() => {
-                      const num = parseInt(inputValue);
-                      if (isNaN(num)) {
-                        setBetAmount(minTotalBet);
-                        setInputValue(String(minTotalBet));
-                      } else if (num > maxTotalBet) {
-                        setBetAmount(maxTotalBet);
-                        setInputValue(String(maxTotalBet));
-                      } else {
-                        setBetAmount(num);
-                      }
-                    }}
-                    className="w-20 sm:w-24 bg-transparent text-white text-2xl sm:text-3xl font-bold text-center outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                  />
-                </div>
+      {/* Raise/Bet panel - kept mounted so opening it does not recreate layout */}
+      <div
+        className={`overflow-hidden border-b sm:border-b border-gray-700 bg-gray-800/95 sm:bg-gray-800/50 transition-[max-height,opacity] ${
+          isRaisePanelOpen
+            ? 'max-h-72 opacity-100 px-3 sm:px-4 py-3 sm:py-4'
+            : 'max-h-0 opacity-0 px-3 sm:px-4 py-0 pointer-events-none'
+        }`}
+        aria-hidden={!isRaisePanelOpen}
+      >
+        <div className="max-w-lg mx-auto">
+          {/* Two column layout: big input on left, presets on right */}
+          <div className="flex gap-3 sm:gap-4">
+            {/* Large bet amount display */}
+            <div className="flex-shrink-0">
+              <div className="text-gray-400 text-xs mb-1">Your {isBet ? 'bet' : 'raise'}</div>
+              <div
+                className={`relative ${!isRaiseTooSmall ? 'bg-amber-600' : 'bg-red-600'} rounded-lg px-3 py-2 sm:px-4 sm:py-3`}
+              >
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  data-testid={isRaisePanelOpen ? 'bet-input' : undefined}
+                  ref={(el) => {
+                    betInputRef = el;
+                  }}
+                  value={inputValue}
+                  onChange={(e) => handleInputChange(e.target.value)}
+                  onFocus={(e) => e.target.select()}
+                  onBlur={() => {
+                    const num = parseInt(inputValue);
+                    if (isNaN(num)) {
+                      setBetAmount(minTotalBet);
+                      setInputValue(String(minTotalBet));
+                    } else if (num > maxTotalBet) {
+                      setBetAmount(maxTotalBet);
+                      setInputValue(String(maxTotalBet));
+                    } else {
+                      setBetAmount(num);
+                    }
+                  }}
+                  className="w-20 sm:w-24 bg-transparent text-white text-2xl sm:text-3xl font-bold text-center outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                />
               </div>
+            </div>
 
               {/* Presets and slider */}
               <div className="flex-1 flex flex-col gap-2">
@@ -288,31 +295,31 @@ export default function ActionBar({ send, isHandInProgress }: ActionBarProps) {
                 <div className="grid grid-cols-5 gap-1.5 sm:gap-2">
                   <button
                     onClick={() => setPreset(currentBet + Math.floor(pot / 3))}
-                    className="px-1 py-1.5 sm:py-2 text-[10px] sm:text-xs bg-gray-700 hover:bg-gray-600 text-white rounded font-medium uppercase"
+                    className="px-1 py-2.5 sm:py-2 text-[11px] sm:text-xs bg-gray-700 hover:bg-gray-600 text-white rounded font-medium uppercase"
                   >
                     33%
                   </button>
                   <button
                     onClick={() => setPreset(currentBet + Math.floor((pot * 3) / 4))}
-                    className="px-1 py-1.5 sm:py-2 text-[10px] sm:text-xs bg-gray-700 hover:bg-gray-600 text-white rounded font-medium uppercase"
+                    className="px-1 py-2.5 sm:py-2 text-[11px] sm:text-xs bg-gray-700 hover:bg-gray-600 text-white rounded font-medium uppercase"
                   >
                     75%
                   </button>
                   <button
                     onClick={() => setPreset(currentBet + pot)}
-                    className="px-1 py-1.5 sm:py-2 text-[10px] sm:text-xs bg-gray-700 hover:bg-gray-600 text-white rounded font-medium uppercase"
+                    className="px-1 py-2.5 sm:py-2 text-[11px] sm:text-xs bg-gray-700 hover:bg-gray-600 text-white rounded font-medium uppercase"
                   >
                     Pot
                   </button>
                   <button
                     onClick={() => setPreset(currentBet + Math.floor((pot * 3) / 2))}
-                    className="px-1 py-1.5 sm:py-2 text-[10px] sm:text-xs bg-gray-700 hover:bg-gray-600 text-white rounded font-medium uppercase"
+                    className="px-1 py-2.5 sm:py-2 text-[11px] sm:text-xs bg-gray-700 hover:bg-gray-600 text-white rounded font-medium uppercase"
                   >
                     150%
                   </button>
                   <button
                     onClick={() => setPreset(maxTotalBet)}
-                    className="px-1 py-1.5 sm:py-2 text-[10px] sm:text-xs bg-gray-700 hover:bg-gray-600 text-white rounded font-medium uppercase"
+                    className="px-1 py-2.5 sm:py-2 text-[11px] sm:text-xs bg-gray-700 hover:bg-gray-600 text-white rounded font-medium uppercase"
                   >
                     All In
                   </button>
@@ -322,13 +329,13 @@ export default function ActionBar({ send, isHandInProgress }: ActionBarProps) {
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => setPreset(Math.max(minTotalBet, betAmount - 1))}
-                    className="w-8 h-8 flex items-center justify-center bg-gray-700 hover:bg-gray-600 text-white rounded text-lg font-bold"
+                    className="w-10 h-10 sm:w-8 sm:h-8 flex items-center justify-center bg-gray-700 hover:bg-gray-600 text-white rounded text-lg font-bold"
                   >
                     −
                   </button>
                   <input
                     type="range"
-                    data-testid="bet-slider"
+                    data-testid={isRaisePanelOpen ? 'bet-slider' : undefined}
                     min={minTotalBet}
                     max={maxTotalBet}
                     value={Math.max(minTotalBet, Math.min(maxTotalBet, betAmount))}
@@ -338,11 +345,11 @@ export default function ActionBar({ send, isHandInProgress }: ActionBarProps) {
                       setBetAmount(val);
                       setInputValue(String(val));
                     }}
-                    className="flex-1 accent-green-500 h-2"
+                    className="flex-1 accent-amber-500 h-2"
                   />
                   <button
                     onClick={() => setPreset(Math.min(maxTotalBet, betAmount + 1))}
-                    className="w-8 h-8 flex items-center justify-center bg-gray-700 hover:bg-gray-600 text-white rounded text-lg font-bold"
+                    className="w-10 h-10 sm:w-8 sm:h-8 flex items-center justify-center bg-gray-700 hover:bg-gray-600 text-white rounded text-lg font-bold"
                   >
                     +
                   </button>
@@ -369,10 +376,10 @@ export default function ActionBar({ send, isHandInProgress }: ActionBarProps) {
                   }
                 }}
                 disabled={isRaiseTooSmall}
-                data-testid="confirm-raise-button"
+                data-testid={isRaisePanelOpen ? 'confirm-raise-button' : undefined}
                 className={`flex-1 py-2.5 rounded-lg font-semibold text-sm uppercase border-2 ${
                   !isRaiseTooSmall
-                    ? 'border-green-500 bg-green-500/20 text-green-400'
+                    ? 'border-amber-500 bg-amber-500/20 text-amber-400'
                     : 'border-red-500 bg-red-500/20 text-red-400'
                 }`}
               >
@@ -380,18 +387,21 @@ export default function ActionBar({ send, isHandInProgress }: ActionBarProps) {
               </button>
             </div>
           </div>
-        </div>
-      )}
+      </div>
 
-      {/* Main buttons - hidden on mobile when raise panel is open */}
-      <div className={`px-3 sm:px-4 py-2 sm:py-3 ${showRaisePanel ? 'hidden sm:block' : ''}`}>
-        {/* Hand History Button + Auto All-In + Show Cards row - hidden when raise panel is open */}
-        {!showRaisePanel && (
-          <div className="max-w-lg mx-auto mb-2 sm:mb-3 flex items-center gap-2">
-            <HandHistoryButton />
-            {isHandInProgress && (
-              <label
-                className={`
+      {/* Main buttons */}
+      <div className="px-3 sm:px-4 py-2 sm:py-3">
+        {/* Hand History Button + Auto All-In + Show Cards row - reserves height in all states */}
+        <div
+          className={`max-w-lg mx-auto mb-2 sm:mb-3 flex min-h-[38px] sm:min-h-[42px] items-center gap-2 ${
+            isRaisePanelOpen ? 'invisible' : ''
+          }`}
+          aria-hidden={isRaisePanelOpen}
+        >
+          <HandHistoryButton />
+          {isHandInProgress ? (
+            <label
+              className={`
                   flex items-center gap-2 cursor-pointer select-none flex-1
                   px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg border-2 transition-all
                   ${
@@ -399,42 +409,47 @@ export default function ActionBar({ send, isHandInProgress }: ActionBarProps) {
                       ? 'border-yellow-500 bg-yellow-500/20 text-yellow-400'
                       : 'border-gray-600 text-gray-400 hover:border-gray-500'
                   }
-                `}
-              >
-                <input
-                  type="checkbox"
-                  checked={autoAllIn}
-                  onChange={(e) => setAutoAllIn(e.target.checked)}
-                  className="w-4 h-4 accent-yellow-500"
-                />
-                <span className="text-xs sm:text-sm font-medium">
-                  Auto All-In
-                  {autoAllIn && (
-                    <span className="ml-2 text-xs text-yellow-500/80 hidden sm:inline">
-                      (Will go all-in on your turn)
-                    </span>
-                  )}
+              `}
+            >
+              <input
+                type="checkbox"
+                checked={autoAllIn}
+                onChange={(e) => setAutoAllIn(e.target.checked)}
+                className="w-4 h-4 accent-yellow-500"
+              />
+              <span className="text-xs sm:text-sm font-medium">
+                Auto All-In
+                <span
+                  className={`ml-2 text-xs text-yellow-500/80 hidden sm:inline ${
+                    autoAllIn ? '' : 'invisible'
+                  }`}
+                >
+                  (Will go all-in on your turn)
                 </span>
-                <span className="hidden sm:block ml-auto px-1.5 py-0.5 text-[10px] font-bold bg-gray-800 border border-gray-600 rounded text-gray-400">
-                  A
-                </span>
-              </label>
-            )}
-            {/* Show Cards button - visible after hand ends when cards not yet revealed */}
-            {canShowCards && (
-              <button
-                onClick={handleShowCards}
-                data-testid="show-cards-button"
-                className="relative ml-auto px-3 py-1.5 sm:py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs sm:text-sm font-semibold rounded-lg shadow-lg transition-colors"
-              >
-                Show Cards
-                <span className="hidden sm:block absolute -top-2 -right-1 px-1.5 py-0.5 text-[10px] font-bold bg-gray-800 border border-gray-600 rounded text-gray-400">
-                  S
-                </span>
-              </button>
-            )}
-          </div>
-        )}
+              </span>
+              <span className="hidden sm:block ml-auto px-1.5 py-0.5 text-[10px] font-bold bg-gray-800 border border-gray-600 rounded text-gray-400">
+                A
+              </span>
+            </label>
+          ) : (
+            <div className="flex-1" aria-hidden="true" />
+          )}
+          {/* Show Cards button - visible after hand ends when cards not yet revealed */}
+          <button
+            onClick={handleShowCards}
+            disabled={!canShowCards}
+            data-testid={canShowCards ? 'show-cards-button' : undefined}
+            className={`relative ml-auto px-3 py-1.5 sm:py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs sm:text-sm font-semibold rounded-lg shadow-lg transition-colors ${
+              canShowCards ? '' : 'invisible pointer-events-none'
+            }`}
+            aria-hidden={!canShowCards}
+          >
+            Show Cards
+            <span className="hidden sm:block absolute -top-2 -right-1 px-1.5 py-0.5 text-[10px] font-bold bg-gray-800 border border-gray-600 rounded text-gray-400">
+              S
+            </span>
+          </button>
+        </div>
 
         <div className="max-w-lg mx-auto grid grid-cols-4 gap-1.5 sm:gap-2">
           {/* CALL button */}
@@ -442,8 +457,11 @@ export default function ActionBar({ send, isHandInProgress }: ActionBarProps) {
             onClick={() => sendAction('call', toCall)}
             disabled={!isYourTurn || !canCall}
             data-testid="call-button"
+            aria-label={
+              canCall ? `Call ${Math.min(toCall, yourPlayer?.timeBank ?? 0)} seconds` : 'Call'
+            }
             className={`
-              relative py-2.5 sm:py-4 rounded-lg font-semibold text-xs sm:text-base uppercase tracking-wide
+              relative py-3.5 sm:py-4 rounded-lg font-semibold text-xs sm:text-base uppercase tracking-wide
               border-2 transition-all
               ${
                 canCall && isYourTurn
@@ -477,16 +495,17 @@ export default function ActionBar({ send, isHandInProgress }: ActionBarProps) {
             }}
             disabled={!isYourTurn || !canRaise || (showRaisePanel && isRaiseTooSmall)}
             data-testid="raise-button"
+            aria-label={isBet ? 'Bet' : 'Raise'}
             className={`
-              relative py-2.5 sm:py-4 rounded-lg font-semibold text-xs sm:text-base uppercase tracking-wide
+              relative py-3.5 sm:py-4 rounded-lg font-semibold text-xs sm:text-base uppercase tracking-wide
               border-2 transition-all
               ${
                 canRaise && isYourTurn
                   ? showRaisePanel
                     ? !isRaiseTooSmall
-                      ? 'border-green-500 bg-green-500/20 text-green-400'
+                      ? 'border-amber-500 bg-amber-500/20 text-amber-400'
                       : 'border-red-500 bg-red-500/20 text-red-400'
-                    : 'border-green-500 text-green-400 hover:bg-green-500/20 active:bg-green-500/30'
+                    : 'border-amber-500 text-amber-400 hover:bg-amber-500/20 active:bg-amber-500/30'
                   : 'border-gray-600 text-gray-500 opacity-50 cursor-not-allowed'
               }
             `}
@@ -502,8 +521,9 @@ export default function ActionBar({ send, isHandInProgress }: ActionBarProps) {
             onClick={() => sendAction('check')}
             disabled={!isYourTurn || !canCheck}
             data-testid="check-button"
+            aria-label="Check"
             className={`
-              relative py-2.5 sm:py-4 rounded-lg font-semibold text-xs sm:text-base uppercase tracking-wide
+              relative py-3.5 sm:py-4 rounded-lg font-semibold text-xs sm:text-base uppercase tracking-wide
               border-2 transition-all
               ${
                 canCheck && isYourTurn
@@ -523,8 +543,9 @@ export default function ActionBar({ send, isHandInProgress }: ActionBarProps) {
             onClick={() => sendAction('fold')}
             disabled={!isYourTurn || !canFold}
             data-testid="fold-button"
+            aria-label="Fold"
             className={`
-              relative py-2.5 sm:py-4 rounded-lg font-semibold text-xs sm:text-base uppercase tracking-wide
+              relative py-3.5 sm:py-4 rounded-lg font-semibold text-xs sm:text-base uppercase tracking-wide
               border-2 transition-all
               ${
                 canFold && isYourTurn

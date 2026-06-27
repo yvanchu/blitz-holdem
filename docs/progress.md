@@ -2,7 +2,7 @@
 
 ## Current Status: MVP Complete - Pre-Release
 
-**Last Updated:** February 10, 2026
+**Last Updated:** June 27, 2026
 
 ---
 
@@ -39,9 +39,9 @@
 - [ ] **SECURITY**: Implement room TTL / reaper (rooms are never cleaned up, `deleteRoom` is never called)
 - [ ] **SECURITY**: Restrict CORS from wildcard `*` to actual client origins
 - [ ] **SECURITY**: Validate WebSocket `Origin` header against allowlist
-- [ ] **UX**: Increase timer font size (currently `text-xs sm:text-sm` ~12-14px, UX doc specifies 16-20px bold)
+- [x] **UX**: Increase timer font size (currently `text-xs sm:text-sm` ~12-14px, UX doc specifies 16-20px bold)
 - [ ] **UX**: Make ResultOverlay non-blocking (currently a full-screen modal, violates "no modal dialogs during gameplay" rule)
-- [ ] **UX**: Use amber color for Raise/Bet button (currently green like Check/Call, violates color language spec)
+- [x] **UX**: Use amber color for Raise/Bet button (currently green like Check/Call, violates color language spec)
 - [x] Add loading states for network operations
 - [x] Add error messages for failed actions
 - [ ] Mobile testing on real devices (iOS Safari, Android Chrome)
@@ -58,14 +58,14 @@
 - [ ] **SECURITY**: Stop leaking player IDs to opponents in `PlayerPublic`
 - [ ] **SECURITY**: Remove or restrict `force` start option (bypasses opponent ready check)
 - [ ] **UX**: Add card dealing animations (subtle slide + fade, per UX doc)
-- [ ] **UX**: Fix background color to match UX spec (`#0D1F12` deep forest green, current felt `#0d5c2e` is too saturated)
-- [ ] **UX**: Add copy-link success feedback (currently no toast or button text change after clipboard copy)
+- [x] **UX**: Fix background color to match UX spec (`#0D1F12` deep forest green, current felt `#0d5c2e` is too saturated)
+- [x] **UX**: Add copy-link success feedback (currently no toast or button text change after clipboard copy)
 - [ ] **UX**: Add last-action indicator ("Opponent checked", "Opponent raised to 12s") for clarity
-- [ ] **UX**: Add `prefers-reduced-motion` media query support (required by UX accessibility spec)
-- [ ] **UX**: Raise slider accent color is `accent-green-500`, should be amber per color language (UX §7: amber = betting/neutral)
-- [ ] **UX**: Hand strength badge uses `bg-red-500` for all hand ranks — red implies danger/loss (UX §7), should use a neutral color like gray or cyan since it's informational
+- [x] **UX**: Add `prefers-reduced-motion` media query support (required by UX accessibility spec)
+- [x] **UX**: Raise slider accent color is `accent-green-500`, should be amber per color language (UX §7: amber = betting/neutral)
+- [x] **UX**: Hand strength badge uses `bg-red-500` for all hand ranks — red implies danger/loss (UX §7), should use a neutral color like gray or cyan since it's informational
 - [ ] **UX**: Card sizes are smaller than spec on mobile — UX spec says 40–60px wide mobile, current small cards are 36px (`w-[36px]`); normal cards are 40px which is the bare minimum
-- [ ] **UX**: Stakes display only visible to joiner (`isJoiner && settings`) — both players should see current blinds/stakes for clarity (UX §5: "What's the pot?" is #5 priority)
+- [x] **UX**: Stakes display only visible to joiner (`isJoiner && settings`) — both players should see current blinds/stakes for clarity (UX §5: "What's the pot?" is #5 priority)
 - [ ] **UX**: SettingsModal opens during gameplay (via ⚙️ button in game-over/lobby) — modal is a `fixed inset-0 z-50` overlay; ensure settings button is never reachable during active hand (UX §Anti-patterns: "No modal dialogs during gameplay")
 
 ### Nice to Have (Post-Launch)
@@ -75,12 +75,12 @@
 - [ ] **SECURITY**: Add `helmet` middleware for HTTP security headers
 - [ ] **SECURITY**: Set `express.json({ limit: '1kb' })` to cap request body size
 - [ ] **UX**: Show hand number during play (e.g., "Hand #5")
-- [ ] **UX**: Add ARIA labels to action buttons (accessibility requirement)
+- [x] **UX**: Add ARIA labels to action buttons (accessibility requirement)
 - [ ] **UX**: Remove unused `GameOverOverlay` component (dead code, superseded by inline game-over state in Table)
 - [ ] **UX**: Show calculated values in bet presets (e.g., "33% (4s)" instead of just "33%")
 - [ ] **UX**: Add lobby → game transition animation (dealing feel when host clicks Start)
-- [ ] **UX**: Make empty community card slots more visible (currently `border-white/20` is nearly invisible on felt)
-- [ ] **UX**: Winning cards use `ring-2 ring-yellow-400` + `-translate-y-2` but UX spec calls for a "golden glow" pulse — add a subtle `animate-pulse` or `shadow-yellow-400/50` glow effect to better match spec
+- [x] **UX**: Make empty community card slots more visible (currently `border-white/20` is nearly invisible on felt)
+- [x] **UX**: Winning cards use `ring-2 ring-yellow-400` + `-translate-y-2` but UX spec calls for a "golden glow" pulse — add a subtle `animate-pulse` or `shadow-yellow-400/50` glow effect to better match spec
 - [ ] **UX**: HomePage background is plain dark (`min-h-screen`) with no felt/branding — should match the felt green or have a cohesive transition into the table aesthetic
 - [ ] **UX**: Timer `animate-pulse` at ≤10s applies to the text, not the container — the pulsing text can feel jittery; consider pulsing the timer background/border instead for a smoother urgency indicator
 - [ ] **UX**: Auto All-In checkbox is a non-standard game control — UX doc doesn't account for it; it should have a confirmation state or undo mechanism since accidental toggle could be costly
@@ -232,6 +232,122 @@ The `shouldShowCards` condition required `result.showdown` to be true, but volun
 ---
 
 ## Session Log
+
+### 2026-06-27 — Mobile-first portrait UX (bigger elements + portrait lock)
+
+Made gameplay mobile-first and portrait-only without changing the desktop (`sm:` and up) layout.
+
+- **Portrait fills the screen:** the table no longer pins to the top with a void below it. On
+  mobile the main area stretches (`items-stretch`) and the table drops its mobile `max-h` cap, so
+  opponent / board / your seat distribute top-to-bottom (`justify-between`) over the full height.
+  Desktop keeps `items-center` + a `sm:max-h-[560px]` cap.
+- **Bigger cards + tap targets:** mobile card sizes bumped — community `40→48px` wide (placeholder
+  in `Table.tsx` matched), hole cards `36→44px`; `Card.test.tsx` updated to the new base classes.
+  ActionBar tap targets enlarged on mobile only: main action buttons `py-2.5→py-3.5`, slider `±`
+  buttons `32→40px` (`sm:` back to 32), preset chips `py-1.5→py-2.5`. All `sm:` values unchanged.
+- **Stay vertical in landscape (no "rotate your device" nag):** an `.app-frame` wrapper (in
+  `App.tsx`) is a passthrough by default. Only for phone-sized landscape
+  (`@media (orientation: landscape) and (max-height: 500px)`) it rotates the play area into a
+  full-size portrait frame via CSS `transform: rotate(-90deg)` using the long edge as the vertical,
+  so the entire table **and** action bar stay visible and playable. The transform also makes the
+  frame the containing block for the corner badges/modals, so they rotate with the table instead of
+  escaping to the viewport edges. Desktop/tablet (height > 500px) and portrait phones are untouched.
+  (An earlier blocking "please rotate" overlay was built and then replaced per product-owner
+  feedback to keep the screen vertical instead of nagging.)
+
+### 2026-06-27 — UX batch: stakes visibility, layout stability, street-deal pause, sound
+
+Four product-owner requests delivered together (all merged to main).
+
+- **Stakes badge on host screen (bug):** the stakes badge was gated on `isJoiner && settings`,
+  so the host/owner never saw it. Gate is now just `settings` — both seats see `Stakes: SB/BB`.
+  Locked in by `TablePage.test.tsx` (host seat 0 + joiner seat 1 both render the badge). Prod was
+  running pre-fix code; this ships the fix.
+- **Layout stability (less jitter):** presentational components now reserve space instead of
+  mounting/unmounting. Bet chips, hole-card areas, the raise panel (collapsed via `max-h-0`), the
+  Show-Cards / auto-all-in hint, and the Hand-History button all hold their footprint with
+  `invisible` / `min-h` / `tabular-nums`; removed translate/scale transforms that caused shifts.
+  Player aliases truncate instead of reflowing the seat.
+- **Street-deal pause (live feel):** when a betting round closes and a new street is dealt, the
+  server now pauses `streetDealDelayMs` (default 1200ms) before play resumes. During the pause
+  `activePlayerIndex` is null, so **neither** time bank drains and no action is accepted; a TURN
+  re-arms the actor afterward and the pause itself is not charged (`lastTickTime` reset on resume).
+  The all-in runout path already had its own delay and is untouched. `TEST_SETTINGS.streetDealDelayMs = 0`
+  keeps integration tests synchronous; `street-delay.test.ts` covers the behavior with fake timers.
+- **Sound effects (synthesized, free/legal):** a small Web Audio module (`sound/soundEngine.ts`)
+  generates every cue procedurally — no downloaded assets, nothing to license/attribute. Cues:
+  your-turn chime, check/call/bet/fold action tones, card-deal ticks (hand start + each street),
+  and win/lose stings, wired into the `useSocket` message handlers. A static top-left mute toggle
+  (`SoundToggle`) persists to `localStorage`; the AudioContext is unlocked on first user gesture
+  (autoplay policy). Tones can be swapped for CC0 samples later if richer audio is wanted.
+
+### 2026-06-27 — Disconnection = burn time, then all-in for zero
+
+Per product owner: a disconnected player should no longer be auto-folded. Their time bank simply
+keeps draining on their turn (as it already did during the grace window) and, when it reaches 0,
+they go all-in for zero — the exact table-stakes outcome a present player gets on timeout.
+Disconnect and timeout now share one rule.
+
+- **Server (`packages/server/src/table.ts`):** removed the disconnect auto-act branch in `tick()`
+  and deleted the now-dead `autoActForDisconnectedPlayer` (check-else-fold). The grace window now
+  governs only reconnection and seat cleanup: an abandoned seat is reclaimed after the hand ends
+  (via `cleanupAbandonedPlayers`) or immediately when no hand is in progress.
+- **Tests:** added deterministic `disconnect.test.ts` (disconnected player at 0s → all-in, not
+  folded, opponent's uncalled bet refunded; disconnected player with time left → clock burns, no
+  auto-fold). Updated the three `reconnection.integration.test.ts` cases that assumed auto-fold/
+  auto-check to assert the new contract (no auto-act; clock keeps burning via TICK timeBank) and
+  to drive hand-end through the connected player.
+- **Docs:** PRD §96 rewritten; §47/§109 parentheticals and README "Auto-Actions" updated so both
+  timeout and disconnection describe all-in-for-zero.
+
+### 2026-06-27 — Agent Dev Loop: deliver Iteration 1 as a PR
+
+Re-ran the full fast gate against the accumulated Iteration 1 working tree and confirmed it
+is green (typecheck PASS, lint clean, build PASS; tests common 47, server unit 22, server
+integration 60, client 194). Reviewed each diff against `docs/ux.md` §7 color language and the
+recorded standing decisions — all consistent (amber Raise/Bet, green Call/Check, red Fold;
+button order and fold placement untouched). Packaged the iteration onto a branch and opened a
+pull request for human review; no merge or push to `main`. Security checklist items remain
+deferred for human prioritization.
+
+### 2026-06-26 — Agent Dev Loop: Iteration 1
+
+Set up the agent dev loop (`docs/agent-dev-loop.md` + scheduled "Bullet Poker dev loop"
+workflow that opens a PR each run) and delivered the first iteration of fixes.
+
+- **[RULE] Timeout = all-in for zero (table stakes), confirmed & test-pinned.** Reviewed the
+  timeout path after a question about whether a timed-out player still deserves a showdown.
+  Decision (per product owner): when a player's clock hits 0 they are **all-in for zero
+  additional seconds**, NOT folded. Standard table stakes means you can't be forced to fold for
+  lack of funds — the player contests the pot they've **already matched** and the opponent's
+  **uncalled bet is refunded**. This basic poker rule trumps the time rule, so the original
+  `table.ts` behavior (`checkAndAdvanceAfterTimeout` + `refundUncalledBet`) is the correct one
+  and was kept. Updated PRD §47/§109 to document it (previously said timeout→auto-fold). Added
+  deterministic server tests (`timeout.test.ts`) pinning the rule: facing-a-bet timeout →
+  all-in, not folded, opponent refunded the uncalled amount; checkable timeout → all-in, stays
+  to showdown. (Follow-up on 2026-06-27 extended this same all-in-for-zero rule to disconnections;
+  see that entry.)
+- **[CI] Lint baseline fixed** (was red). Removed an unused `roomUrl` in
+  `e2e/tests/settings.spec.ts`; replaced `as any` with `as unknown as C2SMessage` in the
+  protocol integration tests. `pnpm lint` is now clean.
+- **UX (spec-driven, `ux.md`):**
+  - Timer font bumped (`text-xs sm:text-sm` → `text-sm sm:text-base`, bold both branches) —
+    it is the core mechanic.
+  - Raise/Bet recolored to **amber** (button, slider accent, bet-input valid state, mobile
+    confirm) per color language §7; Call/Check stay green, Fold stays red.
+  - Hand-strength badge: red → neutral (informational, not danger).
+  - Copy-invite-link success feedback ("✓ Copied!") + `try/catch` for insecure contexts.
+  - Empty community-card slots made more visible (`border-white/30 bg-white/5`).
+  - Stakes now visible to **both** players (was joiner-only).
+  - Winning cards: added a golden glow + pulse (kept `ring-2 ring-yellow-400`).
+  - `prefers-reduced-motion` support added to `index.css` (a11y).
+  - Felt background `#0d5c2e` → `#0D1F12` (deep forest green) per spec.
+  - ARIA labels added to the four action buttons (a11y).
+- **Verified:** typecheck PASS, lint clean, build PASS, tests green
+  (common 47, server unit 22, server integration 60, client 194).
+- **Deferred (higher risk / by decision):** ResultOverlay non-blocking change; card-size
+  change (pinned by tests + prior "stable layout" work); all SECURITY checklist items
+  (surface for human prioritization).
 
 ### 2026-02-10
 

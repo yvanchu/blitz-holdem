@@ -224,6 +224,7 @@ export const TEST_SETTINGS = {
   runoutDelayMs: 100, // Fast runout (default 3000ms)
   nextHandDelayMs: 100, // Fast next hand (default 6000ms)
   disconnectGracePeriod: 500, // Shorter grace period for tests (default 5000ms)
+  streetDealDelayMs: 0, // No deal pause in tests (default 1200ms) — keeps street transitions synchronous
 };
 
 export async function createTestServer(): Promise<TestServer> {

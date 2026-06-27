@@ -143,9 +143,6 @@ test.describe('Settings Persistence', () => {
     await page.waitForURL(/\/table\/.+/);
     await page.locator('[data-testid="poker-table"]').waitFor();
 
-    // Store the room URL to reload with the same room ID
-    const roomUrl = page.url();
-
     // Change settings
     await page.locator('[data-testid="settings-button"]').click();
     const smallBlindInput = page.locator('[data-testid="settings-modal"] input').first();

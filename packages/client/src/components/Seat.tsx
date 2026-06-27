@@ -102,7 +102,7 @@ export default function Seat({
           />
 
           {/* Time bank display */}
-          <div className="px-2 sm:px-3 py-1 rounded-full bg-gray-700 text-white font-mono text-xs sm:text-sm">
+          <div className="px-2 sm:px-3 py-1 rounded-full bg-gray-700 text-white font-mono tabular-nums text-xs sm:text-sm">
             {settings?.initialTimeBank ?? 300}s
           </div>
         </div>
@@ -144,17 +144,22 @@ export default function Seat({
   // Show cards if: bottom position (your cards), showCards prop, or revealedCards exist (from showdown or voluntary show)
   const shouldShowCards = position === 'bottom' || showCards || !!revealedCards;
 
-  // Bet chip component - with margin for spacing from other elements
+  // Bet chip component - always reserves space to keep the seat height stable
   const BetChip = () =>
-    player.currentBet > 0 ? (
-      <div className="my-1 flex items-center gap-1 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full bg-yellow-500 text-black text-xs sm:text-sm font-bold shadow-lg">
+    (
+      <div
+        className={`my-1 flex min-w-[54px] sm:min-w-[66px] items-center justify-center gap-1 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full bg-yellow-500 text-black text-xs sm:text-sm font-bold shadow-lg ${
+          player.currentBet > 0 ? '' : 'invisible'
+        }`}
+        aria-hidden={player.currentBet > 0 ? undefined : true}
+      >
         <svg className="w-3 h-3 sm:w-4 sm:h-4" viewBox="0 0 24 24" fill="currentColor">
           <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="none" />
           <circle cx="12" cy="12" r="6" fill="currentColor" />
         </svg>
-        {Math.round(player.currentBet)}s
+        {player.currentBet > 0 ? `${Math.round(player.currentBet)}s` : null}
       </div>
-    ) : null;
+    );
 
   return (
     <div
@@ -168,35 +173,37 @@ export default function Seat({
       {/* For TOP position: Cards first, then player info, then bet (closest to center) */}
       {position === 'top' && (
         <>
-          {/* Cards with hand strength badge - hidden in lobby mode */}
-          {!hideCards && (
-            <div data-testid="hole-cards" className="relative flex gap-1 mb-1 sm:mb-2">
-              {shouldShowCards && cardsToShow ? (
-                <>
-                  <CardComponent
-                    card={cardsToShow[0]}
-                    size="small"
-                    highlight={isWinningCard(cardsToShow[0], winningCards)}
-                  />
-                  <CardComponent
-                    card={cardsToShow[1]}
-                    size="small"
-                    highlight={isWinningCard(cardsToShow[1], winningCards)}
-                  />
-                  {shouldShowHandStrength && (
-                    <div className="absolute -bottom-2 -right-2 px-2 py-0.5 rounded bg-red-500 text-white text-xs font-bold uppercase whitespace-nowrap shadow-lg">
-                      {handStrength}
-                    </div>
-                  )}
-                </>
-              ) : (
-                <>
-                  <CardComponent hidden size="small" />
-                  <CardComponent hidden size="small" />
-                </>
-              )}
-            </div>
-          )}
+          {/* Cards with hand strength badge - reserve space in lobby mode */}
+          <div
+            data-testid={hideCards ? undefined : 'hole-cards'}
+            className={`relative flex gap-1 mb-1 sm:mb-2 ${hideCards ? 'invisible' : ''}`}
+            aria-hidden={hideCards ? true : undefined}
+          >
+            {shouldShowCards && cardsToShow ? (
+              <>
+                <CardComponent
+                  card={cardsToShow[0]}
+                  size="small"
+                  highlight={isWinningCard(cardsToShow[0], winningCards)}
+                />
+                <CardComponent
+                  card={cardsToShow[1]}
+                  size="small"
+                  highlight={isWinningCard(cardsToShow[1], winningCards)}
+                />
+                {shouldShowHandStrength && (
+                  <div className="absolute -bottom-2 -right-2 px-2 py-0.5 rounded bg-gray-900/90 text-white text-xs font-bold uppercase whitespace-nowrap shadow-lg border border-white/20">
+                    {handStrength}
+                  </div>
+                )}
+              </>
+            ) : (
+              <>
+                <CardComponent hidden size="small" />
+                <CardComponent hidden size="small" />
+              </>
+            )}
+          </div>
 
           {/* Player info */}
           <PlayerInfo
@@ -227,35 +234,37 @@ export default function Seat({
             wins={wins}
           />
 
-          {/* Cards with hand strength badge - hidden in lobby mode */}
-          {!hideCards && (
-            <div data-testid="hole-cards" className="relative flex gap-1 mt-1 sm:mt-2">
-              {shouldShowCards && cardsToShow ? (
-                <>
-                  <CardComponent
-                    card={cardsToShow[0]}
-                    size="small"
-                    highlight={isWinningCard(cardsToShow[0], winningCards)}
-                  />
-                  <CardComponent
-                    card={cardsToShow[1]}
-                    size="small"
-                    highlight={isWinningCard(cardsToShow[1], winningCards)}
-                  />
-                  {shouldShowHandStrength && (
-                    <div className="absolute -bottom-2 -right-2 px-2 py-0.5 rounded bg-red-500 text-white text-xs font-bold uppercase whitespace-nowrap shadow-lg">
-                      {handStrength}
-                    </div>
-                  )}
-                </>
-              ) : (
-                <>
-                  <CardComponent hidden size="small" />
-                  <CardComponent hidden size="small" />
-                </>
-              )}
-            </div>
-          )}
+          {/* Cards with hand strength badge - reserve space in lobby mode */}
+          <div
+            data-testid={hideCards ? undefined : 'hole-cards'}
+            className={`relative flex gap-1 mt-1 sm:mt-2 ${hideCards ? 'invisible' : ''}`}
+            aria-hidden={hideCards ? true : undefined}
+          >
+            {shouldShowCards && cardsToShow ? (
+              <>
+                <CardComponent
+                  card={cardsToShow[0]}
+                  size="small"
+                  highlight={isWinningCard(cardsToShow[0], winningCards)}
+                />
+                <CardComponent
+                  card={cardsToShow[1]}
+                  size="small"
+                  highlight={isWinningCard(cardsToShow[1], winningCards)}
+                />
+                {shouldShowHandStrength && (
+                  <div className="absolute -bottom-2 -right-2 px-2 py-0.5 rounded bg-gray-900/90 text-white text-xs font-bold uppercase whitespace-nowrap shadow-lg border border-white/20">
+                    {handStrength}
+                  </div>
+                )}
+              </>
+            ) : (
+              <>
+                <CardComponent hidden size="small" />
+                <CardComponent hidden size="small" />
+              </>
+            )}
+          </div>
         </>
       )}
     </div>
@@ -286,17 +295,19 @@ function PlayerInfo({
       }`}
     >
       {/* Avatar */}
-      <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center font-bold text-white text-sm sm:text-base">
+      <div className="w-8 h-8 sm:w-10 sm:h-10 flex-shrink-0 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center font-bold text-white text-sm sm:text-base">
         {player.alias.charAt(0).toUpperCase()}
       </div>
 
       {/* Name */}
-      <div className="flex flex-col">
-        <span className="text-white font-medium text-xs sm:text-sm">{player.alias}</span>
+      <div className="flex min-w-0 flex-col">
+        <span className="max-w-[7rem] sm:max-w-[9rem] truncate text-white font-medium text-xs sm:text-sm">
+          {player.alias}
+        </span>
       </div>
 
       {/* Timer with gain indicator */}
-      <div className="flex items-center gap-1">
+      <div className="flex flex-shrink-0 items-center gap-1">
         <Timer timeBank={player.timeBank} isActive={isActive} isAllIn={player.isAllIn} />
         {result && result.winnerId === player.id && (
           <span className="text-green-400 font-bold text-xs sm:text-sm animate-pulse">

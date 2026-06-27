@@ -32,6 +32,9 @@ export class TableController {
   private deck: Card[] = [];
   private tickInterval: NodeJS.Timeout | null = null;
   private lastTickTime: number = Date.now();
+  // Pending "deal the next street" reveal. While this is set, the action is frozen
+  // (activePlayerIndex === null) so neither time bank drains during the deal.
+  private streetDealTimer: NodeJS.Timeout | null = null;
   // For "show cards" feature after hand ends
   private lastHandHoleCards: {
     seat0: [Card, Card] | null;
@@ -219,9 +222,9 @@ export class TableController {
           // The first street (flop) was already dealt by the engine, but we delay before showing it
           this.runOutHand();
         } else if (this.state.street !== 'preflop' || this.state.communityCards.length > 0) {
-          // New street (normal case)
-          this.broadcastStreet();
-          this.broadcastTurn();
+          // New street (normal case) — pause briefly while the street is "dealt" so
+          // the game feels live and neither player's time bank drains during the deal.
+          this.dealStreetWithPause();
         } else {
           // Just broadcast turn change
           this.broadcastTurn();
@@ -257,7 +260,11 @@ export class TableController {
     this.broadcastPlayerLeft(playerId, connected.player.seatIndex);
     console.log(`Player ${playerId} disconnected`);
 
-    // Grace period - after timeout, either clean up or let tick loop handle auto-actions
+    // Grace period - after it expires, free the seat only if no hand is in progress.
+    // During a hand we deliberately do NOT auto-fold a disconnected player: their
+    // clock keeps draining on their turn and, if it reaches 0, they go all-in for
+    // zero (table stakes). Abandoned seats are reclaimed after the hand ends via
+    // cleanupAbandonedPlayers.
     setTimeout(() => {
       const stillDisconnected = this.players.get(playerId);
       if (
@@ -268,8 +275,8 @@ export class TableController {
           // No hand in progress - clean up the seat immediately
           this.cleanupDisconnectedPlayer(playerId);
         }
-        // If hand is in progress, the tick loop will handle auto-actions
-        // and cleanup will happen after hand ends
+        // If a hand is in progress, leave the player in: their clock keeps draining
+        // and cleanup happens after the hand ends.
       }
     }, this.state.settings.disconnectGracePeriod);
   }
@@ -352,23 +359,6 @@ export class TableController {
     }
   }
 
-  /**
-   * Auto-act for a disconnected player: check if possible, otherwise fold
-   */
-  private autoActForDisconnectedPlayer(playerId: string) {
-    const validActions = getValidActions(this.state);
-
-    // Take the most passive action: check if available, otherwise fold
-    if (validActions.includes('check')) {
-      console.log(`Auto-check for disconnected player ${playerId}`);
-      this.handleAction(playerId, 'check');
-    } else if (validActions.includes('fold')) {
-      console.log(`Auto-fold for disconnected player ${playerId}`);
-      this.handleAction(playerId, 'fold');
-    }
-    // If neither check nor fold is valid (shouldn't happen), do nothing
-  }
-
   updateSettings(
     playerId: string,
     settings: { smallBlind?: number; bigBlind?: number; initialTimeBank?: number }
@@ -438,6 +428,7 @@ export class TableController {
 
   destroy() {
     this.stopTickLoop();
+    this.clearStreetDealTimer();
     this.players.forEach((p) => p.ws.close());
     this.players.clear();
   }
@@ -457,6 +448,8 @@ export class TableController {
 
   private startNewHand() {
     try {
+      // Cancel any pending street reveal from the previous hand.
+      this.clearStreetDealTimer();
       const result = startHand(this.state);
       this.state = result.state;
       this.deck = result.deck;
@@ -468,6 +461,48 @@ export class TableController {
       console.log(`Hand #${this.state.handNumber} started in room ${this.state.roomId}`);
     } catch (err) {
       console.error('Failed to start hand:', err);
+    }
+  }
+
+  /**
+   * Reveal a newly dealt street after a short pause. The pause simulates a live
+   * dealer and gives both players a beat to read the board without either time
+   * bank draining. We freeze the action by clearing activePlayerIndex: tick()
+   * then drains nobody and getValidActions() rejects any action, so the street
+   * is fully "dealt" before play resumes. The next actor's clock is reset on
+   * resume so the pause is never charged to them.
+   */
+  private dealStreetWithPause() {
+    const delay = this.state.settings.streetDealDelayMs;
+    const nextActiveIndex = this.state.activePlayerIndex;
+
+    // No pause configured (or nobody left to act): behave exactly as before.
+    if (!delay || delay <= 0 || nextActiveIndex === null) {
+      this.broadcastStreet();
+      this.broadcastTurn();
+      return;
+    }
+
+    // Freeze the action and show the new board immediately.
+    this.state.activePlayerIndex = null;
+    this.broadcastStreet();
+
+    this.clearStreetDealTimer();
+    this.streetDealTimer = setTimeout(() => {
+      this.streetDealTimer = null;
+      // The hand may have ended or reset while we were paused.
+      if (!this.state.isHandInProgress) return;
+      this.state.activePlayerIndex = nextActiveIndex;
+      // Don't charge the deal pause to the next actor.
+      this.lastTickTime = Date.now();
+      this.broadcastTurn();
+    }, delay);
+  }
+
+  private clearStreetDealTimer() {
+    if (this.streetDealTimer) {
+      clearTimeout(this.streetDealTimer);
+      this.streetDealTimer = null;
     }
   }
 
@@ -510,12 +545,10 @@ export class TableController {
       return;
     }
 
-    // Check if active player is disconnected and past grace period
-    // If so, take passive action for them (check if possible, otherwise fold)
-    if (!activePlayer.isConnected && this.isPlayerAbandoned(activePlayer.id)) {
-      this.autoActForDisconnectedPlayer(activePlayer.id);
-      return; // Don't drain time for disconnected player
-    }
+    // Note: a disconnected player is NOT auto-acted for. Their clock keeps draining
+    // on their turn exactly as if they were present and thinking; if it reaches 0
+    // they go all-in for zero (table stakes, handled below). Only seat cleanup is
+    // tied to the grace period (see handleDisconnect / cleanupAbandonedPlayers).
 
     // Drain time
     const updated = drainTime(activePlayer, elapsed);
@@ -530,7 +563,12 @@ export class TableController {
     // Broadcast tick
     this.broadcastTick();
 
-    // Check timeout - player goes all-in with whatever they have
+    // Check timeout - per the table-stakes rule, a player who runs out of time is
+    // all-in for ZERO additional seconds. They are NOT folded: they remain entitled
+    // to a showdown for the pot they have already matched, and the opponent's uncalled
+    // bet is refunded. This applies whether the player is present (timed out) or
+    // disconnected — a disconnected player's clock simply burns down to this same
+    // all-in-for-zero outcome. (See PRD "Disconnections".)
     if (isTimeout(updated)) {
       // Mark as all-in (they've committed all their time)
       updated.isAllIn = true;

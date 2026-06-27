@@ -5,8 +5,8 @@ export default {
     extend: {
       colors: {
         felt: {
-          DEFAULT: '#0d5c2e',
-          dark: '#0a4a25',
+          DEFAULT: '#0D1F12',
+          dark: '#0a1610',
         },
       },
       animation: {

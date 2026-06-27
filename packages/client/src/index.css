@@ -52,3 +52,46 @@ body {
     padding-bottom: calc(0.75rem + env(safe-area-inset-bottom));
   }
 }
+
+/* Accessibility: respect reduced-motion preference */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/*
+ * Keep the game upright when a phone is held in landscape. Instead of nagging
+ * the player to rotate, we render the play area into a full-size portrait frame
+ * and rotate it to fill the screen (a CSS portrait "lock"). This uses the long
+ * edge as the vertical, so the whole table + action bar stay visible and
+ * playable. Portrait phones and normal desktop/tablet windows (height > 500px)
+ * are unaffected, so `.app-frame` is a passthrough by default.
+ *
+ * The `transform` also makes `.app-frame` the containing block for the page's
+ * absolutely/fixed-positioned children (corner badges, modals), so they rotate
+ * with the table instead of escaping to the viewport edges.
+ */
+@media (orientation: landscape) and (max-height: 500px) {
+  .app-frame {
+    position: fixed;
+    top: 100%;
+    left: 0;
+    width: 100vh;
+    height: 100vw;
+    transform-origin: left top;
+    transform: rotate(-90deg);
+    overflow: hidden;
+  }
+
+  /* The routed page must fill the rotated frame (100vw tall), not the short
+     visual viewport that 100dvh would otherwise resolve to. */
+  .app-frame > * {
+    height: 100% !important;
+  }
+}

@@ -34,6 +34,7 @@ export default function Table({ send }: TableProps) {
   const opponentPlayer = useGameStore(selectOpponentPlayer);
 
   const [showSettings, setShowSettings] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const opponentSeatIndex = yourSeatIndex === 0 ? 1 : 0;
   const winningCards = result?.winningCards;
@@ -56,7 +57,13 @@ export default function Table({ send }: TableProps) {
 
   // Handler for copy link
   const handleCopyLink = async () => {
-    await navigator.clipboard.writeText(window.location.href);
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // Clipboard API can be unavailable in insecure contexts; fail silently.
+    }
   };
 
   // Handler for start game (no force needed since opponent must be ready)
@@ -73,7 +80,7 @@ export default function Table({ send }: TableProps) {
   return (
     <div
       data-testid="poker-table"
-      className="relative w-full h-full max-w-5xl max-h-[450px] sm:max-h-[500px] flex flex-col items-center justify-between py-2 sm:py-4"
+      className="relative w-full h-full max-w-5xl sm:max-h-[560px] flex flex-col items-center justify-between py-2 sm:py-4"
     >
       {/* Opponent seat (top) */}
       <div className="relative">
@@ -161,9 +168,9 @@ export default function Table({ send }: TableProps) {
                   <button
                     onClick={handleCopyLink}
                     data-testid="copy-link-button"
-                    className="px-6 py-3 bg-blue-600 hover:bg-blue-500 text-white font-semibold rounded-lg shadow-lg transition-colors flex items-center gap-2"
+                    className={`px-6 py-3 ${copied ? 'bg-green-600' : 'bg-blue-600 hover:bg-blue-500'} text-white font-semibold rounded-lg shadow-lg transition-colors flex items-center gap-2`}
                   >
-                    🔗 Copy Invite Link
+                    {copied ? '✓ Copied!' : '🔗 Copy Invite Link'}
                   </button>
                   <button
                     onClick={() => setShowSettings(true)}
@@ -217,7 +224,7 @@ export default function Table({ send }: TableProps) {
                 ) : (
                   <div
                     key={i}
-                    className="w-[40px] h-[56px] sm:w-[60px] sm:h-[84px] rounded-lg border-2 border-dashed border-white/20"
+                    className="w-[48px] h-[68px] sm:w-[60px] sm:h-[84px] rounded-lg border-2 border-dashed border-white/30 bg-white/5"
                   />
                 );
               })}

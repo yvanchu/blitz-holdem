@@ -112,15 +112,15 @@ describe('Card', () => {
     it('should apply normal size classes by default', () => {
       const { container } = render(<Card card={{ rank: 'A', suit: 's' }} />);
       const card = container.querySelector('[data-testid="card"]');
-      expect(card).toHaveClass('w-[40px]');
-      expect(card).toHaveClass('h-[56px]');
+      expect(card).toHaveClass('w-[48px]');
+      expect(card).toHaveClass('h-[68px]');
     });
 
     it('should apply small size classes when size="small"', () => {
       const { container } = render(<Card card={{ rank: 'A', suit: 's' }} size="small" />);
       const card = container.querySelector('[data-testid="card"]');
-      expect(card).toHaveClass('w-[36px]');
-      expect(card).toHaveClass('h-[50px]');
+      expect(card).toHaveClass('w-[44px]');
+      expect(card).toHaveClass('h-[62px]');
     });
   });
 

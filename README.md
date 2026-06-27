@@ -8,7 +8,7 @@ A heads-up no-limit Texas Hold'em poker variant where you bet with **time** inst
 - On your turn, your time bank counts down in real-time
 - Bets, calls, and raises commit seconds from your time bank to the pot
 - The winner of each hand receives the pot (in seconds) added to their time bank
-- Run out of time? You auto-fold!
+- Run out of time? You're all-in for zero — you still contest whatever you've already matched!
 
 ## 🚀 Quick Start
 
@@ -93,8 +93,10 @@ bullet-poker/
 
 ### Auto-Actions
 
-- If your time reaches 0 and you can check, you auto-check
-- If your time reaches 0 and you face a bet, you auto-fold
+- If your time reaches 0, you're **all-in for zero additional seconds** (table stakes) — you are not folded
+- You still contest the pot you've already matched; your opponent's uncalled bet is refunded
+- If your time reaches 0 and you can check, you effectively check and stay in the hand
+- A disconnection doesn't auto-fold either — a disconnected player's clock keeps draining and, if it hits 0, they're all-in for zero (same as a timeout)
 
 ## 🛠️ Development
 

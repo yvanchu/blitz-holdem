@@ -31,8 +31,8 @@ export default function CardComponent({
   // Responsive sizes: smaller on mobile
   const sizeClasses =
     size === 'small'
-      ? 'w-[36px] h-[50px] sm:w-[45px] sm:h-[63px] text-xs sm:text-sm'
-      : 'w-[40px] h-[56px] sm:w-[60px] sm:h-[84px] text-sm sm:text-lg';
+      ? 'w-[44px] h-[62px] sm:w-[45px] sm:h-[63px] text-sm sm:text-sm'
+      : 'w-[48px] h-[68px] sm:w-[60px] sm:h-[84px] text-base sm:text-lg';
 
   if (hidden || !card) {
     return (
@@ -66,7 +66,7 @@ export default function CardComponent({
       data-card-suit={card.suit}
       className={`${sizeClasses} rounded-lg bg-white shadow-lg flex flex-col items-center justify-center font-bold ${
         isRed ? 'text-red-600' : 'text-gray-900'
-      } ${highlight ? 'ring-2 ring-yellow-400 transform -translate-y-2 transition-transform' : ''}`}
+      } ${highlight ? 'ring-2 ring-yellow-400 shadow-[0_0_14px_rgba(250,204,21,0.85)] animate-pulse' : ''}`}
     >
       <span>{rankDisplay}</span>
       <span className="text-xl">{suitSymbol}</span>
