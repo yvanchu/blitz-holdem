@@ -5,6 +5,7 @@ import { useSocket } from '../hooks/useSocket';
 import Table from '../components/Table';
 import ActionBar from '../components/ActionBar';
 import { HandHistoryModal } from '../components/HandHistoryModal';
+import { SoundToggle } from '../components/SoundToggle';
 
 export default function TablePage() {
   const { roomId } = useParams<{ roomId: string }>();
@@ -81,6 +82,11 @@ export default function TablePage() {
     <div className="flex flex-col h-[100dvh] overflow-hidden bg-felt">
       {/* Hand History Modal */}
       <HandHistoryModal />
+
+      {/* Sound toggle - static, top left */}
+      <div className="absolute top-3 left-3 z-10">
+        <SoundToggle />
+      </div>
 
       {/* Stakes display - visible to both players, top right */}
       {settings && (

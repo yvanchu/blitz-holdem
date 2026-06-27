@@ -29,7 +29,9 @@ describe('timeout = all-in for zero (table stakes)', () => {
   let player2Id: string; // seat 1
 
   beforeEach(() => {
-    table = new TableController('test-room');
+    // streetDealDelayMs: 0 isolates the timeout rule from the new-street deal pause,
+    // which would otherwise freeze the action (activePlayerIndex null) on the flop.
+    table = new TableController('test-room', { streetDealDelayMs: 0 });
     const r1 = table.addPlayer(createMockWs(), 'Player1');
     const r2 = table.addPlayer(createMockWs(), 'Player2');
     player1Id = r1.playerId!;

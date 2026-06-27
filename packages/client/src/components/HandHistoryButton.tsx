@@ -4,13 +4,17 @@ export function HandHistoryButton() {
   const { openModal, completedHands } = useHandHistoryStore();
   const handCount = completedHands.length;
 
-  // Don't show button if no hands have been played
-  if (handCount === 0) return null;
+  const hasHistory = handCount > 0;
 
   return (
     <button
-      onClick={openModal}
-      className="flex items-center gap-2 px-3 py-2 sm:px-4 sm:py-2.5 bg-zinc-800/90 hover:bg-zinc-700 border border-zinc-600 rounded-lg shadow-lg transition-all hover:scale-105 active:scale-95"
+      onClick={hasHistory ? openModal : undefined}
+      disabled={!hasHistory}
+      className={`flex items-center gap-2 px-3 py-2 sm:px-4 sm:py-2.5 rounded-lg border shadow-lg transition-colors ${
+        hasHistory
+          ? 'bg-zinc-800/90 hover:bg-zinc-700 border-zinc-600'
+          : 'bg-zinc-900/70 border-zinc-700 opacity-60 cursor-not-allowed'
+      }`}
       aria-label="Hand History"
     >
       {/* Document icon */}
@@ -31,7 +35,11 @@ export function HandHistoryButton() {
       <span className="text-zinc-200 text-sm font-medium">Hand History</span>
 
       {/* Badge with hand count */}
-      <span className="min-w-[20px] h-5 px-1.5 bg-cyan-500 text-white text-xs font-bold rounded-full flex items-center justify-center">
+      <span
+        className={`min-w-[20px] h-5 px-1.5 text-white text-xs font-bold rounded-full flex items-center justify-center ${
+          hasHistory ? 'bg-cyan-500' : 'bg-zinc-600'
+        }`}
+      >
         {handCount > 99 ? '99+' : handCount}
       </span>
     </button>

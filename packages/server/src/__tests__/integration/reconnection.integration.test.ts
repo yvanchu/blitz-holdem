@@ -119,19 +119,27 @@ describe('Reconnection Integration', () => {
         const result = await player1.waitForMessage('RESULT');
         expect(result.type).toBe('RESULT');
       } else {
-        // Player 2 is active, they disconnect - wait for auto-action after grace period
+        // Player 2 is active and disconnects. Per the table-stakes rule we do NOT
+        // auto-fold them: their clock keeps burning and the hand stays in progress.
+        const seat = player2.seatIndex!;
         player2.close();
 
-        // Wait for grace period (500ms) + auto-action
+        // Wait well past the grace period (500ms in test settings).
         await sleep(1000);
 
-        // Disconnected player should auto-fold, hand should end
-        const results = player1.getMessages('RESULT');
-        expect(results.length).toBeGreaterThanOrEqual(1);
+        // No auto-fold happened: the hand has not ended.
+        expect(player1.getMessages('RESULT').length).toBe(0);
+
+        // Player 2's clock is still being drained while disconnected.
+        const ticks = player1.getMessages('TICK');
+        expect(ticks.length).toBeGreaterThan(1);
+        expect(ticks[ticks.length - 1]!.players[seat].timeBank).toBeLessThan(
+          ticks[0]!.players[seat].timeBank
+        );
       }
     });
 
-    it('should auto-act for disconnected player after grace period expires', async () => {
+    it('does NOT auto-act for a disconnected player; their clock keeps burning instead', async () => {
       const { player1: p1, player2: p2 } = await setupTwoPlayerGame(server);
       player1 = p1;
       player2 = p2;
@@ -143,24 +151,32 @@ describe('Reconnection Integration', () => {
       const isP1Active = turn.activePlayerIndex === player1.seatIndex;
       const activeClient = isP1Active ? player1 : player2;
       const otherClient = isP1Active ? player2 : player1;
+      const otherSeat = otherClient.seatIndex!;
 
-      // Active player calls to complete preflop
+      // Active player (SB) completes the blind; action passes to the other player (BB).
       activeClient.action('call');
       await sleep(100);
 
-      // Now other player should have action (BB can check)
-      // Disconnect the other player (who now has action)
+      // Record how many ticks we've seen, then disconnect the player who now has action.
+      const ticksBefore = activeClient.getMessages('TICK').length;
       otherClient.close();
 
-      // Wait for grace period to expire, disconnected player should auto-check
-      // Hand should continue to flop, then eventually end or advance
+      // Wait well past the grace period (500ms in test settings).
       await sleep(1500);
 
-      // Check that we got a STREET message (flop) indicating game advanced
-      // after the disconnected player auto-checked
-      const streets = player1.getMessages('STREET');
-      // Should have at least flop (auto-check allowed game to advance)
-      expect(streets.length).toBeGreaterThanOrEqual(1);
+      // The disconnected player is NOT auto-checked: the street never advanced to the
+      // flop on its own, and the hand did not end via an auto-fold.
+      expect(activeClient.getMessages('STREET').length).toBe(0);
+      expect(activeClient.getMessages('RESULT').length).toBe(0);
+
+      // Instead their clock keeps burning: new ticks keep arriving after the grace
+      // period and the disconnected seat's time bank is decreasing.
+      const ticks = activeClient.getMessages('TICK');
+      expect(ticks.length).toBeGreaterThan(ticksBefore);
+      const postTicks = ticks.slice(ticksBefore);
+      expect(postTicks[postTicks.length - 1]!.players[otherSeat].timeBank).toBeLessThan(
+        postTicks[0]!.players[otherSeat].timeBank
+      );
     });
 
     it('should cleanup seat after hand ends when player was disconnected', async () => {
@@ -173,24 +189,23 @@ describe('Reconnection Integration', () => {
       // Determine who is active
       const turn = await player1.waitForMessage('TURN');
       const isP1Active = turn.activePlayerIndex === player1.seatIndex;
+      const activeClient = isP1Active ? player1 : player2;
+      const idleClient = isP1Active ? player2 : player1;
 
-      // Disconnect the non-active player and have active player fold
-      if (isP1Active) {
-        player2.close();
-        // Player 1 folds to end hand
-        player1.action('fold');
-        // Wait for grace period and cleanup
-        await sleep(1000);
-      } else {
-        player2.close();
-        // Wait for grace period, player 2 will auto-fold
-        await sleep(1000);
-      }
+      // Disconnect the idle (non-active) player and let the grace window elapse while
+      // the hand is still in progress. They are NOT auto-folded (their clock just idles
+      // since it isn't their turn) — the seat is only reclaimed once the hand ends.
+      idleClient.close();
+      await sleep(800); // > 500ms grace period
 
-      // Now player1 should either be connected or cleanup happened
-      // Close player1 too, wait for cleanup
-      player1.close();
-      await sleep(1000);
+      // The connected active player folds to end the hand. On hand-end the abandoned
+      // (past-grace) disconnected player's seat is cleaned up.
+      activeClient.action('fold');
+      await sleep(500);
+
+      // Close the remaining player too; after its grace period that seat frees as well.
+      activeClient.close();
+      await sleep(800);
 
       // Try to join as a new player - both seats should be available now
       const newPlayer = await createTestClient(server.port);

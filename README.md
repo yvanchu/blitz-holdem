@@ -96,7 +96,7 @@ bullet-poker/
 - If your time reaches 0, you're **all-in for zero additional seconds** (table stakes) — you are not folded
 - You still contest the pot you've already matched; your opponent's uncalled bet is refunded
 - If your time reaches 0 and you can check, you effectively check and stay in the hand
-- Only a **disconnection** (after a grace window) results in an auto-fold
+- A disconnection doesn't auto-fold either — a disconnected player's clock keeps draining and, if it hits 0, they're all-in for zero (same as a timeout)
 
 ## 🛠️ Development
 

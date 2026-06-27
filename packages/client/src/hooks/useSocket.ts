@@ -2,6 +2,21 @@ import { useEffect, useRef, useCallback, useState } from 'react';
 import { useGameStore } from '../store/gameStore';
 import { useHandHistoryStore } from '../store/handHistoryStore';
 import type { C2SMessage, S2CMessage } from '@bullet-poker/common';
+import { playSound, type SoundName } from '../sound/soundEngine';
+
+function soundForAction(action: string): SoundName {
+  switch (action) {
+    case 'check':
+      return 'check';
+    case 'call':
+      return 'call';
+    case 'fold':
+      return 'fold';
+    default:
+      // bet, raise, all-in
+      return 'bet';
+  }
+}
 
 export function useSocket(_roomId: string) {
   const wsRef = useRef<WebSocket | null>(null);
@@ -153,6 +168,7 @@ function handleMessage(message: S2CMessage) {
       store.updatePlayers(message.players);
       store.clearResult();
       store.syncServerTime(message.serverTime);
+      playSound('deal');
 
       // Start recording hand history
       const gameState = useGameStore.getState();
@@ -182,6 +198,10 @@ function handleMessage(message: S2CMessage) {
         pot: message.pot,
       });
       store.syncServerTime(message.serverTime);
+      // Chime only when it has become this client's turn to act.
+      if (message.activePlayerIndex === store.yourSeatIndex) {
+        playSound('turn');
+      }
       break;
 
     case 'TICK':
@@ -204,16 +224,22 @@ function handleMessage(message: S2CMessage) {
           isAllIn: actionPlayer.isAllIn,
         });
       }
+      playSound(soundForAction(message.action));
       break;
     }
 
     case 'STREET':
       store.setStreet(message.street, message.communityCards);
-      store.setRoomState({ pot: message.pot, currentBet: message.currentBet });
+      // Freeze the action while the street is being dealt. The server pauses both
+      // clocks during the deal and sends a TURN when play resumes; clearing the
+      // active player here keeps the UI static (no false "active" seat) and matches
+      // the all-in runout, where no one is to act.
+      store.setRoomState({ pot: message.pot, currentBet: message.currentBet, activePlayerIndex: null });
       store.syncServerTime(message.serverTime);
 
       // Record street change in hand history
       historyStore.recordStreet(message.street, message.communityCards);
+      playSound('deal');
       break;
 
     case 'RESULT': {
@@ -238,6 +264,15 @@ function handleMessage(message: S2CMessage) {
         isSplit: message.result.isSplit,
         splitWinners: message.result.splitWinners,
       });
+
+      // Win/lose cue from this client's perspective.
+      const me = store.yourPlayerId;
+      const won = me
+        ? message.result.isSplit && message.result.splitWinners
+          ? message.result.splitWinners.some((w) => w.playerId === me)
+          : message.result.winnerId === me
+        : false;
+      playSound(won ? 'win' : 'lose');
       break;
     }
 

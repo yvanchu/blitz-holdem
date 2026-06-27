@@ -42,6 +42,7 @@ export interface TableSettings {
   disconnectGracePeriod: number; // default 5000 (ms)
   runoutDelayMs: number; // delay between streets during all-in runout (default 3000)
   nextHandDelayMs: number; // delay before starting next hand after result (default 6000)
+  streetDealDelayMs: number; // pause when each new street (flop/turn/river) is dealt, during which neither clock drains (default 1200)
 }
 
 export const DEFAULT_SETTINGS: TableSettings = {
@@ -52,6 +53,7 @@ export const DEFAULT_SETTINGS: TableSettings = {
   disconnectGracePeriod: 5000,
   runoutDelayMs: 3000,
   nextHandDelayMs: 6000,
+  streetDealDelayMs: 1200,
 };
 
 export interface TableState {

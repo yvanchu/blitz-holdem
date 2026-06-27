@@ -44,7 +44,7 @@ User stories:
 - Showdown: Best 5-card poker hand wins the pot (in seconds), which is credit back to the winner's time bank.
 - All-in: A player can commit their entire remaining time bank. If both players are all-in prior to the river, remaining community cards are dealt automatically.
 - Time drain: While it is a player's turn, their time bank decreases at 1 second per real-time second. Time drain pauses when it is the opponent's turn.
-- Insufficient time (table stakes): If a player’s time bank reaches 0, they are **all-in for zero additional seconds** — they are NOT folded. Per standard table-stakes rules, a player cannot be forced to fold for lack of funds: they remain entitled to a showdown for the pot they have **already matched**, and the opponent’s **uncalled bet is refunded**. If checking is legal (no bet to face), they effectively check and stay in. (Table-stakes trumps the time rule. Contrast with **disconnection**, which auto-folds after the grace window — see "Disconnections".)
+- Insufficient time (table stakes): If a player’s time bank reaches 0, they are **all-in for zero additional seconds** — they are NOT folded. Per standard table-stakes rules, a player cannot be forced to fold for lack of funds: they remain entitled to a showdown for the pot they have **already matched**, and the opponent’s **uncalled bet is refunded**. If checking is legal (no bet to face), they effectively check and stay in. (Table-stakes trumps the time rule. A **disconnected** player is treated identically — their clock keeps draining and, if it reaches 0, they are all-in for zero; disconnection never auto-folds. See "Disconnections".)
 - Hand end: Winner receives pot seconds added to their time bank. Blinds for next hand are posted from updated banks.
 
 ## Time Bank Economy
@@ -93,7 +93,7 @@ User stories:
 - Protocol: WebSocket messages for join/leave, seat state, blinds, cards, betting actions, pot updates, street advancement, showdown, and timer ticks.
 - Clock model: Server tracks authoritative remaining times and active turn. Clients render countdowns with drift correction using server timestamps.
 - Latency handling: Input buffering with action timestamps. If a client sends an action slightly late due to network but within bank, server processes based on server time, not client.
-- Disconnections: If a player disconnects mid-hand while facing action, a grace window (e.g., 5s) applies; time drain continues. After grace, auto-fold if still disconnected. Reconnect restores state.
+- Disconnections: A disconnected player is NOT auto-folded. Their time bank simply keeps draining on their turn, exactly as if they were present and thinking, and if it reaches 0 they go all-in for zero (table stakes) — the same outcome as any timeout. A grace window (e.g., 5s) governs reconnection and seat cleanup only: reconnecting restores state, and an abandoned seat is reclaimed after the current hand ends (or immediately if no hand is in progress). The clock continuing to run is the only consequence of being away.
 
 ## Security & Fairness
 
@@ -106,7 +106,7 @@ User stories:
 
 - Fractional seconds: Internal server math may be fractional; UI rounds to nearest whole second for display. Pot commits use integers by default.
 - Minimum bet: At least big blind or size of last raise; enforce standard NL rules.
-- Timeout = all-in for zero (table stakes): When a player’s time hits 0 they go all-in for **zero additional** seconds rather than folding. They contest only the pot they have already matched; any uncalled bet is refunded to the opponent, and the hand runs out to showdown. Only **disconnection** (not a timeout) results in an auto-fold — see "Disconnections".
+- Timeout = all-in for zero (table stakes): When a player’s time hits 0 they go all-in for **zero additional** seconds rather than folding. They contest only the pot they have already matched; any uncalled bet is refunded to the opponent, and the hand runs out to showdown. A **disconnection** is treated the same way (not an auto-fold): the disconnected player's clock simply keeps draining toward this same all-in-for-zero outcome — see "Disconnections".
 - All-in with imbalance: Side pots handled using seconds analogous to chips; MVP may restrict to simple pots if complexity is high (prefer single-pot scenarios for MVP).
 - Rejoining: Player can rejoin same table via link; seat reserved for a short timeout.
 

@@ -46,6 +46,7 @@ beforeEach(() => {
       disconnectGracePeriod: 5000,
       runoutDelayMs: 3000,
       nextHandDelayMs: 6000,
+      streetDealDelayMs: 1200,
     },
   });
 });

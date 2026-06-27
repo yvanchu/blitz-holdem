@@ -233,6 +233,51 @@ The `shouldShowCards` condition required `result.showdown` to be true, but volun
 
 ## Session Log
 
+### 2026-06-27 — UX batch: stakes visibility, layout stability, street-deal pause, sound
+
+Four product-owner requests delivered together (all merged to main).
+
+- **Stakes badge on host screen (bug):** the stakes badge was gated on `isJoiner && settings`,
+  so the host/owner never saw it. Gate is now just `settings` — both seats see `Stakes: SB/BB`.
+  Locked in by `TablePage.test.tsx` (host seat 0 + joiner seat 1 both render the badge). Prod was
+  running pre-fix code; this ships the fix.
+- **Layout stability (less jitter):** presentational components now reserve space instead of
+  mounting/unmounting. Bet chips, hole-card areas, the raise panel (collapsed via `max-h-0`), the
+  Show-Cards / auto-all-in hint, and the Hand-History button all hold their footprint with
+  `invisible` / `min-h` / `tabular-nums`; removed translate/scale transforms that caused shifts.
+  Player aliases truncate instead of reflowing the seat.
+- **Street-deal pause (live feel):** when a betting round closes and a new street is dealt, the
+  server now pauses `streetDealDelayMs` (default 1200ms) before play resumes. During the pause
+  `activePlayerIndex` is null, so **neither** time bank drains and no action is accepted; a TURN
+  re-arms the actor afterward and the pause itself is not charged (`lastTickTime` reset on resume).
+  The all-in runout path already had its own delay and is untouched. `TEST_SETTINGS.streetDealDelayMs = 0`
+  keeps integration tests synchronous; `street-delay.test.ts` covers the behavior with fake timers.
+- **Sound effects (synthesized, free/legal):** a small Web Audio module (`sound/soundEngine.ts`)
+  generates every cue procedurally — no downloaded assets, nothing to license/attribute. Cues:
+  your-turn chime, check/call/bet/fold action tones, card-deal ticks (hand start + each street),
+  and win/lose stings, wired into the `useSocket` message handlers. A static top-left mute toggle
+  (`SoundToggle`) persists to `localStorage`; the AudioContext is unlocked on first user gesture
+  (autoplay policy). Tones can be swapped for CC0 samples later if richer audio is wanted.
+
+### 2026-06-27 — Disconnection = burn time, then all-in for zero
+
+Per product owner: a disconnected player should no longer be auto-folded. Their time bank simply
+keeps draining on their turn (as it already did during the grace window) and, when it reaches 0,
+they go all-in for zero — the exact table-stakes outcome a present player gets on timeout.
+Disconnect and timeout now share one rule.
+
+- **Server (`packages/server/src/table.ts`):** removed the disconnect auto-act branch in `tick()`
+  and deleted the now-dead `autoActForDisconnectedPlayer` (check-else-fold). The grace window now
+  governs only reconnection and seat cleanup: an abandoned seat is reclaimed after the hand ends
+  (via `cleanupAbandonedPlayers`) or immediately when no hand is in progress.
+- **Tests:** added deterministic `disconnect.test.ts` (disconnected player at 0s → all-in, not
+  folded, opponent's uncalled bet refunded; disconnected player with time left → clock burns, no
+  auto-fold). Updated the three `reconnection.integration.test.ts` cases that assumed auto-fold/
+  auto-check to assert the new contract (no auto-act; clock keeps burning via TICK timeBank) and
+  to drive hand-end through the connected player.
+- **Docs:** PRD §96 rewritten; §47/§109 parentheticals and README "Auto-Actions" updated so both
+  timeout and disconnection describe all-in-for-zero.
+
 ### 2026-06-27 — Agent Dev Loop: deliver Iteration 1 as a PR
 
 Re-ran the full fast gate against the accumulated Iteration 1 working tree and confirmed it
@@ -258,8 +303,8 @@ workflow that opens a PR each run) and delivered the first iteration of fixes.
   and was kept. Updated PRD §47/§109 to document it (previously said timeout→auto-fold). Added
   deterministic server tests (`timeout.test.ts`) pinning the rule: facing-a-bet timeout →
   all-in, not folded, opponent refunded the uncalled amount; checkable timeout → all-in, stays
-  to showdown. **Disconnection** remains the only auto-fold path (PRD §96) — distinct from a
-  timeout.
+  to showdown. (Follow-up on 2026-06-27 extended this same all-in-for-zero rule to disconnections;
+  see that entry.)
 - **[CI] Lint baseline fixed** (was red). Removed an unused `roomUrl` in
   `e2e/tests/settings.spec.ts`; replaced `as any` with `as unknown as C2SMessage` in the
   protocol integration tests. `pnpm lint` is now clean.
