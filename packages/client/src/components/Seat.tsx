@@ -184,7 +184,7 @@ export default function Seat({
                     highlight={isWinningCard(cardsToShow[1], winningCards)}
                   />
                   {shouldShowHandStrength && (
-                    <div className="absolute -bottom-2 -right-2 px-2 py-0.5 rounded bg-red-500 text-white text-xs font-bold uppercase whitespace-nowrap shadow-lg">
+                    <div className="absolute -bottom-2 -right-2 px-2 py-0.5 rounded bg-gray-900/90 text-white text-xs font-bold uppercase whitespace-nowrap shadow-lg border border-white/20">
                       {handStrength}
                     </div>
                   )}
@@ -243,7 +243,7 @@ export default function Seat({
                     highlight={isWinningCard(cardsToShow[1], winningCards)}
                   />
                   {shouldShowHandStrength && (
-                    <div className="absolute -bottom-2 -right-2 px-2 py-0.5 rounded bg-red-500 text-white text-xs font-bold uppercase whitespace-nowrap shadow-lg">
+                    <div className="absolute -bottom-2 -right-2 px-2 py-0.5 rounded bg-gray-900/90 text-white text-xs font-bold uppercase whitespace-nowrap shadow-lg border border-white/20">
                       {handStrength}
                     </div>
                   )}

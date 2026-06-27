@@ -6,6 +6,7 @@
 
 import { describe, it, expect, beforeAll, afterAll, afterEach } from 'vitest';
 import { WebSocket } from 'ws';
+import type { C2SMessage } from '@bullet-poker/common';
 import {
   createTestServer,
   createTestClient,
@@ -59,7 +60,7 @@ describe('Protocol Integration', () => {
       client = await createTestClient(server.port);
 
       // JOIN without roomId
-      client.send({ type: 'JOIN', alias: 'Test' } as any);
+      client.send({ type: 'JOIN', alias: 'Test' } as unknown as C2SMessage);
 
       // Should receive error or be silently ignored
       await sleep(100);
@@ -68,7 +69,7 @@ describe('Protocol Integration', () => {
     it('should reject unknown message types', async () => {
       client = await createTestClient(server.port);
 
-      client.send({ type: 'UNKNOWN_MESSAGE_TYPE', data: 'test' } as any);
+      client.send({ type: 'UNKNOWN_MESSAGE_TYPE', data: 'test' } as unknown as C2SMessage);
 
       // Should not crash server - subsequent messages should work
       await sleep(100);

@@ -77,15 +77,13 @@ export default function TablePage() {
     );
   }
 
-  const isJoiner = yourSeatIndex === 1;
-
   return (
     <div className="flex flex-col h-[100dvh] overflow-hidden bg-felt">
       {/* Hand History Modal */}
       <HandHistoryModal />
 
-      {/* Stakes display for joiner - top right */}
-      {isJoiner && settings && (
+      {/* Stakes display - visible to both players, top right */}
+      {settings && (
         <div className="absolute top-3 right-3 z-10">
           <div className="bg-gray-800/90 px-3 py-1.5 rounded-lg text-sm">
             <span className="text-gray-400">Stakes: </span>

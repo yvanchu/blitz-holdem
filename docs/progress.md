@@ -2,7 +2,7 @@
 
 ## Current Status: MVP Complete - Pre-Release
 
-**Last Updated:** February 10, 2026
+**Last Updated:** June 27, 2026
 
 ---
 
@@ -39,9 +39,9 @@
 - [ ] **SECURITY**: Implement room TTL / reaper (rooms are never cleaned up, `deleteRoom` is never called)
 - [ ] **SECURITY**: Restrict CORS from wildcard `*` to actual client origins
 - [ ] **SECURITY**: Validate WebSocket `Origin` header against allowlist
-- [ ] **UX**: Increase timer font size (currently `text-xs sm:text-sm` ~12-14px, UX doc specifies 16-20px bold)
+- [x] **UX**: Increase timer font size (currently `text-xs sm:text-sm` ~12-14px, UX doc specifies 16-20px bold)
 - [ ] **UX**: Make ResultOverlay non-blocking (currently a full-screen modal, violates "no modal dialogs during gameplay" rule)
-- [ ] **UX**: Use amber color for Raise/Bet button (currently green like Check/Call, violates color language spec)
+- [x] **UX**: Use amber color for Raise/Bet button (currently green like Check/Call, violates color language spec)
 - [x] Add loading states for network operations
 - [x] Add error messages for failed actions
 - [ ] Mobile testing on real devices (iOS Safari, Android Chrome)
@@ -58,14 +58,14 @@
 - [ ] **SECURITY**: Stop leaking player IDs to opponents in `PlayerPublic`
 - [ ] **SECURITY**: Remove or restrict `force` start option (bypasses opponent ready check)
 - [ ] **UX**: Add card dealing animations (subtle slide + fade, per UX doc)
-- [ ] **UX**: Fix background color to match UX spec (`#0D1F12` deep forest green, current felt `#0d5c2e` is too saturated)
-- [ ] **UX**: Add copy-link success feedback (currently no toast or button text change after clipboard copy)
+- [x] **UX**: Fix background color to match UX spec (`#0D1F12` deep forest green, current felt `#0d5c2e` is too saturated)
+- [x] **UX**: Add copy-link success feedback (currently no toast or button text change after clipboard copy)
 - [ ] **UX**: Add last-action indicator ("Opponent checked", "Opponent raised to 12s") for clarity
-- [ ] **UX**: Add `prefers-reduced-motion` media query support (required by UX accessibility spec)
-- [ ] **UX**: Raise slider accent color is `accent-green-500`, should be amber per color language (UX §7: amber = betting/neutral)
-- [ ] **UX**: Hand strength badge uses `bg-red-500` for all hand ranks — red implies danger/loss (UX §7), should use a neutral color like gray or cyan since it's informational
+- [x] **UX**: Add `prefers-reduced-motion` media query support (required by UX accessibility spec)
+- [x] **UX**: Raise slider accent color is `accent-green-500`, should be amber per color language (UX §7: amber = betting/neutral)
+- [x] **UX**: Hand strength badge uses `bg-red-500` for all hand ranks — red implies danger/loss (UX §7), should use a neutral color like gray or cyan since it's informational
 - [ ] **UX**: Card sizes are smaller than spec on mobile — UX spec says 40–60px wide mobile, current small cards are 36px (`w-[36px]`); normal cards are 40px which is the bare minimum
-- [ ] **UX**: Stakes display only visible to joiner (`isJoiner && settings`) — both players should see current blinds/stakes for clarity (UX §5: "What's the pot?" is #5 priority)
+- [x] **UX**: Stakes display only visible to joiner (`isJoiner && settings`) — both players should see current blinds/stakes for clarity (UX §5: "What's the pot?" is #5 priority)
 - [ ] **UX**: SettingsModal opens during gameplay (via ⚙️ button in game-over/lobby) — modal is a `fixed inset-0 z-50` overlay; ensure settings button is never reachable during active hand (UX §Anti-patterns: "No modal dialogs during gameplay")
 
 ### Nice to Have (Post-Launch)
@@ -75,12 +75,12 @@
 - [ ] **SECURITY**: Add `helmet` middleware for HTTP security headers
 - [ ] **SECURITY**: Set `express.json({ limit: '1kb' })` to cap request body size
 - [ ] **UX**: Show hand number during play (e.g., "Hand #5")
-- [ ] **UX**: Add ARIA labels to action buttons (accessibility requirement)
+- [x] **UX**: Add ARIA labels to action buttons (accessibility requirement)
 - [ ] **UX**: Remove unused `GameOverOverlay` component (dead code, superseded by inline game-over state in Table)
 - [ ] **UX**: Show calculated values in bet presets (e.g., "33% (4s)" instead of just "33%")
 - [ ] **UX**: Add lobby → game transition animation (dealing feel when host clicks Start)
-- [ ] **UX**: Make empty community card slots more visible (currently `border-white/20` is nearly invisible on felt)
-- [ ] **UX**: Winning cards use `ring-2 ring-yellow-400` + `-translate-y-2` but UX spec calls for a "golden glow" pulse — add a subtle `animate-pulse` or `shadow-yellow-400/50` glow effect to better match spec
+- [x] **UX**: Make empty community card slots more visible (currently `border-white/20` is nearly invisible on felt)
+- [x] **UX**: Winning cards use `ring-2 ring-yellow-400` + `-translate-y-2` but UX spec calls for a "golden glow" pulse — add a subtle `animate-pulse` or `shadow-yellow-400/50` glow effect to better match spec
 - [ ] **UX**: HomePage background is plain dark (`min-h-screen`) with no felt/branding — should match the felt green or have a cohesive transition into the table aesthetic
 - [ ] **UX**: Timer `animate-pulse` at ≤10s applies to the text, not the container — the pulsing text can feel jittery; consider pulsing the timer background/border instead for a smoother urgency indicator
 - [ ] **UX**: Auto All-In checkbox is a non-standard game control — UX doc doesn't account for it; it should have a confirmation state or undo mechanism since accidental toggle could be costly
@@ -232,6 +232,55 @@ The `shouldShowCards` condition required `result.showdown` to be true, but volun
 ---
 
 ## Session Log
+
+### 2026-06-27 — Agent Dev Loop: deliver Iteration 1 as a PR
+
+Re-ran the full fast gate against the accumulated Iteration 1 working tree and confirmed it
+is green (typecheck PASS, lint clean, build PASS; tests common 47, server unit 22, server
+integration 60, client 194). Reviewed each diff against `docs/ux.md` §7 color language and the
+recorded standing decisions — all consistent (amber Raise/Bet, green Call/Check, red Fold;
+button order and fold placement untouched). Packaged the iteration onto a branch and opened a
+pull request for human review; no merge or push to `main`. Security checklist items remain
+deferred for human prioritization.
+
+### 2026-06-26 — Agent Dev Loop: Iteration 1
+
+Set up the agent dev loop (`docs/agent-dev-loop.md` + scheduled "Bullet Poker dev loop"
+workflow that opens a PR each run) and delivered the first iteration of fixes.
+
+- **[RULE] Timeout = all-in for zero (table stakes), confirmed & test-pinned.** Reviewed the
+  timeout path after a question about whether a timed-out player still deserves a showdown.
+  Decision (per product owner): when a player's clock hits 0 they are **all-in for zero
+  additional seconds**, NOT folded. Standard table stakes means you can't be forced to fold for
+  lack of funds — the player contests the pot they've **already matched** and the opponent's
+  **uncalled bet is refunded**. This basic poker rule trumps the time rule, so the original
+  `table.ts` behavior (`checkAndAdvanceAfterTimeout` + `refundUncalledBet`) is the correct one
+  and was kept. Updated PRD §47/§109 to document it (previously said timeout→auto-fold). Added
+  deterministic server tests (`timeout.test.ts`) pinning the rule: facing-a-bet timeout →
+  all-in, not folded, opponent refunded the uncalled amount; checkable timeout → all-in, stays
+  to showdown. **Disconnection** remains the only auto-fold path (PRD §96) — distinct from a
+  timeout.
+- **[CI] Lint baseline fixed** (was red). Removed an unused `roomUrl` in
+  `e2e/tests/settings.spec.ts`; replaced `as any` with `as unknown as C2SMessage` in the
+  protocol integration tests. `pnpm lint` is now clean.
+- **UX (spec-driven, `ux.md`):**
+  - Timer font bumped (`text-xs sm:text-sm` → `text-sm sm:text-base`, bold both branches) —
+    it is the core mechanic.
+  - Raise/Bet recolored to **amber** (button, slider accent, bet-input valid state, mobile
+    confirm) per color language §7; Call/Check stay green, Fold stays red.
+  - Hand-strength badge: red → neutral (informational, not danger).
+  - Copy-invite-link success feedback ("✓ Copied!") + `try/catch` for insecure contexts.
+  - Empty community-card slots made more visible (`border-white/30 bg-white/5`).
+  - Stakes now visible to **both** players (was joiner-only).
+  - Winning cards: added a golden glow + pulse (kept `ring-2 ring-yellow-400`).
+  - `prefers-reduced-motion` support added to `index.css` (a11y).
+  - Felt background `#0d5c2e` → `#0D1F12` (deep forest green) per spec.
+  - ARIA labels added to the four action buttons (a11y).
+- **Verified:** typecheck PASS, lint clean, build PASS, tests green
+  (common 47, server unit 22, server integration 60, client 194).
+- **Deferred (higher risk / by decision):** ResultOverlay non-blocking change; card-size
+  change (pinned by tests + prior "stable layout" work); all SECURITY checklist items
+  (surface for human prioritization).
 
 ### 2026-02-10
 

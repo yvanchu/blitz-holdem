@@ -252,7 +252,7 @@ export default function ActionBar({ send, isHandInProgress }: ActionBarProps) {
               <div className="flex-shrink-0">
                 <div className="text-gray-400 text-xs mb-1">Your {isBet ? 'bet' : 'raise'}</div>
                 <div
-                  className={`relative ${!isRaiseTooSmall ? 'bg-green-600' : 'bg-red-600'} rounded-lg px-3 py-2 sm:px-4 sm:py-3`}
+                  className={`relative ${!isRaiseTooSmall ? 'bg-amber-600' : 'bg-red-600'} rounded-lg px-3 py-2 sm:px-4 sm:py-3`}
                 >
                   <input
                     type="text"
@@ -338,7 +338,7 @@ export default function ActionBar({ send, isHandInProgress }: ActionBarProps) {
                       setBetAmount(val);
                       setInputValue(String(val));
                     }}
-                    className="flex-1 accent-green-500 h-2"
+                    className="flex-1 accent-amber-500 h-2"
                   />
                   <button
                     onClick={() => setPreset(Math.min(maxTotalBet, betAmount + 1))}
@@ -372,7 +372,7 @@ export default function ActionBar({ send, isHandInProgress }: ActionBarProps) {
                 data-testid="confirm-raise-button"
                 className={`flex-1 py-2.5 rounded-lg font-semibold text-sm uppercase border-2 ${
                   !isRaiseTooSmall
-                    ? 'border-green-500 bg-green-500/20 text-green-400'
+                    ? 'border-amber-500 bg-amber-500/20 text-amber-400'
                     : 'border-red-500 bg-red-500/20 text-red-400'
                 }`}
               >
@@ -442,6 +442,9 @@ export default function ActionBar({ send, isHandInProgress }: ActionBarProps) {
             onClick={() => sendAction('call', toCall)}
             disabled={!isYourTurn || !canCall}
             data-testid="call-button"
+            aria-label={
+              canCall ? `Call ${Math.min(toCall, yourPlayer?.timeBank ?? 0)} seconds` : 'Call'
+            }
             className={`
               relative py-2.5 sm:py-4 rounded-lg font-semibold text-xs sm:text-base uppercase tracking-wide
               border-2 transition-all
@@ -477,6 +480,7 @@ export default function ActionBar({ send, isHandInProgress }: ActionBarProps) {
             }}
             disabled={!isYourTurn || !canRaise || (showRaisePanel && isRaiseTooSmall)}
             data-testid="raise-button"
+            aria-label={isBet ? 'Bet' : 'Raise'}
             className={`
               relative py-2.5 sm:py-4 rounded-lg font-semibold text-xs sm:text-base uppercase tracking-wide
               border-2 transition-all
@@ -484,9 +488,9 @@ export default function ActionBar({ send, isHandInProgress }: ActionBarProps) {
                 canRaise && isYourTurn
                   ? showRaisePanel
                     ? !isRaiseTooSmall
-                      ? 'border-green-500 bg-green-500/20 text-green-400'
+                      ? 'border-amber-500 bg-amber-500/20 text-amber-400'
                       : 'border-red-500 bg-red-500/20 text-red-400'
-                    : 'border-green-500 text-green-400 hover:bg-green-500/20 active:bg-green-500/30'
+                    : 'border-amber-500 text-amber-400 hover:bg-amber-500/20 active:bg-amber-500/30'
                   : 'border-gray-600 text-gray-500 opacity-50 cursor-not-allowed'
               }
             `}
@@ -502,6 +506,7 @@ export default function ActionBar({ send, isHandInProgress }: ActionBarProps) {
             onClick={() => sendAction('check')}
             disabled={!isYourTurn || !canCheck}
             data-testid="check-button"
+            aria-label="Check"
             className={`
               relative py-2.5 sm:py-4 rounded-lg font-semibold text-xs sm:text-base uppercase tracking-wide
               border-2 transition-all
@@ -523,6 +528,7 @@ export default function ActionBar({ send, isHandInProgress }: ActionBarProps) {
             onClick={() => sendAction('fold')}
             disabled={!isYourTurn || !canFold}
             data-testid="fold-button"
+            aria-label="Fold"
             className={`
               relative py-2.5 sm:py-4 rounded-lg font-semibold text-xs sm:text-base uppercase tracking-wide
               border-2 transition-all

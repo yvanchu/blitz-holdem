@@ -353,7 +353,11 @@ export class TableController {
   }
 
   /**
-   * Auto-act for a disconnected player: check if possible, otherwise fold
+   * Auto-act for a disconnected player: check if checking is legal, otherwise fold.
+   * This is the DISCONNECT path only (abandoning the table past the grace window) —
+   * per PRD "Disconnections", an absent player auto-folds when facing a bet.
+   * Timeouts do NOT use this method: running out of time is all-in for zero (table
+   * stakes) and is handled in tick().
    */
   private autoActForDisconnectedPlayer(playerId: string) {
     const validActions = getValidActions(this.state);
@@ -530,7 +534,11 @@ export class TableController {
     // Broadcast tick
     this.broadcastTick();
 
-    // Check timeout - player goes all-in with whatever they have
+    // Check timeout - per the table-stakes rule, a player who runs out of time is
+    // all-in for ZERO additional seconds. They are NOT folded: they remain entitled
+    // to a showdown for the pot they have already matched, and the opponent's uncalled
+    // bet is refunded. (Disconnection, by contrast, auto-folds after the grace window —
+    // see autoActForDisconnectedPlayer and PRD "Disconnections".)
     if (isTimeout(updated)) {
       // Mark as all-in (they've committed all their time)
       updated.isAllIn = true;

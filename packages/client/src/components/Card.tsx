@@ -66,7 +66,7 @@ export default function CardComponent({
       data-card-suit={card.suit}
       className={`${sizeClasses} rounded-lg bg-white shadow-lg flex flex-col items-center justify-center font-bold ${
         isRed ? 'text-red-600' : 'text-gray-900'
-      } ${highlight ? 'ring-2 ring-yellow-400 transform -translate-y-2 transition-transform' : ''}`}
+      } ${highlight ? 'ring-2 ring-yellow-400 shadow-[0_0_14px_rgba(250,204,21,0.85)] animate-pulse transform -translate-y-2 transition-transform' : ''}`}
     >
       <span>{rankDisplay}</span>
       <span className="text-xl">{suitSymbol}</span>
