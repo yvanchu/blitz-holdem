@@ -295,31 +295,31 @@ export default function ActionBar({ send, isHandInProgress }: ActionBarProps) {
                 <div className="grid grid-cols-5 gap-1.5 sm:gap-2">
                   <button
                     onClick={() => setPreset(currentBet + Math.floor(pot / 3))}
-                    className="px-1 py-1.5 sm:py-2 text-[10px] sm:text-xs bg-gray-700 hover:bg-gray-600 text-white rounded font-medium uppercase"
+                    className="px-1 py-2.5 sm:py-2 text-[11px] sm:text-xs bg-gray-700 hover:bg-gray-600 text-white rounded font-medium uppercase"
                   >
                     33%
                   </button>
                   <button
                     onClick={() => setPreset(currentBet + Math.floor((pot * 3) / 4))}
-                    className="px-1 py-1.5 sm:py-2 text-[10px] sm:text-xs bg-gray-700 hover:bg-gray-600 text-white rounded font-medium uppercase"
+                    className="px-1 py-2.5 sm:py-2 text-[11px] sm:text-xs bg-gray-700 hover:bg-gray-600 text-white rounded font-medium uppercase"
                   >
                     75%
                   </button>
                   <button
                     onClick={() => setPreset(currentBet + pot)}
-                    className="px-1 py-1.5 sm:py-2 text-[10px] sm:text-xs bg-gray-700 hover:bg-gray-600 text-white rounded font-medium uppercase"
+                    className="px-1 py-2.5 sm:py-2 text-[11px] sm:text-xs bg-gray-700 hover:bg-gray-600 text-white rounded font-medium uppercase"
                   >
                     Pot
                   </button>
                   <button
                     onClick={() => setPreset(currentBet + Math.floor((pot * 3) / 2))}
-                    className="px-1 py-1.5 sm:py-2 text-[10px] sm:text-xs bg-gray-700 hover:bg-gray-600 text-white rounded font-medium uppercase"
+                    className="px-1 py-2.5 sm:py-2 text-[11px] sm:text-xs bg-gray-700 hover:bg-gray-600 text-white rounded font-medium uppercase"
                   >
                     150%
                   </button>
                   <button
                     onClick={() => setPreset(maxTotalBet)}
-                    className="px-1 py-1.5 sm:py-2 text-[10px] sm:text-xs bg-gray-700 hover:bg-gray-600 text-white rounded font-medium uppercase"
+                    className="px-1 py-2.5 sm:py-2 text-[11px] sm:text-xs bg-gray-700 hover:bg-gray-600 text-white rounded font-medium uppercase"
                   >
                     All In
                   </button>
@@ -329,7 +329,7 @@ export default function ActionBar({ send, isHandInProgress }: ActionBarProps) {
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => setPreset(Math.max(minTotalBet, betAmount - 1))}
-                    className="w-8 h-8 flex items-center justify-center bg-gray-700 hover:bg-gray-600 text-white rounded text-lg font-bold"
+                    className="w-10 h-10 sm:w-8 sm:h-8 flex items-center justify-center bg-gray-700 hover:bg-gray-600 text-white rounded text-lg font-bold"
                   >
                     −
                   </button>
@@ -349,7 +349,7 @@ export default function ActionBar({ send, isHandInProgress }: ActionBarProps) {
                   />
                   <button
                     onClick={() => setPreset(Math.min(maxTotalBet, betAmount + 1))}
-                    className="w-8 h-8 flex items-center justify-center bg-gray-700 hover:bg-gray-600 text-white rounded text-lg font-bold"
+                    className="w-10 h-10 sm:w-8 sm:h-8 flex items-center justify-center bg-gray-700 hover:bg-gray-600 text-white rounded text-lg font-bold"
                   >
                     +
                   </button>
@@ -461,7 +461,7 @@ export default function ActionBar({ send, isHandInProgress }: ActionBarProps) {
               canCall ? `Call ${Math.min(toCall, yourPlayer?.timeBank ?? 0)} seconds` : 'Call'
             }
             className={`
-              relative py-2.5 sm:py-4 rounded-lg font-semibold text-xs sm:text-base uppercase tracking-wide
+              relative py-3.5 sm:py-4 rounded-lg font-semibold text-xs sm:text-base uppercase tracking-wide
               border-2 transition-all
               ${
                 canCall && isYourTurn
@@ -497,7 +497,7 @@ export default function ActionBar({ send, isHandInProgress }: ActionBarProps) {
             data-testid="raise-button"
             aria-label={isBet ? 'Bet' : 'Raise'}
             className={`
-              relative py-2.5 sm:py-4 rounded-lg font-semibold text-xs sm:text-base uppercase tracking-wide
+              relative py-3.5 sm:py-4 rounded-lg font-semibold text-xs sm:text-base uppercase tracking-wide
               border-2 transition-all
               ${
                 canRaise && isYourTurn
@@ -523,7 +523,7 @@ export default function ActionBar({ send, isHandInProgress }: ActionBarProps) {
             data-testid="check-button"
             aria-label="Check"
             className={`
-              relative py-2.5 sm:py-4 rounded-lg font-semibold text-xs sm:text-base uppercase tracking-wide
+              relative py-3.5 sm:py-4 rounded-lg font-semibold text-xs sm:text-base uppercase tracking-wide
               border-2 transition-all
               ${
                 canCheck && isYourTurn
@@ -545,7 +545,7 @@ export default function ActionBar({ send, isHandInProgress }: ActionBarProps) {
             data-testid="fold-button"
             aria-label="Fold"
             className={`
-              relative py-2.5 sm:py-4 rounded-lg font-semibold text-xs sm:text-base uppercase tracking-wide
+              relative py-3.5 sm:py-4 rounded-lg font-semibold text-xs sm:text-base uppercase tracking-wide
               border-2 transition-all
               ${
                 canFold && isYourTurn

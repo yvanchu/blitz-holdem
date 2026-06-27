@@ -101,7 +101,7 @@ export default function TablePage() {
       )}
 
       {/* Main table area */}
-      <div className="flex-1 flex items-start sm:items-center justify-center px-2 sm:px-4 pt-2 sm:pt-0 min-h-0 sm:min-h-[500px]">
+      <div className="flex-1 flex items-stretch sm:items-center justify-center px-2 sm:px-4 pt-2 sm:pt-0 min-h-0 sm:min-h-[500px]">
         <Table send={send} />
       </div>
 

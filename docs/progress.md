@@ -233,6 +233,28 @@ The `shouldShowCards` condition required `result.showdown` to be true, but volun
 
 ## Session Log
 
+### 2026-06-27 — Mobile-first portrait UX (bigger elements + portrait lock)
+
+Made gameplay mobile-first and portrait-only without changing the desktop (`sm:` and up) layout.
+
+- **Portrait fills the screen:** the table no longer pins to the top with a void below it. On
+  mobile the main area stretches (`items-stretch`) and the table drops its mobile `max-h` cap, so
+  opponent / board / your seat distribute top-to-bottom (`justify-between`) over the full height.
+  Desktop keeps `items-center` + a `sm:max-h-[560px]` cap.
+- **Bigger cards + tap targets:** mobile card sizes bumped — community `40→48px` wide (placeholder
+  in `Table.tsx` matched), hole cards `36→44px`; `Card.test.tsx` updated to the new base classes.
+  ActionBar tap targets enlarged on mobile only: main action buttons `py-2.5→py-3.5`, slider `±`
+  buttons `32→40px` (`sm:` back to 32), preset chips `py-1.5→py-2.5`. All `sm:` values unchanged.
+- **Stay vertical in landscape (no "rotate your device" nag):** an `.app-frame` wrapper (in
+  `App.tsx`) is a passthrough by default. Only for phone-sized landscape
+  (`@media (orientation: landscape) and (max-height: 500px)`) it rotates the play area into a
+  full-size portrait frame via CSS `transform: rotate(-90deg)` using the long edge as the vertical,
+  so the entire table **and** action bar stay visible and playable. The transform also makes the
+  frame the containing block for the corner badges/modals, so they rotate with the table instead of
+  escaping to the viewport edges. Desktop/tablet (height > 500px) and portrait phones are untouched.
+  (An earlier blocking "please rotate" overlay was built and then replaced per product-owner
+  feedback to keep the screen vertical instead of nagging.)
+
 ### 2026-06-27 — UX batch: stakes visibility, layout stability, street-deal pause, sound
 
 Four product-owner requests delivered together (all merged to main).

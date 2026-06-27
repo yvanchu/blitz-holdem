@@ -80,7 +80,7 @@ export default function Table({ send }: TableProps) {
   return (
     <div
       data-testid="poker-table"
-      className="relative w-full h-full max-w-5xl max-h-[450px] sm:max-h-[500px] flex flex-col items-center justify-between py-2 sm:py-4"
+      className="relative w-full h-full max-w-5xl sm:max-h-[560px] flex flex-col items-center justify-between py-2 sm:py-4"
     >
       {/* Opponent seat (top) */}
       <div className="relative">
@@ -224,7 +224,7 @@ export default function Table({ send }: TableProps) {
                 ) : (
                   <div
                     key={i}
-                    className="w-[40px] h-[56px] sm:w-[60px] sm:h-[84px] rounded-lg border-2 border-dashed border-white/30 bg-white/5"
+                    className="w-[48px] h-[68px] sm:w-[60px] sm:h-[84px] rounded-lg border-2 border-dashed border-white/30 bg-white/5"
                   />
                 );
               })}
