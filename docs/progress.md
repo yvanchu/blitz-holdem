@@ -77,14 +77,14 @@
 - [ ] **UX**: Show hand number during play (e.g., "Hand #5")
 - [x] **UX**: Add ARIA labels to action buttons (accessibility requirement)
 - [ ] **UX**: Remove unused `GameOverOverlay` component (dead code, superseded by inline game-over state in Table)
-- [ ] **UX**: Show calculated values in bet presets (e.g., "33% (4s)" instead of just "33%")
+- [x] **UX**: Show calculated values in bet presets (e.g., "33% (4s)" instead of just "33%")
 - [ ] **UX**: Add lobby → game transition animation (dealing feel when host clicks Start)
 - [x] **UX**: Make empty community card slots more visible (currently `border-white/20` is nearly invisible on felt)
 - [x] **UX**: Winning cards use `ring-2 ring-yellow-400` + `-translate-y-2` but UX spec calls for a "golden glow" pulse — add a subtle `animate-pulse` or `shadow-yellow-400/50` glow effect to better match spec
 - [ ] **UX**: HomePage background is plain dark (`min-h-screen`) with no felt/branding — should match the felt green or have a cohesive transition into the table aesthetic
 - [ ] **UX**: Timer `animate-pulse` at ≤10s applies to the text, not the container — the pulsing text can feel jittery; consider pulsing the timer background/border instead for a smoother urgency indicator
 - [ ] **UX**: Auto All-In checkbox is a non-standard game control — UX doc doesn't account for it; it should have a confirmation state or undo mechanism since accidental toggle could be costly
-- [ ] **UX**: Bet preset percentages are pot-relative but pot context isn't shown alongside them — showing absolute values (e.g., "75% (12s)") would help quick decision making per existing todo
+- [x] **UX**: Bet preset percentages are pot-relative but pot context isn't shown alongside them — showing absolute values (e.g., "75% (12s)") would help quick decision making per existing todo
 - [x] Integration tests
 - [ ] Add sound effects (optional, mutable)
 - [x] Add hand history display
@@ -232,6 +232,27 @@ The `shouldShowCards` condition required `result.showdown` to be true, but volun
 ---
 
 ## Session Log
+
+### 2026-06-28 — Bet presets show absolute seconds (pot context)
+
+Dev-loop iteration. Baseline fast gate was green before any change (typecheck PASS, lint clean,
+build PASS; common 47, server unit 28, server integration 60, client 203).
+
+- **Bet presets now show the resulting total bet in seconds (UX backlog + §5 "What's the pot?").**
+  The raise panel's five preset buttons (`33% | 75% | Pot | 150% | All In`) previously showed only
+  the pot-relative label. Each now renders the absolute total it would set (e.g. `33%` over `3s`)
+  using the same clamp the click handler applies (`[minTotalBet, maxTotalBet]`), so the displayed
+  amount always matches what the button does — including `All In` showing the full stack. Amount is
+  amber (`text-amber-300`) per the betting/neutral color language (UX §7); percentage labels are
+  unchanged so existing component-test assertions (`33%`, `75%`, `Pot`, `150%`, `All In`) still hold.
+  The five buttons were refactored into a single mapped `presets` array (no behavior change to
+  click targets). Closes the two backlog items: "Show calculated values in bet presets" and
+  "Bet preset percentages … showing absolute values would help".
+- **Test:** added `ActionBar.test.tsx > "should show the absolute total (in seconds) under each
+  preset"` pinning `3s / 7s / 10s / 15s / 100s` for the default active-turn fixture
+  (pot 10, currentBet 0, minRaise 2, timeBank 100). Client suite 203 → 204.
+- **User-facing change:** the raise panel preset buttons now display a second amount line. No change
+  to bet math, click behavior, button order, or any other surface.
 
 ### 2026-06-27 — Mobile-first portrait UX (bigger elements + portrait lock)
 
