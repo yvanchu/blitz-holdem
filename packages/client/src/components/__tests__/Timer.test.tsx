@@ -55,7 +55,14 @@ describe('Timer', () => {
       const { container } = render(<Timer timeBank={10} isActive={false} isAllIn={false} />);
       const span = container.querySelector('span');
       expect(span).toHaveClass('text-red-500');
-      expect(span).toHaveClass('animate-pulse');
+    });
+
+    it('should not pulse the timer at low time (tension comes from the red number, not animation — UX §2/§6/§9)', () => {
+      const { container } = render(<Timer timeBank={10} isActive={false} isAllIn={false} />);
+      const span = container.querySelector('span');
+      const timer = container.querySelector('[data-testid="timer"]');
+      expect(span).not.toHaveClass('animate-pulse');
+      expect(timer).not.toHaveClass('animate-pulse');
     });
 
     it('should apply yellow color class when time <= 30', () => {

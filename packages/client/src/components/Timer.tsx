@@ -12,7 +12,7 @@ export default function Timer({ timeBank, isActive, isAllIn }: TimerProps) {
   // Color based on time remaining
   let colorClass = 'text-white';
   if (seconds <= 10) {
-    colorClass = 'text-red-500 animate-pulse';
+    colorClass = 'text-red-500';
   } else if (seconds <= 30) {
     colorClass = 'text-yellow-400';
   }

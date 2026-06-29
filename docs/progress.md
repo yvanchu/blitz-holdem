@@ -82,7 +82,7 @@
 - [x] **UX**: Make empty community card slots more visible (currently `border-white/20` is nearly invisible on felt)
 - [x] **UX**: Winning cards use `ring-2 ring-yellow-400` + `-translate-y-2` but UX spec calls for a "golden glow" pulse — add a subtle `animate-pulse` or `shadow-yellow-400/50` glow effect to better match spec
 - [ ] **UX**: HomePage background is plain dark (`min-h-screen`) with no felt/branding — should match the felt green or have a cohesive transition into the table aesthetic
-- [ ] **UX**: Timer `animate-pulse` at ≤10s applies to the text, not the container — the pulsing text can feel jittery; consider pulsing the timer background/border instead for a smoother urgency indicator
+- [x] **UX**: Timer `animate-pulse` at ≤10s applies to the text, not the container — the pulsing text can feel jittery; consider pulsing the timer background/border instead for a smoother urgency indicator
 - [ ] **UX**: Auto All-In checkbox is a non-standard game control — UX doc doesn't account for it; it should have a confirmation state or undo mechanism since accidental toggle could be costly
 - [x] **UX**: Bet preset percentages are pot-relative but pot context isn't shown alongside them — showing absolute values (e.g., "75% (12s)") would help quick decision making per existing todo
 - [x] Integration tests
@@ -232,6 +232,29 @@ The `shouldShowCards` condition required `result.showdown` to be true, but volun
 ---
 
 ## Session Log
+
+### 2026-06-29 — Remove timer pulse at low time (spec-aligned urgency)
+
+Dev-loop iteration. Baseline fast gate was green before any change (typecheck PASS, lint clean,
+build PASS; common 47, server unit 28, server integration 60, client 204).
+
+- **Timer no longer pulses at ≤10s; urgency now comes from the red number alone (UX §2/§6/§9).**
+  `Timer.tsx` previously applied `text-red-500 animate-pulse` to the time text once `seconds <= 10`.
+  The UX spec is explicit that the timer's tension should come from the number itself, not animation:
+  §2 "No screen shake or aggressive animations—tension comes from the number itself"; §6 lists the
+  low-time treatment as just "Timer red" (color only); §9 reserves the `pulse` animation for winning
+  cards and gives the timer only "color transitions (smooth)". The `animate-pulse` class was removed
+  from the low-time branch — the red color (`text-red-500`) is preserved per the color language
+  (UX §7: red = low time). This also resolves the standing backlog item flagging the text-pulse as
+  jittery ("Timer `animate-pulse` at ≤10s … consider … a smoother urgency indicator").
+- **Test:** updated `Timer.test.tsx > "should apply red color class when time <= 10"` to keep
+  asserting `text-red-500` (color preserved) and added a new test
+  `"should not pulse the timer at low time …"` pinning that neither the time `<span>` nor the
+  `timer` container carries `animate-pulse`. Client suite 204 → 205. The pre-existing winning-card
+  pulse (`Card.tsx`) and the `+Xs` gain / `AWAY` badge pulses (`Seat.tsx`) are unrelated and left
+  untouched.
+- **User-facing change:** at ≤10 seconds the timer stops pulsing; it still turns red. No change to
+  timer value, font, size, color thresholds (white → yellow <30s → red ≤10s), or any other surface.
 
 ### 2026-06-28 — Bet presets show absolute seconds (pot context)
 
