@@ -2,7 +2,7 @@
 
 ## Current Status: MVP Complete - Pre-Release
 
-**Last Updated:** June 27, 2026
+**Last Updated:** June 30, 2026
 
 ---
 
@@ -232,6 +232,36 @@ The `shouldShowCards` condition required `result.showdown` to be true, but volun
 ---
 
 ## Session Log
+
+### 2026-06-30 — Fix flaky reconnection baseline (lazy seat reclamation on join)
+
+Dev-loop iteration. **Baseline was intermittently RED**: the fast gate's
+`reconnection.integration.test.ts > "should preserve settings when new player joins after
+grace period"` failed ~1-in-15 runs with a 5s timeout. Per the dev-loop doc ("if the baseline
+is already red, fixing it is the iteration"), this iteration stabilizes it. Typecheck PASS,
+lint clean, build PASS throughout.
+
+- **Root cause (correctness, not just test flake):** a disconnected player's seat is freed by a
+  grace-expiry `setTimeout(disconnectGracePeriod)`. Under event-loop load that timer can be
+  delayed by seconds (a captured failing run showed a *prior* test's grace cleanup firing late
+  during this test while the current room's never ran in time). A new player joining after the
+  grace period had elapsed then hit `players.size >= 2` → `JOIN_FAILED ("Room is full")`. Since
+  the server replies with `ERROR` instead of `ROOM_STATE`, the client's `join()` waited the full
+  5s and timed out. In production (5s grace) the same jitter could briefly reject a legitimate
+  rejoin.
+- **Fix (`table.ts` `addPlayer`):** before rejecting a join as "Room is full", reclaim any seat
+  abandoned past the grace period on demand via the existing `cleanupAbandonedPlayers()` — but
+  **only when no hand is in progress**, so the table-stakes rule (a disconnected player's seat is
+  held mid-hand while their clock burns) is untouched. The seat is now reclaimable as soon as the
+  grace period has actually elapsed, regardless of timer scheduling jitter.
+- **Tests:** added `seat-reclaim.test.ts` (2 tests, fake timers) pinning the behavior
+  independently of the delayed timer: (1) a new-alias join reclaims an abandoned seat once grace
+  has elapsed even though the grace `setTimeout` never fired; (2) a join is still rejected with
+  "Room is full" while inside the grace window. Verified the first new test fails without the fix.
+  Hammered the previously-flaky integration suite 30× post-fix: 0 failures (was ~1/15). Full fast
+  gate green: common 47, server unit 30, server integration 60, client 205.
+- **User-facing change:** none to gameplay. A player rejoining/taking an empty seat right at the
+  end of the grace period now succeeds reliably instead of occasionally seeing "Room is full".
 
 ### 2026-06-27 — Mobile-first portrait UX (bigger elements + portrait lock)
 

@@ -66,6 +66,15 @@ export class TableController {
       return this.reconnectPlayer(ws, disconnectedPlayer);
     }
 
+    // Lazily reclaim seats abandoned past the grace period (only while no hand is
+    // in progress — during a hand the seat is deliberately held per table stakes).
+    // The grace-expiry timer normally frees these, but under event-loop load it can
+    // be delayed by seconds; reclaiming on demand lets a new player take a freed seat
+    // as soon as the grace period has actually elapsed, regardless of timer jitter.
+    if (!this.state.isHandInProgress) {
+      this.cleanupAbandonedPlayers();
+    }
+
     if (this.players.size >= 2) {
       return { success: false, error: 'Room is full' };
     }
