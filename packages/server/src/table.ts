@@ -66,6 +66,16 @@ export class TableController {
       return this.reconnectPlayer(ws, disconnectedPlayer);
     }
 
+    // Reclaim any seat whose disconnect grace period has already elapsed. The
+    // grace-period cleanup is normally driven by a setTimeout in handleDisconnect,
+    // but timer scheduling can be delayed under load — so a rejoining player could
+    // otherwise hit "Room is full" even though the grace window objectively expired.
+    // Freeing expired seats here makes joins deterministic. Only reclaim when no
+    // hand is in progress: mid-hand seats are held until the hand ends (table stakes).
+    if (!this.state.isHandInProgress) {
+      this.cleanupAbandonedPlayers();
+    }
+
     if (this.players.size >= 2) {
       return { success: false, error: 'Room is full' };
     }

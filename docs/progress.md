@@ -233,6 +233,40 @@ The `shouldShowCards` condition required `result.showdown` to be true, but volun
 
 ## Session Log
 
+### 2026-07-01 — Fix flaky reconnection integration test (deterministic seat reclaim)
+
+Dev-loop iteration. Baseline fast gate was **red intermittently**: `pnpm typecheck`, `pnpm lint`,
+`pnpm build`, common (47), server unit (28) and client (205) were green, but the server
+**integration** suite flaked ~1 run in 3 with
+`reconnection.integration.test.ts > "should preserve settings when new player joins after grace
+period"` failing with `Test timed out in 5000ms`. Per the dev-loop doc, fixing the red baseline
+is the iteration.
+
+- **Root cause (correctness bug, not just a test bug):** after a player disconnects, their seat is
+  freed only by a `setTimeout(gracePeriod)` scheduled in `TableController.handleDisconnect`. Timer
+  scheduling is not guaranteed to be prompt — under CPU contention (four integration files run in
+  parallel workers, all doing real-time `sleep`s) that cleanup timer can be delayed past the test's
+  `sleep(1000)` buffer. A rejoining player then hits `Room is full` even though the grace window has
+  objectively elapsed, so `JOIN` never yields a `ROOM_STATE` and the test hangs to timeout. Real
+  users could see the same "Room is full" on a legitimate late rejoin.
+- **Fix (`packages/server/src/table.ts`):** `addPlayer` now reclaims expired seats *lazily* — before
+  the "Room is full" check (and only when no hand is in progress) it calls the existing
+  `cleanupAbandonedPlayers()`, which removes any disconnected player whose `disconnectedAt` is past
+  the grace period. Seat-freeing no longer depends on the timer firing on time; it happens
+  deterministically on the next join attempt. Reconnection is unchanged: `findDisconnectedPlayer`
+  (same-alias reconnect) still runs first, and seats still within the grace window are left intact.
+  The `handleDisconnect` grace timer is kept as the proactive path.
+- **Test:** added `packages/server/src/__tests__/reclaim-seat.test.ts` (2 tests) pinning the rule
+  deterministically with mock sockets — a seat whose grace period has elapsed (but whose timer never
+  fired) is reclaimed on the next join into seat 1; a seat still within the grace window is **not**
+  reclaimed (`Room is full`, disconnected player preserved for reconnect). Server unit 28 → 30.
+- **Verified:** full fast gate green — typecheck PASS, lint clean, build PASS; common 47, server
+  unit 30, server integration 60, client 205. Ran the integration suite **18×** with zero failures
+  (previously ~1/3 failed).
+- **User-facing change:** none to gameplay. Only edge-case robustness: a player rejoining an
+  abandoned room right after the grace period is no longer intermittently rejected with "Room is
+  full".
+
 ### 2026-06-29 — Remove timer pulse at low time (spec-aligned urgency)
 
 Dev-loop iteration. Baseline fast gate was green before any change (typecheck PASS, lint clean,
