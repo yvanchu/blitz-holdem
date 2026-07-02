@@ -233,6 +233,33 @@ The `shouldShowCards` condition required `result.showdown` to be true, but volun
 
 ## Session Log
 
+### 2026-07-02 — Fix missing "+Xs" gain on split pots (both winners now shown)
+
+Dev-loop iteration. Baseline fast gate was green before any change (typecheck PASS, lint clean,
+build PASS; common 47, server unit 30, server integration 60, client 205).
+
+- **Correctness bug (contradicts UX §6 "Hand won → +Xs gain shown"):** the live in-seat gain
+  badge in `Seat.tsx` (`PlayerInfo`) rendered `+{potAwarded}s` only when
+  `result.winnerId === player.id`. On a **split pot** the engine records a single primary
+  `winnerId` (always seat 0) with `potAwarded` = seat 0's half, plus a `splitWinners` array with
+  each player's real share. So on a chop, seat 0 showed only its half and **seat 1 — an equal
+  winner — showed nothing at all**, misrepresenting a tie as a one-sided result.
+- **Fix (`packages/client/src/components/Seat.tsx`):** `PlayerInfo` now computes each player's
+  gain from `splitWinners` when `result.isSplit`, falling back to the `winnerId`/`potAwarded`
+  path for outright wins. Both chop winners now show their own `+Xs` in green (UX §7: green =
+  winning). No change to outright-win or loser rendering (loser still shows no badge). The
+  `result` prop type was widened to carry the optional `isSplit`/`splitWinners` fields already
+  present on `HandResult`. `ResultOverlay.tsx` has the same narrow assumption but is dead code
+  (not rendered anywhere — superseded by the inline game-over state in `Table`), so it was left
+  untouched.
+- **Test:** added `Seat.test.tsx > "pot-won gain badge (+Xs)"` (3 tests) pinning: outright winner
+  shows `+12s`; loser shows no `+\d+s` badge; a split pot shows seat 0 `+6s` **and** seat 1
+  `+5s` (the previously-missing case). Client suite 205 → 208; Seat 24 → 27.
+- **Verified:** full fast gate green — typecheck PASS, lint clean, build PASS; common 47, server
+  unit 30, server integration 60, client 208.
+- **User-facing change:** on a split pot, both players now see their `+Xs` gain instead of only
+  seat 0. No change to any non-split hand, colors, sizes, testids, or button layout.
+
 ### 2026-06-27 — Mobile-first portrait UX (bigger elements + portrait lock)
 
 Made gameplay mobile-first and portrait-only without changing the desktop (`sm:` and up) layout.

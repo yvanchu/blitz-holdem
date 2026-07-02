@@ -77,6 +77,73 @@ describe('Seat', () => {
     });
   });
 
+  describe('pot-won gain badge (+Xs)', () => {
+    it('should show +potAwarded for the outright winner', () => {
+      const player = createPlayer({ id: 'winner', alias: 'Winner' });
+      useGameStore.setState({
+        result: {
+          winnerId: 'winner',
+          winnerHandRank: 'Flush',
+          potAwarded: 12,
+          showdown: true,
+        },
+      });
+      render(<Seat player={player} isDealer={false} position="bottom" />);
+      expect(screen.getByText('+12s')).toBeInTheDocument();
+    });
+
+    it('should not show a gain badge for the losing player', () => {
+      const player = createPlayer({ id: 'loser', alias: 'Loser' });
+      useGameStore.setState({
+        result: {
+          winnerId: 'winner',
+          winnerHandRank: 'Flush',
+          potAwarded: 12,
+          showdown: true,
+        },
+      });
+      render(<Seat player={player} isDealer={false} position="bottom" />);
+      expect(screen.queryByText(/^\+\d+s$/)).not.toBeInTheDocument();
+    });
+
+    it('should show each player their own share on a split pot', () => {
+      useGameStore.setState({
+        result: {
+          winnerId: 'p0', // primary winner (seat 0) for backwards compatibility
+          winnerHandRank: 'Straight (split)',
+          potAwarded: 6, // seat 0 gets the odd chip
+          showdown: true,
+          isSplit: true,
+          splitWinners: [
+            { playerId: 'p0', amount: 6 },
+            { playerId: 'p1', amount: 5 },
+          ],
+        },
+      });
+
+      // Seat 0 (the recorded primary winner) shows its own share...
+      const { unmount } = render(
+        <Seat
+          player={createPlayer({ id: 'p0', alias: 'P0', seatIndex: 0 as const })}
+          isDealer={false}
+          position="bottom"
+        />
+      );
+      expect(screen.getByText('+6s')).toBeInTheDocument();
+      unmount();
+
+      // ...and seat 1, which used to render nothing, now shows its share too.
+      render(
+        <Seat
+          player={createPlayer({ id: 'p1', alias: 'P1', seatIndex: 1 as const })}
+          isDealer={false}
+          position="top"
+        />
+      );
+      expect(screen.getByText('+5s')).toBeInTheDocument();
+    });
+  });
+
   describe('data attributes', () => {
     it('should have correct data-testid for position', () => {
       const player = createPlayer();
