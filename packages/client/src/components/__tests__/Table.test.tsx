@@ -230,4 +230,25 @@ describe('Table', () => {
       expect(screen.getByText('3')).toBeInTheDocument();
     });
   });
+
+  describe('hand number', () => {
+    it('should display the current hand number during play', () => {
+      useGameStore.setState({
+        isHandInProgress: true,
+        handNumber: 5,
+        readyState: [true, true],
+      });
+      render(<Table send={mockSend} />);
+
+      const handNumber = screen.getByTestId('hand-number');
+      expect(handNumber).toBeInTheDocument();
+      expect(handNumber).toHaveTextContent('Hand #5');
+    });
+
+    it('should not display the hand number in the lobby', () => {
+      // Default beforeEach state: handNumber 0, not in progress => lobby
+      render(<Table send={mockSend} />);
+      expect(screen.queryByTestId('hand-number')).not.toBeInTheDocument();
+    });
+  });
 });

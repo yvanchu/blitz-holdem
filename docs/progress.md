@@ -74,7 +74,7 @@
 - [ ] **SECURITY**: Replace `console.log` with structured logger, redact sensitive fields in prod
 - [ ] **SECURITY**: Add `helmet` middleware for HTTP security headers
 - [ ] **SECURITY**: Set `express.json({ limit: '1kb' })` to cap request body size
-- [ ] **UX**: Show hand number during play (e.g., "Hand #5")
+- [x] **UX**: Show hand number during play (e.g., "Hand #5")
 - [x] **UX**: Add ARIA labels to action buttons (accessibility requirement)
 - [ ] **UX**: Remove unused `GameOverOverlay` component (dead code, superseded by inline game-over state in Table)
 - [x] **UX**: Show calculated values in bet presets (e.g., "33% (4s)" instead of just "33%")
@@ -232,6 +232,27 @@ The `shouldShowCards` condition required `result.showdown` to be true, but volun
 ---
 
 ## Session Log
+
+### 2026-07-03 — Show hand number during play (UX)
+
+Dev-loop iteration. Baseline fast gate was fully green before any change: `pnpm typecheck`,
+`pnpm lint`, `pnpm build`, common (47), server unit (30), server integration (60), and client
+(205). Picked a spec-driven UX backlog item that aligned with `docs/ux.md`.
+
+- **Slice:** "Show hand number during play (e.g. 'Hand #5')" from the Pre-Release Checklist
+  (Nice to Have). `handNumber` was already tracked in the game store and server state but only
+  used client-side for lobby detection — it was never surfaced to players during a hand.
+- **Change (`packages/client/src/components/Table.tsx`):** added a small, neutral-gray
+  `data-testid="hand-number"` label ("Hand #N") at the top of the in-progress table view
+  (above the community cards). Informational text uses gray per the color-language convention
+  in `docs/ux.md` §7 — no green/amber/red, since it is neither a positive, betting, nor danger
+  signal. It only renders during an active hand, not in the lobby or game-over states.
+- **Tests (`packages/client/src/components/__tests__/Table.test.tsx`):** added a `hand number`
+  describe block with two tests — the indicator shows "Hand #5" while a hand is in progress, and
+  is absent in the lobby. Client suite is now 207 tests.
+- **Verification:** full fast gate re-run green (typecheck, lint, build, common 47, server unit
+  30, server integration 60, client 207). No existing component-test assertions changed.
+- **User-facing behavior change:** yes — players now see the current hand number during play.
 
 ### 2026-07-01 — Fix flaky reconnection integration test (deterministic seat reclaim)
 
