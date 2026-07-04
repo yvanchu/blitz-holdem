@@ -233,6 +233,28 @@ The `shouldShowCards` condition required `result.showdown` to be true, but volun
 
 ## Session Log
 
+### 2026-07-04 — All-in badge uses amber, not red (color-language fix)
+
+Dev-loop iteration. Baseline fast gate was fully green before any change: `pnpm typecheck`,
+`pnpm lint`, `pnpm build`, common (47), server unit (30), server integration (60), and client
+(207). Picked a correctness fix where the UI contradicted `docs/ux.md` §7.
+
+- **Slice:** color-language violation in the seat badges. The "ALL IN" badge was `bg-red-600`,
+  but per `docs/ux.md` §7 red means danger/loss (Fold, low time, losing) while amber means
+  betting/neutral (Raise, Bet, pot, chips). Going all-in is the maximal betting action, so it
+  should read as amber — consistent with the rest of the app, which already renders betting in
+  amber (ActionBar bet input `bg-amber-600`, bet chips, raise controls). The `FOLD` badge stays
+  gray, matching the spec's "folded state → gray" row.
+- **Change (`packages/client/src/components/Seat.tsx`):** all-in badge `bg-red-600` → `bg-amber-600`
+  (white text unchanged for contrast). No other badge, size, or testid touched.
+- **Tests (`packages/client/src/components/__tests__/Seat.test.tsx`):** added an `all-in state`
+  describe block with three tests — the "ALL IN" badge renders when all-in, is absent otherwise,
+  and is amber (`bg-amber-600`) rather than red (`bg-red-600`). Client suite is now 210 tests.
+- **Verification:** full fast gate re-run green (typecheck, lint, build, common 47, server unit
+  30, server integration 60, client 210). No existing component-test assertions changed.
+- **User-facing behavior change:** yes — the "ALL IN" badge on a player's seat is now amber
+  instead of red.
+
 ### 2026-07-03 — Show hand number during play (UX)
 
 Dev-loop iteration. Baseline fast gate was fully green before any change: `pnpm typecheck`,

@@ -323,9 +323,9 @@ function PlayerInfo({
         </div>
       )}
 
-      {/* All-in badge */}
+      {/* All-in badge — amber per color language (§7): all-in is a betting action, not danger */}
       {player.isAllIn && (
-        <div className="absolute -left-1 sm:-left-2 -top-1 sm:-top-2 px-1.5 sm:px-2 py-0.5 rounded-full bg-red-600 text-white text-[10px] sm:text-xs font-bold">
+        <div className="absolute -left-1 sm:-left-2 -top-1 sm:-top-2 px-1.5 sm:px-2 py-0.5 rounded-full bg-amber-600 text-white text-[10px] sm:text-xs font-bold">
           ALL IN
         </div>
       )}

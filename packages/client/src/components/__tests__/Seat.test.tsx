@@ -198,6 +198,28 @@ describe('Seat', () => {
     });
   });
 
+  describe('all-in state', () => {
+    it('should display the "ALL IN" badge when the player is all-in', () => {
+      const player = createPlayer({ isAllIn: true });
+      render(<Seat player={player} isDealer={false} position="bottom" />);
+      expect(screen.getByText('ALL IN')).toBeInTheDocument();
+    });
+
+    it('should not display the "ALL IN" badge when the player is not all-in', () => {
+      const player = createPlayer({ isAllIn: false });
+      render(<Seat player={player} isDealer={false} position="bottom" />);
+      expect(screen.queryByText('ALL IN')).not.toBeInTheDocument();
+    });
+
+    it('should color the "ALL IN" badge amber (betting), not red (danger), per color language §7', () => {
+      const player = createPlayer({ isAllIn: true });
+      render(<Seat player={player} isDealer={false} position="bottom" />);
+      const badge = screen.getByText('ALL IN');
+      expect(badge).toHaveClass('bg-amber-600');
+      expect(badge).not.toHaveClass('bg-red-600');
+    });
+  });
+
   describe('setup mode', () => {
     it('should show name input and ready button in setup mode', () => {
       const player = createPlayer();
