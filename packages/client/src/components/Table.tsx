@@ -3,6 +3,7 @@ import { useGameStore, selectYourPlayer, selectOpponentPlayer } from '../store/g
 import Seat from './Seat';
 import CardComponent from './Card';
 import SettingsModal from './SettingsModal';
+import { formatLastAction } from '../utils/lastActionLabel';
 import type { Card, C2SMessage } from '@bullet-poker/common';
 
 interface TableProps {
@@ -29,6 +30,7 @@ export default function Table({ send }: TableProps) {
     sessionWins,
     gameOver,
     clearGameOver,
+    lastAction,
   } = useGameStore();
   const yourPlayer = useGameStore(selectYourPlayer);
   const opponentPlayer = useGameStore(selectOpponentPlayer);
@@ -54,6 +56,10 @@ export default function Table({ send }: TableProps) {
 
   // Game over state (match ended - someone ran out of time)
   const isGameOver = gameOver !== null;
+
+  // Live last-action indicator ("Opponent raised to 12s"). Informational only,
+  // so it is rendered in neutral gray (color language reserves green/amber/red).
+  const lastActionLabel = formatLastAction(lastAction, yourSeatIndex, opponentPlayer?.alias);
 
   // Handler for copy link
   const handleCopyLink = async () => {
@@ -243,6 +249,17 @@ export default function Table({ send }: TableProps) {
                 {Math.round(pot)}s
               </span>
             </div>
+
+            {/* Last-action indicator (informational - neutral gray per color language) */}
+            {lastActionLabel && (
+              <div
+                data-testid="last-action"
+                aria-live="polite"
+                className="text-gray-400 text-xs sm:text-sm font-medium"
+              >
+                {lastActionLabel}
+              </div>
+            )}
           </>
         )}
       </div>

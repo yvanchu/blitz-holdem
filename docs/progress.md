@@ -60,7 +60,7 @@
 - [ ] **UX**: Add card dealing animations (subtle slide + fade, per UX doc)
 - [x] **UX**: Fix background color to match UX spec (`#0D1F12` deep forest green, current felt `#0d5c2e` is too saturated)
 - [x] **UX**: Add copy-link success feedback (currently no toast or button text change after clipboard copy)
-- [ ] **UX**: Add last-action indicator ("Opponent checked", "Opponent raised to 12s") for clarity
+- [x] **UX**: Add last-action indicator ("Opponent checked", "Opponent raised to 12s") for clarity
 - [x] **UX**: Add `prefers-reduced-motion` media query support (required by UX accessibility spec)
 - [x] **UX**: Raise slider accent color is `accent-green-500`, should be amber per color language (UX §7: amber = betting/neutral)
 - [x] **UX**: Hand strength badge uses `bg-red-500` for all hand ranks — red implies danger/loss (UX §7), should use a neutral color like gray or cyan since it's informational
@@ -232,6 +232,43 @@ The `shouldShowCards` condition required `result.showdown` to be true, but volun
 ---
 
 ## Session Log
+
+### 2026-07-05 — Live last-action indicator (UX)
+
+Dev-loop iteration. Baseline fast gate was fully green before any change: `pnpm typecheck`,
+`pnpm lint`, `pnpm build`, common (47), server unit (30), server integration (60), and client
+(210). Picked a spec-aligned, open UX backlog item.
+
+- **Slice:** backlog "Add last-action indicator ('Opponent checked', 'Opponent raised to 12s')
+  for clarity" (Medium Priority). Aligns with `docs/prd.md` §UX/UI "Feedback: Real-time
+  toasts/status for actions (e.g. 'You bet 5s')" and `docs/ux.md` §5. Previously the client
+  recorded actions into hand history and played a sound, but showed no at-a-glance indicator of
+  what just happened.
+- **Design decisions:** show the most recent action from *either* player, labeled by actor
+  ("You" vs the opponent's alias / "Opponent" fallback) — the PRD explicitly wants "You bet 5s".
+  Rendered in **neutral gray** (`text-gray-400`), not green/amber/red, because it is purely
+  informational (color language §7 reserves those hues for semantic meaning; consistent with the
+  hand-number/hand-strength informational styling). Cleared on new hand and on street change, so
+  it is a player-action indicator and never a street-transition indicator (respects the standing
+  "no street-transition indicators" decision).
+- **Changes:**
+  - `packages/client/src/utils/lastActionLabel.ts` (new): pure `formatLastAction()` +
+    `LastAction` type.
+  - `packages/client/src/store/gameStore.ts`: added `lastAction` state + `setLastAction`;
+    `setStreet` now clears it.
+  - `packages/client/src/hooks/useSocket.ts`: `ACTION_CONFIRM` sets `lastAction` (using the
+    actor's seat + `currentBet` as the total); `HAND_START` clears it.
+  - `packages/client/src/components/Table.tsx`: renders `data-testid="last-action"` in the
+    game-in-progress branch, gated on a non-null label.
+- **Tests:** `utils/__tests__/lastActionLabel.test.ts` (12 new) covers every action verb, the
+  "You" vs opponent perspective, all-in normalization, and the alias fallback. `Table.test.tsx`
+  gains a `last-action indicator` block (5 new) asserting it renders the opponent/your labels,
+  uses neutral gray (not green/amber/red/yellow), hides when null, and is absent in the lobby.
+  Client suite is now 227 tests. No existing assertions changed.
+- **Verification:** full fast gate re-run green (typecheck, lint, build, common 47, server unit
+  30, server integration 60, client 227).
+- **User-facing behavior change:** yes — during a hand a small gray line (e.g. "Villain raised
+  to 12s" / "You checked") now appears under the pot.
 
 ### 2026-06-27 — Mobile-first portrait UX (bigger elements + portrait lock)
 

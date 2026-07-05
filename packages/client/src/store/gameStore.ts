@@ -7,6 +7,7 @@ import type {
   HandResult,
   ActionType,
 } from '@bullet-poker/common';
+import type { LastAction } from '../utils/lastActionLabel';
 
 interface GameState {
   // Connection
@@ -33,6 +34,9 @@ interface GameState {
   currentBet: number;
   minRaise: number;
 
+  // Most recent action this hand (for the live last-action indicator)
+  lastAction: LastAction | null;
+
   // Result
   result: HandResult | null;
   revealedCards: { seat0: [Card, Card] | null; seat1: [Card, Card] | null } | null;
@@ -51,6 +55,7 @@ interface GameState {
   updateTimeBanks: (banks: [{ timeBank: number }, { timeBank: number }]) => void;
   setStreet: (street: Street, communityCards: Card[]) => void;
   setActivePlayer: (index: 0 | 1 | null) => void;
+  setLastAction: (lastAction: LastAction | null) => void;
   setResult: (
     result: HandResult,
     revealedCards: { seat0: [Card, Card] | null; seat1: [Card, Card] | null },
@@ -86,6 +91,7 @@ const initialState = {
   pot: 0,
   currentBet: 0,
   minRaise: 2,
+  lastAction: null,
   result: null,
   revealedCards: null,
   gameOver: null,
@@ -110,9 +116,14 @@ export const useGameStore = create<GameState>((set) => ({
       ],
     })),
 
-  setStreet: (street, communityCards) => set({ street, communityCards, currentBet: 0 }),
+  // Advancing to a new street clears the last-action indicator: the prior
+  // street's actions are stale once fresh community cards are on the table.
+  setStreet: (street, communityCards) =>
+    set({ street, communityCards, currentBet: 0, lastAction: null }),
 
   setActivePlayer: (index) => set({ activePlayerIndex: index }),
+
+  setLastAction: (lastAction) => set({ lastAction }),
 
   setResult: (result, revealedCards, communityCards) =>
     set({ result, revealedCards, communityCards, isHandInProgress: false }),

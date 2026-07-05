@@ -164,6 +164,7 @@ function handleMessage(message: S2CMessage) {
         communityCards: [],
         pot: message.pot,
         currentBet: 0,
+        lastAction: null,
       });
       store.updatePlayers(message.players);
       store.clearResult();
@@ -221,6 +222,14 @@ function handleMessage(message: S2CMessage) {
           playerId: message.playerId,
           action: message.action,
           amount: message.amount,
+          isAllIn: actionPlayer.isAllIn,
+        });
+
+        // Surface a live last-action indicator ("Opponent raised to 12s").
+        store.setLastAction({
+          seatIndex: actionPlayer.seatIndex,
+          action: message.action,
+          totalBet: actionPlayer.currentBet,
           isAllIn: actionPlayer.isAllIn,
         });
       }

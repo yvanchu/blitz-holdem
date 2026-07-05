@@ -230,4 +230,66 @@ describe('Table', () => {
       expect(screen.getByText('3')).toBeInTheDocument();
     });
   });
+  describe('last-action indicator', () => {
+    it('shows the opponent\'s most recent action during play', () => {
+      useGameStore.setState({
+        isHandInProgress: true,
+        handNumber: 3,
+        players: [
+          createPlayer({ id: 'player-1', alias: 'You', seatIndex: 0 as const }),
+          createPlayer({ id: 'player-2', alias: 'Villain', seatIndex: 1 as const, currentBet: 12 }),
+        ],
+        lastAction: { seatIndex: 1, action: 'raise', totalBet: 12, isAllIn: false },
+      });
+      render(<Table send={mockSend} />);
+
+      const indicator = screen.getByTestId('last-action');
+      expect(indicator).toBeInTheDocument();
+      expect(indicator).toHaveTextContent('Villain raised to 12s');
+    });
+
+    it('labels your own action as "You"', () => {
+      useGameStore.setState({
+        isHandInProgress: true,
+        handNumber: 3,
+        lastAction: { seatIndex: 0, action: 'bet', totalBet: 5, isAllIn: false },
+      });
+      render(<Table send={mockSend} />);
+
+      expect(screen.getByTestId('last-action')).toHaveTextContent('You bet 5s');
+    });
+
+    it('uses neutral gray (not green/amber/red) since it is informational', () => {
+      useGameStore.setState({
+        isHandInProgress: true,
+        handNumber: 3,
+        lastAction: { seatIndex: 1, action: 'check', totalBet: 0, isAllIn: false },
+      });
+      render(<Table send={mockSend} />);
+
+      const indicator = screen.getByTestId('last-action');
+      expect(indicator.className).toContain('text-gray-400');
+      expect(indicator.className).not.toMatch(/text-(green|amber|red|yellow)/);
+    });
+
+    it('is hidden when there is no recent action', () => {
+      useGameStore.setState({
+        isHandInProgress: true,
+        handNumber: 3,
+        lastAction: null,
+      });
+      render(<Table send={mockSend} />);
+
+      expect(screen.queryByTestId('last-action')).not.toBeInTheDocument();
+    });
+
+    it('is not shown in the lobby', () => {
+      useGameStore.setState({
+        lastAction: { seatIndex: 1, action: 'check', totalBet: 0, isAllIn: false },
+      });
+      render(<Table send={mockSend} />);
+
+      expect(screen.queryByTestId('last-action')).not.toBeInTheDocument();
+    });
+  });
 });
