@@ -7,6 +7,7 @@ import type {
   HandResult,
   ActionType,
 } from '@bullet-poker/common';
+import type { LastAction } from '../utils/lastActionLabel';
 
 interface GameState {
   // Connection
@@ -33,6 +34,9 @@ interface GameState {
   currentBet: number;
   minRaise: number;
 
+  // Most recent action this hand (for the live last-action indicator)
+  lastAction: LastAction | null;
+
   // Result
   result: HandResult | null;
   revealedCards: { seat0: [Card, Card] | null; seat1: [Card, Card] | null } | null;
@@ -51,6 +55,7 @@ interface GameState {
   updateTimeBanks: (banks: [{ timeBank: number }, { timeBank: number }]) => void;
   setStreet: (street: Street, communityCards: Card[]) => void;
   setActivePlayer: (index: 0 | 1 | null) => void;
+  setLastAction: (lastAction: LastAction | null) => void;
   setResult: (
     result: HandResult,
     revealedCards: { seat0: [Card, Card] | null; seat1: [Card, Card] | null },
@@ -86,6 +91,7 @@ const initialState = {
   pot: 0,
   currentBet: 0,
   minRaise: 2,
+  lastAction: null,
   result: null,
   revealedCards: null,
   gameOver: null,
@@ -110,15 +116,17 @@ export const useGameStore = create<GameState>((set) => ({
       ],
     })),
 
+  // A new street means the previous round's bets were swept into the pot, so each
+  // player's committed bet resets to 0. The STREET/TURN messages don't carry player
+  // state, so mirror the server's reset here or stale bet chips linger into the new
+  // street until the first action arrives. Advancing also clears the last-action
+  // indicator: the prior street's actions are stale once fresh cards are on the table.
   setStreet: (street, communityCards) =>
     set((state) => ({
       street,
       communityCards,
       currentBet: 0,
-      // A new street means the previous round's bets were swept into the pot, so each
-      // player's committed bet resets to 0. The STREET/TURN messages don't carry player
-      // state, so mirror the server's reset here or stale bet chips linger into the new
-      // street until the first action arrives.
+      lastAction: null,
       players: [
         state.players[0] ? { ...state.players[0], currentBet: 0 } : null,
         state.players[1] ? { ...state.players[1], currentBet: 0 } : null,
@@ -126,6 +134,8 @@ export const useGameStore = create<GameState>((set) => ({
     })),
 
   setActivePlayer: (index) => set({ activePlayerIndex: index }),
+
+  setLastAction: (lastAction) => set({ lastAction }),
 
   setResult: (result, revealedCards, communityCards) =>
     // The hand is over, so nobody is to act. The RESULT message arrives after the
