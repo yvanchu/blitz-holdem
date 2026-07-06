@@ -3,6 +3,7 @@ import { useGameStore } from '../store/gameStore';
 import { useHandHistoryStore } from '../store/handHistoryStore';
 import type { C2SMessage, S2CMessage } from '@bullet-poker/common';
 import { playSound, type SoundName } from '../sound/soundEngine';
+import { formatLastActionLabel } from '../utils/lastAction';
 
 function soundForAction(action: string): SoundName {
   switch (action) {
@@ -164,6 +165,7 @@ function handleMessage(message: S2CMessage) {
         communityCards: [],
         pot: message.pot,
         currentBet: 0,
+        lastAction: null,
       });
       store.updatePlayers(message.players);
       store.clearResult();
@@ -222,6 +224,16 @@ function handleMessage(message: S2CMessage) {
           action: message.action,
           amount: message.amount,
           isAllIn: actionPlayer.isAllIn,
+        });
+
+        // Surface a short on-table indicator of what the player just did.
+        store.setLastAction({
+          seatIndex: actionPlayer.seatIndex,
+          label: formatLastActionLabel(
+            message.action,
+            actionPlayer.currentBet,
+            actionPlayer.isAllIn
+          ),
         });
       }
       playSound(soundForAction(message.action));

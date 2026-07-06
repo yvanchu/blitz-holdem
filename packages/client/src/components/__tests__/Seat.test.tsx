@@ -307,6 +307,39 @@ describe('Seat', () => {
     });
   });
 
+  describe('last-action indicator', () => {
+    it('shows the action label on the seat that just acted', () => {
+      const player = createPlayer({ seatIndex: 1 });
+      useGameStore.setState({ lastAction: { seatIndex: 1, label: 'Raised to 12s' } });
+      render(<Seat player={player} isDealer={false} position="top" />);
+      const badge = screen.getByTestId('last-action');
+      expect(badge).toHaveTextContent('Raised to 12s');
+    });
+
+    it('does not show an indicator for a different seat', () => {
+      const player = createPlayer({ seatIndex: 0 });
+      useGameStore.setState({ lastAction: { seatIndex: 1, label: 'Checked' } });
+      render(<Seat player={player} isDealer={false} position="bottom" />);
+      expect(screen.queryByTestId('last-action')).not.toBeInTheDocument();
+    });
+
+    it('does not show an indicator when there is no last action', () => {
+      const player = createPlayer({ seatIndex: 0 });
+      useGameStore.setState({ lastAction: null });
+      render(<Seat player={player} isDealer={false} position="bottom" />);
+      expect(screen.queryByTestId('last-action')).not.toBeInTheDocument();
+    });
+
+    it('uses a neutral (non-green/amber/red) badge color per color language §7', () => {
+      const player = createPlayer({ seatIndex: 0 });
+      useGameStore.setState({ lastAction: { seatIndex: 0, label: 'Called' } });
+      render(<Seat player={player} isDealer={false} position="bottom" />);
+      const badge = screen.getByTestId('last-action');
+      expect(badge).toHaveClass('bg-gray-900/90');
+      expect(badge.className).not.toMatch(/bg-(green|amber|red)-/);
+    });
+  });
+
   describe('dealer button', () => {
     it('should display dealer button when isDealer=true', () => {
       const player = createPlayer();

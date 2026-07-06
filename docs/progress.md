@@ -60,7 +60,7 @@
 - [ ] **UX**: Add card dealing animations (subtle slide + fade, per UX doc)
 - [x] **UX**: Fix background color to match UX spec (`#0D1F12` deep forest green, current felt `#0d5c2e` is too saturated)
 - [x] **UX**: Add copy-link success feedback (currently no toast or button text change after clipboard copy)
-- [ ] **UX**: Add last-action indicator ("Opponent checked", "Opponent raised to 12s") for clarity
+- [x] **UX**: Add last-action indicator ("Opponent checked", "Opponent raised to 12s") for clarity
 - [x] **UX**: Add `prefers-reduced-motion` media query support (required by UX accessibility spec)
 - [x] **UX**: Raise slider accent color is `accent-green-500`, should be amber per color language (UX §7: amber = betting/neutral)
 - [x] **UX**: Hand strength badge uses `bg-red-500` for all hand ranks — red implies danger/loss (UX §7), should use a neutral color like gray or cyan since it's informational
@@ -232,6 +232,41 @@ The `shouldShowCards` condition required `result.showdown` to be true, but volun
 ---
 
 ## Session Log
+
+### 2026-07-06 — Last-action indicator on table (UX)
+
+Dev-loop iteration. Baseline fast gate was fully green before any change: `pnpm typecheck`,
+`pnpm lint`, `pnpm build`, common (47), server unit (30), server integration (60), and client
+(210). Picked a spec-driven UX backlog item that aligned with `docs/ux.md`.
+
+- **Slice:** "Add last-action indicator ('Opponent checked', 'Opponent raised to 12s') for
+  clarity" from the Pre-Release Checklist (Medium Priority). Aligns with `docs/ux.md` §6
+  "State Communication" (every game state should be immediately obvious) and §5. The server
+  already broadcast `ACTION_CONFIRM` (playerId, action, amount, updated players); the client
+  recorded it to hand history and played a sound but showed nothing on the table, so a player
+  could miss what their opponent just did.
+- **Change:**
+  - `packages/client/src/utils/lastAction.ts` (new): pure `formatLastActionLabel(action,
+    currentBet, isAllIn)` → "Checked" / "Called" / "Bet Xs" / "Raised to Xs" / "Folded" /
+    "All-in" (all-in takes precedence).
+  - `gameStore`: added `lastAction: { seatIndex, label } | null` with `setLastAction`; cleared
+    on `HAND_START`, on street change (`setStreet`), and `reset`.
+  - `useSocket` `ACTION_CONFIRM`: sets `lastAction` from the acting player's total street bet
+    and all-in state.
+  - `Seat.tsx`: renders a small **neutral gray** action bubble (`bg-gray-900/90`, matching the
+    hand-strength badge) on the seat that just acted, positioned away from the amber bet chip so
+    it never overlaps the committed amount. Neutral color is deliberate per §7 (informational,
+    not safe/danger).
+- **Tests:** 8 unit tests for the formatter (`utils/__tests__/lastAction.test.ts`) and 4 Seat
+  tests (`components/__tests__/Seat.test.tsx`, new "last-action indicator" block): shows the
+  label on the acting seat, hides it for other seats / when there is no last action, and uses a
+  neutral (non-green/amber/red) color. Client suite is now 222 tests.
+- **Verification:** full fast gate re-run green (typecheck, lint, build, common 47, server unit
+  30, server integration 60, client 222). No existing component-test assertions changed; button
+  order, fold placement, and all prior badges/testids untouched.
+- **User-facing behavior change:** yes — after each action a short status bubble ("Checked",
+  "Raised to 12s", "Folded", etc.) now appears next to the acting player's seat until the next
+  action, new street, or new hand.
 
 ### 2026-07-04 — All-in badge uses amber, not red (color-language fix)
 

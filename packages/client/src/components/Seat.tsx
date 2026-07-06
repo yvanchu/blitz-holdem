@@ -36,7 +36,8 @@ export default function Seat({
   onReady,
   wins = 0,
 }: SeatProps) {
-  const { activePlayerIndex, result, communityCards, street, settings } = useGameStore();
+  const { activePlayerIndex, result, communityCards, street, settings, lastAction } =
+    useGameStore();
   const [aliasInput, setAliasInput] = useState('');
 
   // Evaluate hand strength when we have enough cards
@@ -138,6 +139,10 @@ export default function Seat({
   const isActive = activePlayerIndex === player.seatIndex;
   const isFolded = player.folded;
 
+  // Last-action indicator for the seat that most recently acted (UX §6).
+  const lastActionLabel =
+    lastAction && player.seatIndex === lastAction.seatIndex ? lastAction.label : null;
+
   // Determine which cards to show
   // Priority: player's holeCards (for own seat), revealedCards (from showdown or voluntary show), or hidden
   const cardsToShow = player.holeCards || revealedCards;
@@ -212,6 +217,8 @@ export default function Seat({
             isDealer={isDealer}
             result={result}
             wins={wins}
+            lastActionLabel={lastActionLabel}
+            bubblePlacement="top"
           />
 
           {/* Bet chip - at bottom for opponent (closest to center) */}
@@ -232,6 +239,8 @@ export default function Seat({
             isDealer={isDealer}
             result={result}
             wins={wins}
+            lastActionLabel={lastActionLabel}
+            bubblePlacement="bottom"
           />
 
           {/* Cards with hand strength badge - reserve space in lobby mode */}
@@ -278,12 +287,16 @@ function PlayerInfo({
   isDealer,
   result,
   wins = 0,
+  lastActionLabel = null,
+  bubblePlacement = 'top',
 }: {
   player: PlayerPublic;
   isActive: boolean;
   isDealer: boolean;
   result: { winnerId: string; potAwarded: number } | null;
   wins?: number;
+  lastActionLabel?: string | null;
+  bubblePlacement?: 'top' | 'bottom';
 }) {
   return (
     <div
@@ -294,6 +307,19 @@ function PlayerInfo({
         isActive ? 'bg-yellow-500/20 ring-2 ring-yellow-400' : 'bg-gray-800/80'
       }`}
     >
+      {/* Last-action indicator — neutral gray (informational, not safe/danger per §7).
+          Placed away from the bet chip so it never overlaps the committed amount. */}
+      {lastActionLabel && (
+        <div
+          data-testid="last-action"
+          className={`absolute left-1/2 -translate-x-1/2 z-10 px-2 py-0.5 rounded-full bg-gray-900/90 border border-white/20 text-white text-[10px] sm:text-xs font-semibold uppercase whitespace-nowrap shadow-lg ${
+            bubblePlacement === 'top' ? '-top-3' : '-bottom-3'
+          }`}
+        >
+          {lastActionLabel}
+        </div>
+      )}
+
       {/* Avatar */}
       <div className="w-8 h-8 sm:w-10 sm:h-10 flex-shrink-0 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center font-bold text-white text-sm sm:text-base">
         {player.alias.charAt(0).toUpperCase()}
