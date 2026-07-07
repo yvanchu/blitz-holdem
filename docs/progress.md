@@ -40,7 +40,7 @@
 - [ ] **SECURITY**: Restrict CORS from wildcard `*` to actual client origins
 - [ ] **SECURITY**: Validate WebSocket `Origin` header against allowlist
 - [x] **UX**: Increase timer font size (currently `text-xs sm:text-sm` ~12-14px, UX doc specifies 16-20px bold)
-- [ ] **UX**: Make ResultOverlay non-blocking (currently a full-screen modal, violates "no modal dialogs during gameplay" rule)
+- [x] **UX**: Make ResultOverlay non-blocking (currently a full-screen modal, violates "no modal dialogs during gameplay" rule) — resolved by deleting the component: it was dead code, never rendered (per-hand results are shown inline on the seats), so no blocking modal exists
 - [x] **UX**: Use amber color for Raise/Bet button (currently green like Check/Call, violates color language spec)
 - [x] Add loading states for network operations
 - [x] Add error messages for failed actions
@@ -76,7 +76,7 @@
 - [ ] **SECURITY**: Set `express.json({ limit: '1kb' })` to cap request body size
 - [ ] **UX**: Show hand number during play (e.g., "Hand #5")
 - [x] **UX**: Add ARIA labels to action buttons (accessibility requirement)
-- [ ] **UX**: Remove unused `GameOverOverlay` component (dead code, superseded by inline game-over state in Table)
+- [x] **UX**: Remove unused `GameOverOverlay` component (dead code, superseded by inline game-over state in Table)
 - [ ] **UX**: Show calculated values in bet presets (e.g., "33% (4s)" instead of just "33%")
 - [ ] **UX**: Add lobby → game transition animation (dealing feel when host clicks Start)
 - [x] **UX**: Make empty community card slots more visible (currently `border-white/20` is nearly invisible on felt)
@@ -232,6 +232,30 @@ The `shouldShowCards` condition required `result.showdown` to be true, but volun
 ---
 
 ## Session Log
+
+### 2026-07-07 — Remove dead overlay components (GameOverOverlay + ResultOverlay)
+
+Dev-loop iteration. Baseline fast gate was fully green before any change: `pnpm typecheck`,
+`pnpm lint`, `pnpm build`, common (47), server unit (28), server integration (60), and client
+(203). Picked two related backlog cleanup items from the Pre-Release Checklist.
+
+- **Slice:** delete two unused components:
+  - `packages/client/src/components/GameOverOverlay.tsx` — "Remove unused GameOverOverlay
+    component (dead code, superseded by inline game-over state in Table)" (Nice to Have).
+  - `packages/client/src/components/ResultOverlay.tsx` — a full-screen `fixed inset-0 z-50`
+    modal that was never rendered anywhere either (per-hand results are shown inline on the
+    seats via the `+Xs` gain / winner highlight). This also clears the "Make ResultOverlay
+    non-blocking" item (it can't block gameplay if it doesn't exist). As a bonus it removes a
+    latent bug: `ResultOverlay` keyed its headline off `result.winnerId === yourPlayerId`, so on
+    a **split pot** (where `winnerId` is only the primary winner) it would have shown "😔 You
+    Lose" to *both* players.
+- **Verification:** confirmed zero imports of either component anywhere in `packages/client/src`
+  (both on this branch and on `main`), and neither had a test file. Full fast gate re-run green
+  after removal: typecheck, lint, build, common 47, server unit 28, server integration 60,
+  client 203 (unchanged — no tests referenced the deleted files). No behavior change, so no new
+  test is required; the suite passing with the files gone is the pin.
+- **User-facing behavior change:** none. Both components were dead code, never mounted; gameplay,
+  the inline game-over UI in `Table.tsx`, colors, sizes, testids, and button order are untouched.
 
 ### 2026-06-27 — Mobile-first portrait UX (bigger elements + portrait lock)
 
