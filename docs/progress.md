@@ -77,14 +77,14 @@
 - [ ] **UX**: Show hand number during play (e.g., "Hand #5")
 - [x] **UX**: Add ARIA labels to action buttons (accessibility requirement)
 - [ ] **UX**: Remove unused `GameOverOverlay` component (dead code, superseded by inline game-over state in Table)
-- [ ] **UX**: Show calculated values in bet presets (e.g., "33% (4s)" instead of just "33%")
+- [x] **UX**: Show calculated values in bet presets (e.g., "33% (4s)" instead of just "33%")
 - [ ] **UX**: Add lobby → game transition animation (dealing feel when host clicks Start)
 - [x] **UX**: Make empty community card slots more visible (currently `border-white/20` is nearly invisible on felt)
 - [x] **UX**: Winning cards use `ring-2 ring-yellow-400` + `-translate-y-2` but UX spec calls for a "golden glow" pulse — add a subtle `animate-pulse` or `shadow-yellow-400/50` glow effect to better match spec
 - [ ] **UX**: HomePage background is plain dark (`min-h-screen`) with no felt/branding — should match the felt green or have a cohesive transition into the table aesthetic
 - [ ] **UX**: Timer `animate-pulse` at ≤10s applies to the text, not the container — the pulsing text can feel jittery; consider pulsing the timer background/border instead for a smoother urgency indicator
 - [ ] **UX**: Auto All-In checkbox is a non-standard game control — UX doc doesn't account for it; it should have a confirmation state or undo mechanism since accidental toggle could be costly
-- [ ] **UX**: Bet preset percentages are pot-relative but pot context isn't shown alongside them — showing absolute values (e.g., "75% (12s)") would help quick decision making per existing todo
+- [x] **UX**: Bet preset percentages are pot-relative but pot context isn't shown alongside them — showing absolute values (e.g., "75% (12s)") would help quick decision making per existing todo
 - [x] Integration tests
 - [ ] Add sound effects (optional, mutable)
 - [x] Add hand history display
@@ -232,6 +232,31 @@ The `shouldShowCards` condition required `result.showdown` to be true, but volun
 ---
 
 ## Session Log
+
+### 2026-07-08 — Show calculated bet values on preset buttons
+
+Dev-loop iteration. Baseline fast gate fully green before any change: `pnpm typecheck`, `pnpm lint`,
+`pnpm build`, common (47), server unit (28), server integration (60), client (203).
+
+- **Slice:** two related Pre-Release Checklist items (Medium + Nice-to-have) — "Show calculated
+  values in bet presets (e.g. `33% (4s)`)" and "Bet preset percentages are pot-relative but pot
+  context isn't shown alongside them". Aligns with `docs/ux.md` §5 ("What's the pot?" is a top
+  priority) and reinforces §7 color language (the value is rendered in amber = betting/chips).
+- **Change (`packages/client/src/components/ActionBar.tsx`):** each raise-panel preset button
+  (`33% / 75% / Pot / 150% / All In`) now shows the concrete second-value it will set beneath the
+  label, e.g. `33%` over `3s`. The displayed number is derived from the *same* target expression
+  the button's `onClick` uses and passed through the identical clamp `setPreset` applies, so the
+  shown value always equals the amount the bet input becomes when clicked (verified by a test).
+  Percentage/`Pot`/`All In` labels are unchanged plain spans, so existing `getByText('33%')` etc.
+  assertions still pass. Value text is muted amber, mono, `tabular-nums`.
+- **Tests (`ActionBar.test.tsx`, +2 → 38 in file):** pot=10 / currentBet=0 / timeBank=100 renders
+  `3s / 7s / 10s / 15s / 100s`; and clicking `Pot` sets `bet-input` to `10` (display stays in sync
+  with behavior).
+- **Verification:** full fast gate green after change — typecheck, lint, build, common 47, server
+  unit 28, server integration 60, client 205 (+2). Reproduced the original symptom (presets showed
+  only a bare `33%` with no chip value) and confirmed the values now render.
+- **User-facing behavior change:** additive only — the presets gain a value line; button actions,
+  order, colors, sizes, and testids are unchanged. No engine/server/auth changes.
 
 ### 2026-06-27 — Mobile-first portrait UX (bigger elements + portrait lock)
 

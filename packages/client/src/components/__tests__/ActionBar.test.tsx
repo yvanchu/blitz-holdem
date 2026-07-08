@@ -193,6 +193,34 @@ describe('ActionBar', () => {
       expect(screen.getByText('All In')).toBeInTheDocument();
     });
 
+    it('should show the calculated second value on each preset button', () => {
+      // pot=10, currentBet=0, minRaise=2, yourCurrentBet=0, timeBank=100
+      // => minTotalBet=2, maxTotalBet=100
+      setupActiveTurn({ timeBank: 100 });
+      render(<ActionBar send={mockSend} isHandInProgress={true} />);
+
+      fireEvent.click(screen.getByTestId('raise-button'));
+
+      // 33% -> floor(10/3)=3, 75% -> floor(30/4)=7, Pot -> 10,
+      // 150% -> floor(15)=15, All In -> maxTotalBet=100
+      expect(screen.getByText('3s')).toBeInTheDocument();
+      expect(screen.getByText('7s')).toBeInTheDocument();
+      expect(screen.getByText('10s')).toBeInTheDocument();
+      expect(screen.getByText('15s')).toBeInTheDocument();
+      expect(screen.getByText('100s')).toBeInTheDocument();
+    });
+
+    it('should show the value the preset button actually sets (in sync)', () => {
+      setupActiveTurn({ timeBank: 100 });
+      render(<ActionBar send={mockSend} isHandInProgress={true} />);
+
+      fireEvent.click(screen.getByTestId('raise-button'));
+
+      // Clicking "Pot" should set the bet input to the displayed value (10s)
+      fireEvent.click(screen.getByText('Pot'));
+      expect(screen.getByTestId('bet-input')).toHaveValue('10');
+    });
+
     it('should allow changing bet amount via input', () => {
       setupActiveTurn({ timeBank: 100 });
       render(<ActionBar send={mockSend} isHandInProgress={true} />);

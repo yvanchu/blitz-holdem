@@ -238,6 +238,21 @@ export default function ActionBar({ send, isHandInProgress }: ActionBarProps) {
     setInputValue(String(clamped));
   };
 
+  // Nominal total-bet target for each preset button. Kept in sync with the
+  // onClick handlers below so the amount we display is exactly what the button
+  // will set the bet input to (after the same clamp `setPreset` applies).
+  const presetTargets = {
+    '33%': currentBet + Math.floor(pot / 3),
+    '75%': currentBet + Math.floor((pot * 3) / 4),
+    Pot: currentBet + pot,
+    '150%': currentBet + Math.floor((pot * 3) / 2),
+    'All In': maxTotalBet,
+  };
+  // Resulting bet (seconds) after clamping to [minTotalBet, maxTotalBet] — the
+  // concrete value the player commits, shown beneath the percentage label.
+  const presetValue = (target: number) =>
+    Math.min(maxTotalBet, Math.max(minTotalBet, Math.floor(target)));
+
   return (
     <div
       data-testid="action-bar"
@@ -294,34 +309,49 @@ export default function ActionBar({ send, isHandInProgress }: ActionBarProps) {
                 {/* Preset buttons */}
                 <div className="grid grid-cols-5 gap-1.5 sm:gap-2">
                   <button
-                    onClick={() => setPreset(currentBet + Math.floor(pot / 3))}
-                    className="px-1 py-2.5 sm:py-2 text-[11px] sm:text-xs bg-gray-700 hover:bg-gray-600 text-white rounded font-medium uppercase"
+                    onClick={() => setPreset(presetTargets['33%'])}
+                    className="flex flex-col items-center justify-center px-1 py-2 sm:py-1.5 text-[11px] sm:text-xs bg-gray-700 hover:bg-gray-600 text-white rounded font-medium uppercase leading-tight"
                   >
-                    33%
+                    <span>33%</span>
+                    <span className="text-[9px] sm:text-[10px] font-mono tabular-nums text-amber-300/80 normal-case">
+                      {presetValue(presetTargets['33%'])}s
+                    </span>
                   </button>
                   <button
-                    onClick={() => setPreset(currentBet + Math.floor((pot * 3) / 4))}
-                    className="px-1 py-2.5 sm:py-2 text-[11px] sm:text-xs bg-gray-700 hover:bg-gray-600 text-white rounded font-medium uppercase"
+                    onClick={() => setPreset(presetTargets['75%'])}
+                    className="flex flex-col items-center justify-center px-1 py-2 sm:py-1.5 text-[11px] sm:text-xs bg-gray-700 hover:bg-gray-600 text-white rounded font-medium uppercase leading-tight"
                   >
-                    75%
+                    <span>75%</span>
+                    <span className="text-[9px] sm:text-[10px] font-mono tabular-nums text-amber-300/80 normal-case">
+                      {presetValue(presetTargets['75%'])}s
+                    </span>
                   </button>
                   <button
-                    onClick={() => setPreset(currentBet + pot)}
-                    className="px-1 py-2.5 sm:py-2 text-[11px] sm:text-xs bg-gray-700 hover:bg-gray-600 text-white rounded font-medium uppercase"
+                    onClick={() => setPreset(presetTargets.Pot)}
+                    className="flex flex-col items-center justify-center px-1 py-2 sm:py-1.5 text-[11px] sm:text-xs bg-gray-700 hover:bg-gray-600 text-white rounded font-medium uppercase leading-tight"
                   >
-                    Pot
+                    <span>Pot</span>
+                    <span className="text-[9px] sm:text-[10px] font-mono tabular-nums text-amber-300/80 normal-case">
+                      {presetValue(presetTargets.Pot)}s
+                    </span>
                   </button>
                   <button
-                    onClick={() => setPreset(currentBet + Math.floor((pot * 3) / 2))}
-                    className="px-1 py-2.5 sm:py-2 text-[11px] sm:text-xs bg-gray-700 hover:bg-gray-600 text-white rounded font-medium uppercase"
+                    onClick={() => setPreset(presetTargets['150%'])}
+                    className="flex flex-col items-center justify-center px-1 py-2 sm:py-1.5 text-[11px] sm:text-xs bg-gray-700 hover:bg-gray-600 text-white rounded font-medium uppercase leading-tight"
                   >
-                    150%
+                    <span>150%</span>
+                    <span className="text-[9px] sm:text-[10px] font-mono tabular-nums text-amber-300/80 normal-case">
+                      {presetValue(presetTargets['150%'])}s
+                    </span>
                   </button>
                   <button
-                    onClick={() => setPreset(maxTotalBet)}
-                    className="px-1 py-2.5 sm:py-2 text-[11px] sm:text-xs bg-gray-700 hover:bg-gray-600 text-white rounded font-medium uppercase"
+                    onClick={() => setPreset(presetTargets['All In'])}
+                    className="flex flex-col items-center justify-center px-1 py-2 sm:py-1.5 text-[11px] sm:text-xs bg-gray-700 hover:bg-gray-600 text-white rounded font-medium uppercase leading-tight"
                   >
-                    All In
+                    <span>All In</span>
+                    <span className="text-[9px] sm:text-[10px] font-mono tabular-nums text-amber-300/80 normal-case">
+                      {presetValue(presetTargets['All In'])}s
+                    </span>
                   </button>
                 </div>
 
