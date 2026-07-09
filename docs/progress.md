@@ -74,7 +74,7 @@
 - [ ] **SECURITY**: Replace `console.log` with structured logger, redact sensitive fields in prod
 - [ ] **SECURITY**: Add `helmet` middleware for HTTP security headers
 - [ ] **SECURITY**: Set `express.json({ limit: '1kb' })` to cap request body size
-- [ ] **UX**: Show hand number during play (e.g., "Hand #5")
+- [x] **UX**: Show hand number during play (e.g., "Hand #5")
 - [x] **UX**: Add ARIA labels to action buttons (accessibility requirement)
 - [ ] **UX**: Remove unused `GameOverOverlay` component (dead code, superseded by inline game-over state in Table)
 - [ ] **UX**: Show calculated values in bet presets (e.g., "33% (4s)" instead of just "33%")
@@ -232,6 +232,29 @@ The `shouldShowCards` condition required `result.showdown` to be true, but volun
 ---
 
 ## Session Log
+
+### 2026-07-09 — Show current hand number during play
+
+Dev-loop iteration (branch off `main`). Baseline fast gate fully green before any change:
+`pnpm typecheck`, `pnpm lint`, `pnpm build`, plus common / server unit / server integration / client
+test suites.
+
+- **Slice:** Pre-Release Checklist (Nice-to-have) — "Show hand number during play (e.g. `Hand #5`)".
+  Aligns with `docs/ux.md` §1 (Clarity Over Decoration — scannable orientation info) and does not
+  conflict with recorded decisions (it is persistent context, not a street-transition indicator).
+- **Change (`packages/client/src/components/Table.tsx`):** the game-in-progress view now renders a
+  small `Hand #N` label above the community cards, driven by the existing `handNumber` from the game
+  store. Rendered in **neutral gray** (`text-gray-400`, mono, `tabular-nums`) — informational, so per
+  UX §7 it deliberately avoids the green/amber/red action color language. Only shown during a hand;
+  the lobby / game-over views are unchanged.
+- **Tests (`Table.test.tsx`, +3):** displays `Hand #1` in-game, updates to `Hand #7` when
+  `handNumber` changes, and is absent in the lobby (`queryByTestId('hand-number')` null).
+- **Verification:** full fast gate green after change — typecheck, lint, build, and all test suites
+  (client 206, +3). Reproduced the original gap (no hand number was displayed anywhere during play —
+  `handNumber` was only used for lobby detection) and confirmed the label now renders and tracks the
+  current hand.
+- **User-facing behavior change:** additive only — a `Hand #N` line appears above the board during
+  play. No changes to button order/colors/sizes/testids, engine, server, or auth.
 
 ### 2026-06-27 — Mobile-first portrait UX (bigger elements + portrait lock)
 
