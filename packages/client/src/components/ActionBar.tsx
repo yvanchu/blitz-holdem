@@ -238,6 +238,22 @@ export default function ActionBar({ send, isHandInProgress }: ActionBarProps) {
     setInputValue(String(clamped));
   };
 
+  // Clamp a raw total bet the same way setPreset does, so the amount shown on a
+  // preset button always matches the bet that clicking it will apply.
+  const clampTotalBet = (rawTotal: number) =>
+    Math.min(maxTotalBet, Math.max(minTotalBet, Math.floor(rawTotal)));
+
+  // Preset buttons: pot-relative bet sizes plus an all-in shortcut. Each carries
+  // the resulting total bet (in chips/seconds) so players can see absolute values
+  // alongside the percentage (UX §5 "What's the pot?").
+  const presets: { label: string; slug: string; total: number }[] = [
+    { label: '33%', slug: '33', total: clampTotalBet(currentBet + pot / 3) },
+    { label: '75%', slug: '75', total: clampTotalBet(currentBet + (pot * 3) / 4) },
+    { label: 'Pot', slug: 'pot', total: clampTotalBet(currentBet + pot) },
+    { label: '150%', slug: '150', total: clampTotalBet(currentBet + (pot * 3) / 2) },
+    { label: 'All In', slug: 'all-in', total: maxTotalBet },
+  ];
+
   return (
     <div
       data-testid="action-bar"
@@ -293,36 +309,21 @@ export default function ActionBar({ send, isHandInProgress }: ActionBarProps) {
               <div className="flex-1 flex flex-col gap-2">
                 {/* Preset buttons */}
                 <div className="grid grid-cols-5 gap-1.5 sm:gap-2">
-                  <button
-                    onClick={() => setPreset(currentBet + Math.floor(pot / 3))}
-                    className="px-1 py-2.5 sm:py-2 text-[11px] sm:text-xs bg-gray-700 hover:bg-gray-600 text-white rounded font-medium uppercase"
-                  >
-                    33%
-                  </button>
-                  <button
-                    onClick={() => setPreset(currentBet + Math.floor((pot * 3) / 4))}
-                    className="px-1 py-2.5 sm:py-2 text-[11px] sm:text-xs bg-gray-700 hover:bg-gray-600 text-white rounded font-medium uppercase"
-                  >
-                    75%
-                  </button>
-                  <button
-                    onClick={() => setPreset(currentBet + pot)}
-                    className="px-1 py-2.5 sm:py-2 text-[11px] sm:text-xs bg-gray-700 hover:bg-gray-600 text-white rounded font-medium uppercase"
-                  >
-                    Pot
-                  </button>
-                  <button
-                    onClick={() => setPreset(currentBet + Math.floor((pot * 3) / 2))}
-                    className="px-1 py-2.5 sm:py-2 text-[11px] sm:text-xs bg-gray-700 hover:bg-gray-600 text-white rounded font-medium uppercase"
-                  >
-                    150%
-                  </button>
-                  <button
-                    onClick={() => setPreset(maxTotalBet)}
-                    className="px-1 py-2.5 sm:py-2 text-[11px] sm:text-xs bg-gray-700 hover:bg-gray-600 text-white rounded font-medium uppercase"
-                  >
-                    All In
-                  </button>
+                  {presets.map((preset) => (
+                    <button
+                      key={preset.slug}
+                      onClick={() => setPreset(preset.total)}
+                      className="flex flex-col items-center justify-center px-1 py-1.5 bg-gray-700 hover:bg-gray-600 text-white rounded font-medium uppercase"
+                    >
+                      <span className="text-[11px] sm:text-xs leading-none">{preset.label}</span>
+                      <span
+                        data-testid={`preset-amount-${preset.slug}`}
+                        className="mt-0.5 text-[9px] sm:text-[10px] leading-none text-gray-300 normal-case tabular-nums"
+                      >
+                        {preset.total}s
+                      </span>
+                    </button>
+                  ))}
                 </div>
 
                 {/* Slider */}

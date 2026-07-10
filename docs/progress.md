@@ -77,14 +77,14 @@
 - [x] **UX**: Show hand number during play (e.g., "Hand #5")
 - [x] **UX**: Add ARIA labels to action buttons (accessibility requirement)
 - [ ] **UX**: Remove unused `GameOverOverlay` component (dead code, superseded by inline game-over state in Table)
-- [ ] **UX**: Show calculated values in bet presets (e.g., "33% (4s)" instead of just "33%")
+- [x] **UX**: Show calculated values in bet presets (e.g., "33% (4s)" instead of just "33%")
 - [ ] **UX**: Add lobby → game transition animation (dealing feel when host clicks Start)
 - [x] **UX**: Make empty community card slots more visible (currently `border-white/20` is nearly invisible on felt)
 - [x] **UX**: Winning cards use `ring-2 ring-yellow-400` + `-translate-y-2` but UX spec calls for a "golden glow" pulse — add a subtle `animate-pulse` or `shadow-yellow-400/50` glow effect to better match spec
 - [ ] **UX**: HomePage background is plain dark (`min-h-screen`) with no felt/branding — should match the felt green or have a cohesive transition into the table aesthetic
 - [ ] **UX**: Timer `animate-pulse` at ≤10s applies to the text, not the container — the pulsing text can feel jittery; consider pulsing the timer background/border instead for a smoother urgency indicator
 - [ ] **UX**: Auto All-In checkbox is a non-standard game control — UX doc doesn't account for it; it should have a confirmation state or undo mechanism since accidental toggle could be costly
-- [ ] **UX**: Bet preset percentages are pot-relative but pot context isn't shown alongside them — showing absolute values (e.g., "75% (12s)") would help quick decision making per existing todo
+- [x] **UX**: Bet preset percentages are pot-relative but pot context isn't shown alongside them — showing absolute values (e.g., "75% (12s)") would help quick decision making per existing todo
 - [x] Integration tests
 - [ ] Add sound effects (optional, mutable)
 - [x] Add hand history display
@@ -232,6 +232,37 @@ The `shouldShowCards` condition required `result.showdown` to be true, but volun
 ---
 
 ## Session Log
+
+### 2026-07-10 — Show absolute chip amounts under bet presets
+
+Dev-loop iteration (branch off `main`). Baseline fast gate fully green before any change:
+`pnpm typecheck`, `pnpm lint`, `pnpm build`, plus common (47) / server unit (28) / server
+integration (60) / client (206) suites.
+
+- **Slice:** Pre-Release Checklist (Nice-to-have + Medium) — "Show calculated values in bet
+  presets (e.g. `33% (4s)`)" and "Bet preset percentages are pot-relative but pot context isn't
+  shown alongside them — showing absolute values would help quick decision making". Aligns with
+  `docs/ux.md` §5 ("What's the pot?" quick-scan priority). No conflict with recorded decisions.
+- **Change (`packages/client/src/components/ActionBar.tsx`):** each raise-panel preset (`33%`,
+  `75%`, `Pot`, `150%`, `All In`) now renders the resulting total bet in chips/seconds on a second
+  line (e.g. `10s`), using the app's `{n}s` convention. The displayed amount is computed with the
+  same clamp (`minTotalBet`..`maxTotalBet`, floored) that `setPreset` applies, so the label always
+  matches the bet a click produces. The five hardcoded buttons were consolidated into a mapped
+  `presets` array; the applied bet math is unchanged. Amount line is **neutral gray**
+  (`text-gray-400/300`, `tabular-nums`, `normal-case`) — informational, so per UX §7 it avoids the
+  green/amber/red action color language.
+- **Tests (`ActionBar.test.tsx`, +2):** asserts each preset shows its absolute amount
+  (`3s / 7s / 10s / 15s / 100s` for pot 10, currentBet 0, minRaise 2, timeBank 100) via new
+  `preset-amount-*` testids, and that clicking the `Pot` preset sets the bet input to the exact
+  value shown (`10`). Existing exact-text assertions (`33%`, `75%`, `Pot`, `150%`, `All In`) are
+  preserved because the percentage label lives in its own span.
+- **Verification:** full fast gate green after change — typecheck, lint, build, common 47, server
+  unit 28, integration 60, client 208 (+2). Reproduced the original gap (presets showed only a
+  percentage with no chip context) and confirmed the absolute amount now renders and tracks pot /
+  stack changes.
+- **User-facing behavior change:** additive/visual only — a small chip-amount line appears under
+  each preset button. Button order, colors, sizes, and applied bet amounts are unchanged; no
+  engine/server/auth changes.
 
 ### 2026-07-09 — Show current hand number during play
 

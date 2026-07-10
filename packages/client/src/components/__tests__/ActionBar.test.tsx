@@ -193,6 +193,31 @@ describe('ActionBar', () => {
       expect(screen.getByText('All In')).toBeInTheDocument();
     });
 
+    it('should show absolute chip amount under each preset', () => {
+      // pot: 10, currentBet: 0, minRaise: 2, timeBank: 100 (see setupActiveTurn)
+      setupActiveTurn({ timeBank: 100 });
+      render(<ActionBar send={mockSend} isHandInProgress={true} />);
+
+      fireEvent.click(screen.getByTestId('raise-button'));
+
+      expect(screen.getByTestId('preset-amount-33')).toHaveTextContent('3s');
+      expect(screen.getByTestId('preset-amount-75')).toHaveTextContent('7s');
+      expect(screen.getByTestId('preset-amount-pot')).toHaveTextContent('10s');
+      expect(screen.getByTestId('preset-amount-150')).toHaveTextContent('15s');
+      expect(screen.getByTestId('preset-amount-all-in')).toHaveTextContent('100s');
+    });
+
+    it('should apply the exact total shown when a preset is clicked', () => {
+      setupActiveTurn({ timeBank: 100 });
+      render(<ActionBar send={mockSend} isHandInProgress={true} />);
+
+      fireEvent.click(screen.getByTestId('raise-button'));
+      // Pot preset shows 10s and should set the bet input to 10
+      fireEvent.click(screen.getByTestId('preset-amount-pot').closest('button')!);
+
+      expect(screen.getByTestId('bet-input')).toHaveValue('10');
+    });
+
     it('should allow changing bet amount via input', () => {
       setupActiveTurn({ timeBank: 100 });
       render(<ActionBar send={mockSend} isHandInProgress={true} />);
