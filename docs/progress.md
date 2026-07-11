@@ -233,6 +233,34 @@ The `shouldShowCards` condition required `result.showdown` to be true, but volun
 
 ## Session Log
 
+### 2026-07-11 — Fix: `B` keyboard shortcut (Bet/Raise) was a no-op
+
+Dev-loop iteration (branch off `main`). Baseline fast gate fully green before any change:
+`pnpm typecheck`, `pnpm lint`, `pnpm build`, plus common (47) / server unit (28) / server
+integration (60) / client (208) suites.
+
+- **Slice:** Correctness/bug fix — behavior contradicted the docs. Both `docs/prd.md`
+  (§UX/UI: "Keyboard shortcuts: C=Check/Call, B=Bet/Raise, F=Fold, A=All-in") and `README.md`
+  document the Bet/Raise shortcut as **`B`**, but `ActionBar.tsx` only bound `R` to open the
+  raise panel — pressing `B` did nothing. Fixing a documented-vs-actual mismatch is the
+  preferred slice type per `docs/agent-dev-loop.md`.
+- **Change (`packages/client/src/components/ActionBar.tsx`):** added `case 'b'` as a
+  fall-through alias to the existing `case 'r'` in the turn keyboard handler, so `B` opens the
+  raise/bet panel and focuses the bet input exactly like `R`. Purely additive — `R` still works,
+  and `A` (auto-all-in toggle) and every other binding are untouched. No color/size/testid,
+  engine, server, or auth changes.
+- **Tests (`ActionBar.test.tsx`, +1):** new "should open raise panel and focus input on `b`
+  key (Bet/Raise per PRD)" asserts the `bet-input` testid appears after `fireEvent.keyDown(window,
+  { key: 'b' })`. All existing keyboard-shortcut assertions (`c`/`k`/`f`/`r`/`a`/`enter`/`escape`)
+  are preserved.
+- **Verification:** full fast gate green after change — typecheck, lint, build, common 47,
+  server unit 28, integration 60, client 209 (+1). Reproduced the original symptom (test
+  fails first: pressing `b` never opened the panel) then confirmed it's fixed. (One integration
+  reconnection test flaked once on a timing assertion and passed on re-run; it's unrelated to
+  this client-only change.)
+- **User-facing behavior change:** the documented `B` shortcut now actually triggers Bet/Raise.
+  No visual/layout change and no other shortcut behavior changed.
+
 ### 2026-07-10 — Show absolute chip amounts under bet presets
 
 Dev-loop iteration (branch off `main`). Baseline fast gate fully green before any change:

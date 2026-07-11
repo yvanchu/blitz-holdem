@@ -131,6 +131,7 @@ export default function ActionBar({ send, isHandInProgress }: ActionBarProps) {
           if (validActions.includes('check')) sendAction('check');
           break;
         case 'r':
+        case 'b':
           if (validActions.includes('bet') || validActions.includes('raise')) {
             if (!showRaisePanel) {
               setShowRaisePanel(true);
