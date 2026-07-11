@@ -300,6 +300,15 @@ describe('ActionBar', () => {
       expect(screen.getByTestId('bet-input')).toBeInTheDocument();
     });
 
+    it('should open raise panel and focus input on "b" key (Bet/Raise per PRD)', () => {
+      setupActiveTurn();
+      render(<ActionBar send={mockSend} isHandInProgress={true} />);
+
+      fireEvent.keyDown(window, { key: 'b' });
+
+      expect(screen.getByTestId('bet-input')).toBeInTheDocument();
+    });
+
     it('should close raise panel on "escape" key', () => {
       setupActiveTurn();
       render(<ActionBar send={mockSend} isHandInProgress={true} />);
