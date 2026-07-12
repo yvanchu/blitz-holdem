@@ -81,7 +81,7 @@
 - [ ] **UX**: Add lobby → game transition animation (dealing feel when host clicks Start)
 - [x] **UX**: Make empty community card slots more visible (currently `border-white/20` is nearly invisible on felt)
 - [x] **UX**: Winning cards use `ring-2 ring-yellow-400` + `-translate-y-2` but UX spec calls for a "golden glow" pulse — add a subtle `animate-pulse` or `shadow-yellow-400/50` glow effect to better match spec
-- [ ] **UX**: HomePage background is plain dark (`min-h-screen`) with no felt/branding — should match the felt green or have a cohesive transition into the table aesthetic
+- [x] **UX**: HomePage background is plain dark (`min-h-screen`) with no felt/branding — should match the felt green or have a cohesive transition into the table aesthetic (2026-07-12: HomePage now uses `bg-felt`)
 - [ ] **UX**: Timer `animate-pulse` at ≤10s applies to the text, not the container — the pulsing text can feel jittery; consider pulsing the timer background/border instead for a smoother urgency indicator
 - [ ] **UX**: Auto All-In checkbox is a non-standard game control — UX doc doesn't account for it; it should have a confirmation state or undo mechanism since accidental toggle could be costly
 - [ ] **UX**: Bet preset percentages are pot-relative but pot context isn't shown alongside them — showing absolute values (e.g., "75% (12s)") would help quick decision making per existing todo
@@ -232,6 +232,24 @@ The `shouldShowCards` condition required `result.showdown` to be true, but volun
 ---
 
 ## Session Log
+
+### 2026-07-12 — Agent Dev Loop: HomePage felt background (cohesive table aesthetic)
+
+Baseline fast gate confirmed green before touching anything (typecheck PASS, lint clean, build
+PASS; tests common 47, server unit 28, server integration 60, client 203).
+
+- **[UX] HomePage now uses the poker-table felt aesthetic (backlog item).** The landing page sat
+  on plain `bg-gray-900` while the table uses `bg-felt` (`#0D1F12`, UX §10 "Dark Theme
+  Rationale"), so entering a table was a jarring color jump. The `HomePage` root now carries
+  `bg-felt`, matching the table for a cohesive transition. No layout, copy, or component-test
+  assertions changed; the only user-facing change is the landing-page background color.
+- **Tests:** added `pages/__tests__/HomePage.test.tsx` (first HomePage coverage) — renders the
+  core entry points (title, alias input, create-table button) and pins the felt background class.
+  Verified the felt assertion fails without the change and passes with it. Client suite 203 → 205.
+- **Verification:** full fast gate re-run green (typecheck PASS, lint clean, build PASS; common 47,
+  server unit 28, server integration 60, client 205).
+- No standing decisions touched; color language (UX §7) unaffected. Security checklist items remain
+  deferred for human prioritization.
 
 ### 2026-06-27 — Mobile-first portrait UX (bigger elements + portrait lock)
 
