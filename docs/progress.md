@@ -77,14 +77,14 @@
 - [ ] **UX**: Show hand number during play (e.g., "Hand #5")
 - [x] **UX**: Add ARIA labels to action buttons (accessibility requirement)
 - [ ] **UX**: Remove unused `GameOverOverlay` component (dead code, superseded by inline game-over state in Table)
-- [ ] **UX**: Show calculated values in bet presets (e.g., "33% (4s)" instead of just "33%")
+- [x] **UX**: Show calculated values in bet presets (e.g., "33% (4s)" instead of just "33%") (2026-07-13: each preset now shows the clamped absolute total on a second line)
 - [ ] **UX**: Add lobby → game transition animation (dealing feel when host clicks Start)
 - [x] **UX**: Make empty community card slots more visible (currently `border-white/20` is nearly invisible on felt)
 - [x] **UX**: Winning cards use `ring-2 ring-yellow-400` + `-translate-y-2` but UX spec calls for a "golden glow" pulse — add a subtle `animate-pulse` or `shadow-yellow-400/50` glow effect to better match spec
 - [x] **UX**: HomePage background is plain dark (`min-h-screen`) with no felt/branding — should match the felt green or have a cohesive transition into the table aesthetic (2026-07-12: HomePage now uses `bg-felt`)
 - [ ] **UX**: Timer `animate-pulse` at ≤10s applies to the text, not the container — the pulsing text can feel jittery; consider pulsing the timer background/border instead for a smoother urgency indicator
 - [ ] **UX**: Auto All-In checkbox is a non-standard game control — UX doc doesn't account for it; it should have a confirmation state or undo mechanism since accidental toggle could be costly
-- [ ] **UX**: Bet preset percentages are pot-relative but pot context isn't shown alongside them — showing absolute values (e.g., "75% (12s)") would help quick decision making per existing todo
+- [x] **UX**: Bet preset percentages are pot-relative but pot context isn't shown alongside them — showing absolute values (e.g., "75% (12s)") would help quick decision making per existing todo (2026-07-13: shipped alongside the preset-values item above)
 - [x] Integration tests
 - [ ] Add sound effects (optional, mutable)
 - [x] Add hand history display
@@ -232,6 +232,32 @@ The `shouldShowCards` condition required `result.showdown` to be true, but volun
 ---
 
 ## Session Log
+
+### 2026-07-13 — Agent Dev Loop: absolute seconds on bet presets
+
+Baseline fast gate confirmed green before touching anything (typecheck PASS, lint clean, build
+PASS; tests common 47, server unit 28, server integration 60, client 205).
+
+- **[UX] Bet presets now show the concrete amount they will set (backlog item).** The raise/bet
+  panel presets (`33% / 75% / Pot / 150% / All In`) were pot-relative labels with no absolute
+  context, so a player couldn't see how many seconds each represents without clicking. Each preset
+  button now renders the resolved **total bet in seconds** on a second line (e.g. `33%` → `3s`),
+  using the same clamp as the click handler so the displayed number is exactly what the button
+  sets (clamped to the all-in max when a preset exceeds the time bank). Closes both the
+  "Show calculated values in bet presets" and "Bet preset percentages … showing absolute values"
+  backlog entries. The five inline buttons were refactored into one data-driven map; labels
+  (`33%`, `75%`, `Pot`, `150%`, `All In`) are unchanged, and the seconds hint uses amber
+  (`text-amber-300/80`) per the color language (UX §7: amber = betting/bet/pot). Purely additive —
+  no change to preset math, click behavior, or any other component.
+- **Tests:** added two `ActionBar.test.tsx` cases — one pinning the absolute seconds shown on each
+  preset (`preset-33/75/pot/150/allin` testids) and one pinning the all-in clamp when a preset
+  exceeds the time bank. Verified both fail without the change and pass with it. Existing preset
+  text assertions (`getByText('33%')` etc.) preserved. Client suite 205 → 207.
+- **Verification:** full fast gate re-run green (typecheck PASS, lint clean, build PASS; common 47,
+  server unit 28, server integration 60, client 207).
+- No standing decisions touched (button order, fold placement, no street indicators, no onboarding
+  all unchanged); color language (UX §7) respected. Security checklist items remain deferred for
+  human prioritization.
 
 ### 2026-07-12 — Agent Dev Loop: HomePage felt background (cohesive table aesthetic)
 
