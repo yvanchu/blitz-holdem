@@ -193,6 +193,34 @@ describe('ActionBar', () => {
       expect(screen.getByText('All In')).toBeInTheDocument();
     });
 
+    it('should show the absolute bet amount (in seconds) on each preset button', () => {
+      // pot=10, currentBet=0, minRaise=2, toCall=0, timeBank=100
+      // => minTotalBet=2, maxTotalBet=100
+      setupActiveTurn({ timeBank: 100 });
+      render(<ActionBar send={mockSend} isHandInProgress={true} />);
+
+      fireEvent.click(screen.getByTestId('raise-button'));
+
+      // 33% => floor(10/3)=3 ; 75% => floor(30/4)=7 ; Pot => 10 ; 150% => floor(15)=15 ; All In => 100
+      expect(screen.getByTestId('preset-33')).toHaveTextContent('33%');
+      expect(screen.getByTestId('preset-33')).toHaveTextContent('3s');
+      expect(screen.getByTestId('preset-75')).toHaveTextContent('7s');
+      expect(screen.getByTestId('preset-pot')).toHaveTextContent('10s');
+      expect(screen.getByTestId('preset-150')).toHaveTextContent('15s');
+      expect(screen.getByTestId('preset-allin')).toHaveTextContent('100s');
+    });
+
+    it('should clamp a preset display to the all-in max when it exceeds the time bank', () => {
+      // pot=10, timeBank=5 => maxTotalBet=5, so 150% (15) clamps to 5s
+      setupActiveTurn({ timeBank: 5 });
+      render(<ActionBar send={mockSend} isHandInProgress={true} />);
+
+      fireEvent.click(screen.getByTestId('raise-button'));
+
+      expect(screen.getByTestId('preset-150')).toHaveTextContent('5s');
+      expect(screen.getByTestId('preset-allin')).toHaveTextContent('5s');
+    });
+
     it('should allow changing bet amount via input', () => {
       setupActiveTurn({ timeBank: 100 });
       render(<ActionBar send={mockSend} isHandInProgress={true} />);
