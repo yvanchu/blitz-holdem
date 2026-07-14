@@ -93,8 +93,8 @@ export default function TablePage() {
         <div className="absolute top-3 right-3 z-10">
           <div className="bg-gray-800/90 px-3 py-1.5 rounded-lg text-sm">
             <span className="text-gray-400">Stakes: </span>
-            <span className="text-white font-medium">
-              {settings.smallBlind}/{settings.bigBlind}
+            <span className="text-white font-medium tabular-nums">
+              {settings.smallBlind}s / {settings.bigBlind}s
             </span>
           </div>
         </div>
