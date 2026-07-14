@@ -233,6 +233,30 @@ The `shouldShowCards` condition required `result.showdown` to be true, but volun
 
 ## Session Log
 
+### 2026-07-14 — Agent Dev Loop: stakes badge shows the seconds unit
+
+Baseline fast gate confirmed green before touching anything, run against `main` (typecheck PASS,
+lint clean, build PASS; tests common 47, server unit 28, server integration 60, client 203).
+
+- **[UX/correctness] Stakes badge now shows the `s` unit (contradicted docs/ux.md §8).** The
+  top-right stakes display rendered the blinds as a bare `{smallBlind}/{bigBlind}` (e.g.
+  `Stakes: 1/2`), the only number in the whole UI without a unit — every other value (pot, bet
+  chips, timer, Call button) already shows `Xs`. UX §8 "Number Formatting" requires **"Always show
+  unit: '45s' not '45'"**, and since the game's entire currency is seconds, `1/2` is ambiguous
+  (reads like a chip ratio). The badge now renders `1s / 2s` and uses `tabular-nums` (UX §8: "Use
+  tabular/monospace figures so numbers don't jump around"). Purely a display/label change — no
+  behavior, layout, or color change (text stays white; not a colored action).
+- **Tests:** updated the two existing `TablePage.test.tsx` stakes assertions from `getByText('1/2')`
+  to `getByText('1s / 2s')` — a deliberate change of both code and test, since the old assertion
+  pinned the unit-less label the fix removes. All other assertions (both seats still see the badge,
+  the seat-visibility regression coverage) are preserved. Client suite still 203.
+- **Verification:** full fast gate re-run green on the branch (typecheck PASS, lint clean, build
+  PASS; common 47, server unit 28, server integration 60, client 203). Confirmed the rendered badge
+  is now `Stakes: 1s / 2s` (old `1/2` text no longer present).
+- No standing decisions touched (button order, fold placement, no street indicators, no onboarding
+  all unchanged); color language (UX §7) unaffected. Security checklist items remain deferred for
+  human prioritization.
+
 ### 2026-06-27 — Mobile-first portrait UX (bigger elements + portrait lock)
 
 Made gameplay mobile-first and portrait-only without changing the desktop (`sm:` and up) layout.

@@ -80,13 +80,13 @@ describe('TablePage stakes display', () => {
     seatAs(0);
     render(<TablePage />);
     expect(screen.getByText('Stakes:')).toBeInTheDocument();
-    expect(screen.getByText('1/2')).toBeInTheDocument();
+    expect(screen.getByText('1s / 2s')).toBeInTheDocument();
   });
 
   it('shows stakes to the joiner (seat 1)', () => {
     seatAs(1);
     render(<TablePage />);
     expect(screen.getByText('Stakes:')).toBeInTheDocument();
-    expect(screen.getByText('1/2')).toBeInTheDocument();
+    expect(screen.getByText('1s / 2s')).toBeInTheDocument();
   });
 });
