@@ -233,6 +233,37 @@ The `shouldShowCards` condition required `result.showdown` to be true, but volun
 
 ## Session Log
 
+### 2026-07-15 — Agent Dev Loop: reconcile documented default time bank to shipped 300s
+
+Baseline fast gate confirmed green before touching anything, run against `main` (typecheck PASS,
+lint clean, build PASS; tests common 47, server unit 28, server integration 60, client 203). The
+reconnection integration file is intermittently flaky (1/60 on one run, green on 3 consecutive
+re-runs; already tracked by the open "fix flaky reconnection baseline" PR) — unrelated to this change.
+
+- **[Correctness/docs] The default initial time bank is 300s everywhere now — docs matched the code,
+  not the other way around.** `docs/prd.md` and `README.md` said "180s" and the `TableSettings`
+  field was annotated `// default 180`, but the shipped default is **300s**: `DEFAULT_SETTINGS
+  .initialTimeBank = 300`, the `Seat` lobby fallback is `?? 300`, and — decisively — the e2e suite
+  *deliberately* pins 300 (`settings.spec.ts` asserts the settings input defaults to `"300"`, and
+  `timerDrain.spec.ts` asserts play starts at ~300s, `>290 && <=300`). That deliberate,
+  multi-location test coverage is strong evidence 300 is the intended product default and the prose
+  docs simply drifted. Reconciled the stale side: PRD (two spots) and README updated 180 → 300, and
+  the misleading `// default 180` code comment corrected to `// default 300`. **No behavior change** —
+  the running default was already 300s; this only makes the documentation truthful. (An earlier draft
+  of this iteration went the other way and changed the code to 180s; that was reverted once the e2e
+  assertions revealed 300 to be the intentional default, to avoid regressing them.)
+- **Tests:** added `packages/common/src/__tests__/settings.test.ts` (3 tests) pinning `DEFAULT_SETTINGS`
+  (`initialTimeBank === 300`, `smallBlind === 1`, `bigBlind === 2`, `bigBlind === 2 × smallBlind`) so
+  the docs, the code comment, and the e2e assertions can no longer silently drift apart again. Common
+  suite 47 → 50. No existing assertions changed; no gameplay code touched.
+- **Verification:** full fast gate re-run green on the branch (typecheck PASS, lint clean, build PASS;
+  common 50, server unit 28, server integration 60, client 203). Confirmed a room created with no
+  settings override yields `initialTimeBank === 300` via the `DEFAULT_SETTINGS` merge path, matching
+  the now-updated docs and the e2e expectations.
+- No standing decisions touched (button order, fold placement, no street indicators, no onboarding all
+  unchanged); color language (UX §7) unaffected. Security checklist items remain deferred for human
+  prioritization.
+
 ### 2026-07-14 — Agent Dev Loop: stakes badge shows the seconds unit
 
 Baseline fast gate confirmed green before touching anything, run against `main` (typecheck PASS,
