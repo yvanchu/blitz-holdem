@@ -49,7 +49,7 @@ User stories:
 
 ## Time Bank Economy
 
-- Initial time bank: Configurable per match (default: 180s per player). Range 60–900s for testing.
+- Initial time bank: Configurable per match (default: 300s per player). Range 60–900s for testing.
 - Blinds: Deducted at hand start from the respective players' banks and immediately added to the pot.
 - Action commitments:
   - Bet/Raise: Commits selected seconds from the player's bank to the pot.
@@ -117,7 +117,7 @@ User stories:
 
 ## Configurable Settings (Server)
 
-- Initial time bank (default 180s).
+- Initial time bank (default 300s).
 - Small blind (default 1s), big blind (default 2s).
 - Timer tick rate (default 6 Hz).
 - Disconnect grace period (default 5s).

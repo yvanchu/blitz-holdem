@@ -35,7 +35,7 @@ export interface Player {
 }
 
 export interface TableSettings {
-  initialTimeBank: number; // default 180
+  initialTimeBank: number; // default 300
   smallBlind: number; // default 1
   bigBlind: number; // default 2
   tickRateHz: number; // default 6

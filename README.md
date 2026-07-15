@@ -4,7 +4,7 @@ A heads-up no-limit Texas Hold'em poker variant where you bet with **time** inst
 
 ## 🎮 How It Works
 
-- Each player starts with a time bank (default: 180 seconds)
+- Each player starts with a time bank (default: 300 seconds)
 - On your turn, your time bank counts down in real-time
 - Bets, calls, and raises commit seconds from your time bank to the pot
 - The winner of each hand receives the pot (in seconds) added to their time bank
