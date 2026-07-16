@@ -232,6 +232,29 @@ describe('ActionBar', () => {
 
       expect(input).toHaveValue('20');
     });
+
+    it('should expose accessible names for the raise-panel controls', () => {
+      // currentBet=0 in the fixture => this is a "Bet" (not a "Raise").
+      setupActiveTurn({ timeBank: 100 });
+      render(<ActionBar send={mockSend} isHandInProgress={true} />);
+
+      fireEvent.click(screen.getByTestId('raise-button'));
+
+      // Amount input and slider must carry accessible labels (screen-reader support).
+      expect(screen.getByTestId('bet-input')).toHaveAttribute('aria-label', 'Bet amount in seconds');
+      expect(screen.getByTestId('bet-slider')).toHaveAttribute(
+        'aria-label',
+        'Bet amount slider, in seconds'
+      );
+
+      // The +/- steppers are icon-only, so they need descriptive labels.
+      expect(
+        screen.getByRole('button', { name: 'Decrease bet by 1 second' })
+      ).toBeInTheDocument();
+      expect(
+        screen.getByRole('button', { name: 'Increase bet by 1 second' })
+      ).toBeInTheDocument();
+    });
   });
 
   describe('call amount display', () => {
