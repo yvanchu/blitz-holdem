@@ -233,6 +233,31 @@ The `shouldShowCards` condition required `result.showdown` to be true, but volun
 
 ## Session Log
 
+### 2026-07-16 — Agent Dev Loop: ARIA labels for the raise-panel bet controls
+
+Baseline fast gate confirmed green before any change (typecheck PASS, lint clean, build PASS;
+tests common 50, server unit 28, server integration 60, client 203). Note: most easy UX backlog
+items are already claimed by the open dev-loop PRs (#2–#14), so this iteration deliberately picked
+an accessibility gap none of them touch.
+
+- **[Accessibility] The raise/bet panel's interactive controls now have accessible names.** The
+  completed backlog item "Add ARIA labels to action buttons" only covered the four main action
+  buttons (Call/Raise/Check/Fold); the controls *inside* the expanded raise panel were still
+  unlabeled. Added `aria-label`s to the bet-amount text input, the bet-amount range slider, and the
+  icon-only − / + stepper buttons so screen-reader users hear "Bet/Raise amount in seconds",
+  "…slider, in seconds", and "Decrease/Increase bet by 1 second" instead of an unnamed textbox,
+  unnamed slider, and bare "−"/"+" glyphs. Labels adapt to bet-vs-raise context via the existing
+  `isBet` flag. Advances `docs/ux.md` §Accessibility Considerations (proper labeling; color/glyph is
+  never the only indicator).
+- **No user-visible / behavioral change.** These are `aria-*` attributes only — no change to layout,
+  colors, sizes, `data-testid`s, button order, fold placement, or any gameplay logic. All existing
+  ActionBar component-test assertions are preserved.
+- **Tests:** added one ActionBar test asserting the raise-panel input, slider, and both steppers
+  expose their accessible names (`getByRole('button', { name: … })` + `aria-label` assertions). It
+  fails against the pre-change code (no labels), so it genuinely pins the fix. Client suite 203 → 204.
+- **Verification:** full fast gate re-run green (typecheck PASS, lint clean, build PASS; common 50,
+  server unit 28, server integration 60, client 204).
+
 ### 2026-07-14 — Agent Dev Loop: stakes badge shows the seconds unit
 
 Baseline fast gate confirmed green before touching anything, run against `main` (typecheck PASS,

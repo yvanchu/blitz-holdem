@@ -265,6 +265,7 @@ export default function ActionBar({ send, isHandInProgress }: ActionBarProps) {
                   type="text"
                   inputMode="numeric"
                   pattern="[0-9]*"
+                  aria-label={`${isBet ? 'Bet' : 'Raise'} amount in seconds`}
                   data-testid={isRaisePanelOpen ? 'bet-input' : undefined}
                   ref={(el) => {
                     betInputRef = el;
@@ -329,6 +330,7 @@ export default function ActionBar({ send, isHandInProgress }: ActionBarProps) {
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => setPreset(Math.max(minTotalBet, betAmount - 1))}
+                    aria-label={`Decrease ${isBet ? 'bet' : 'raise'} by 1 second`}
                     className="w-10 h-10 sm:w-8 sm:h-8 flex items-center justify-center bg-gray-700 hover:bg-gray-600 text-white rounded text-lg font-bold"
                   >
                     −
@@ -336,6 +338,7 @@ export default function ActionBar({ send, isHandInProgress }: ActionBarProps) {
                   <input
                     type="range"
                     data-testid={isRaisePanelOpen ? 'bet-slider' : undefined}
+                    aria-label={`${isBet ? 'Bet' : 'Raise'} amount slider, in seconds`}
                     min={minTotalBet}
                     max={maxTotalBet}
                     value={Math.max(minTotalBet, Math.min(maxTotalBet, betAmount))}
@@ -349,6 +352,7 @@ export default function ActionBar({ send, isHandInProgress }: ActionBarProps) {
                   />
                   <button
                     onClick={() => setPreset(Math.min(maxTotalBet, betAmount + 1))}
+                    aria-label={`Increase ${isBet ? 'bet' : 'raise'} by 1 second`}
                     className="w-10 h-10 sm:w-8 sm:h-8 flex items-center justify-center bg-gray-700 hover:bg-gray-600 text-white rounded text-lg font-bold"
                   >
                     +
