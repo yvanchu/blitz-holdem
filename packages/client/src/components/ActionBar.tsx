@@ -465,6 +465,7 @@ export default function ActionBar({ send, isHandInProgress }: ActionBarProps) {
             className={`
               relative py-3.5 sm:py-4 rounded-lg font-semibold text-xs sm:text-base uppercase tracking-wide
               border-2 transition-all
+              focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white
               ${
                 canCall && isYourTurn
                   ? 'border-green-500 text-green-400 hover:bg-green-500/20 active:bg-green-500/30'
@@ -501,6 +502,7 @@ export default function ActionBar({ send, isHandInProgress }: ActionBarProps) {
             className={`
               relative py-3.5 sm:py-4 rounded-lg font-semibold text-xs sm:text-base uppercase tracking-wide
               border-2 transition-all
+              focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white
               ${
                 canRaise && isYourTurn
                   ? showRaisePanel
@@ -527,6 +529,7 @@ export default function ActionBar({ send, isHandInProgress }: ActionBarProps) {
             className={`
               relative py-3.5 sm:py-4 rounded-lg font-semibold text-xs sm:text-base uppercase tracking-wide
               border-2 transition-all
+              focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white
               ${
                 canCheck && isYourTurn
                   ? 'border-green-500 text-green-400 hover:bg-green-500/20 active:bg-green-500/30'
@@ -549,6 +552,7 @@ export default function ActionBar({ send, isHandInProgress }: ActionBarProps) {
             className={`
               relative py-3.5 sm:py-4 rounded-lg font-semibold text-xs sm:text-base uppercase tracking-wide
               border-2 transition-all
+              focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white
               ${
                 canFold && isYourTurn
                   ? 'border-red-500 text-red-400 hover:bg-red-500/20 active:bg-red-500/30'
