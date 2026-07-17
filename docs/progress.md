@@ -233,7 +233,31 @@ The `shouldShowCards` condition required `result.showdown` to be true, but volun
 
 ## Session Log
 
-### 2026-07-14 — Agent Dev Loop: stakes badge shows the seconds unit
+### 2026-07-17 — Agent Dev Loop: keyboard-focus indicators on action buttons
+
+Baseline fast gate confirmed green before touching anything, run against `main` (typecheck PASS,
+lint clean, build PASS; tests common 47, server unit 28, server integration 60, client 203).
+
+- **[a11y/correctness] Action buttons now have a visible keyboard-focus indicator.** The four
+  primary action buttons (Call / Raise / Check / Fold in `ActionBar`) had no focus styling, so
+  keyboard and switch users tabbing through them saw no indication of which control was focused.
+  This contradicts `docs/prd.md` §UX/UI Requirements ("Accessibility: ... focus states") and
+  `docs/ux.md` §Accessibility ("focus states"). Text inputs (Home, Seat, Settings) already had
+  `focus:ring` styling — the action buttons were the gap. Added a neutral, high-contrast
+  `focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white` to each button.
+  White is deliberately outside the action color language (green=Check/Call, amber=Raise,
+  red=Fold) so the focus ring never implies a semantic meaning; `focus-visible` keeps it invisible
+  for mouse/touch users.
+- **Pinned by test:** new `ActionBar` rendering test asserts all four buttons carry
+  `focus-visible:ring-2` + `focus-visible:ring-white` (client 203 → 204).
+- **Verified:** typecheck PASS, lint clean, build PASS (CSS 28.04 → 28.59 kB — the focus
+  utilities are now emitted), tests green (common 47, server unit 28, server integration 60,
+  client 204).
+- **No behavior change to gameplay** — purely additive focus styling; existing colors, sizes, and
+  `data-testid`s are untouched. Satisfies the standing PRD/UX "focus states" accessibility
+  requirement (no dedicated checklist line existed for it).
+
+
 
 Baseline fast gate confirmed green before touching anything, run against `main` (typecheck PASS,
 lint clean, build PASS; tests common 47, server unit 28, server integration 60, client 203).

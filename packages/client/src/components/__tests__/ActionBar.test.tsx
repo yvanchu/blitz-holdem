@@ -76,6 +76,17 @@ describe('ActionBar', () => {
       expect(screen.getByTestId('check-button')).toBeInTheDocument();
       expect(screen.getByTestId('fold-button')).toBeInTheDocument();
     });
+
+    it('should give every action button a visible keyboard-focus indicator', () => {
+      setupActiveTurn();
+      render(<ActionBar send={mockSend} isHandInProgress={true} />);
+
+      for (const testId of ['call-button', 'raise-button', 'check-button', 'fold-button']) {
+        const button = screen.getByTestId(testId);
+        expect(button).toHaveClass('focus-visible:ring-2');
+        expect(button).toHaveClass('focus-visible:ring-white');
+      }
+    });
   });
 
   describe('button states when it is your turn', () => {
