@@ -233,7 +233,36 @@ The `shouldShowCards` condition required `result.showdown` to be true, but volun
 
 ## Session Log
 
-### 2026-07-14 — Agent Dev Loop: stakes badge shows the seconds unit
+### 2026-07-18 — Agent Dev Loop: round the Call button's partial all-in amount
+
+Baseline fast gate confirmed green before touching anything, run against `main` (typecheck PASS,
+lint clean, build PASS; tests common 47, server unit 28, server integration 60, client 204). The
+server reconnection integration tests are intermittently flaky (a first run showed 3 failures that
+passed cleanly on re-run); tracked separately by the open flaky-reconnection PR and unrelated to
+this client-only change.
+
+- **[UX/correctness] Call button now rounds a partial (all-in) call to whole seconds (UX §8).**
+  When you face a bet larger than your remaining time bank, `getValidActions` still offers `call`
+  (a partial all-in call is legal), and the button labelled it `Call ${Math.min(toCall, timeBank)}s`.
+  Because time banks drain continuously, `timeBank` is fractional, so the button rendered e.g.
+  `Call 5.6s` — a fractional value that also ticked down every frame — violating UX §8 "Round to
+  whole seconds in display". The engine already commits `Math.round(min(toCall, timeBank))`, so the
+  display was also *inconsistent* with the amount actually paid. Wrapped both the visible label and
+  the `aria-label` in `Math.round(...)` so the button now shows `Call 6s`, matching the engine. The
+  normal full-call path is unaffected (`toCall` is an integer, so rounding is a no-op there).
+- **Tests:** added an `ActionBar.test.tsx` case under "call amount display" — with `timeBank: 5.6`
+  facing `currentBet: 10`, the button must read `Call 6s` and contain no fractional digits. Verified
+  it failed first (`Received: Call 5.6s`), then passed after the fix. All existing ActionBar
+  assertions (colors, testids, the `Call 5s` cap case, `Call 10s` full case) are preserved. Client
+  suite 203 → 204.
+- **Verification:** full fast gate re-run green on the branch (typecheck PASS, lint clean, build
+  PASS; common 47, server unit 28, server integration 60, client 204). Reproduced the original
+  symptom (fractional `Call 5.6s`) via the new test and confirmed it now renders `Call 6s`.
+- No standing decisions touched (button order Call|Raise|Check|Fold, fold placement, no street
+  indicators, no onboarding all unchanged); color language (UX §7) unaffected — the Call button
+  stays green. Security checklist items remain deferred for human prioritization.
+
+
 
 Baseline fast gate confirmed green before touching anything, run against `main` (typecheck PASS,
 lint clean, build PASS; tests common 47, server unit 28, server integration 60, client 203).
