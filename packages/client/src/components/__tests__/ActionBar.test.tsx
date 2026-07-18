@@ -285,6 +285,18 @@ describe('ActionBar', () => {
       // Should show capped amount
       expect(screen.getByTestId('call-button')).toHaveTextContent('Call 5s');
     });
+
+    it('should round the capped call amount to a whole second', () => {
+      // Time banks drain continuously, so a partial all-in call caps at a
+      // fractional time bank. UX §8 requires whole-second display, and the
+      // engine commits Math.round(min(toCall, timeBank)), so the button must match.
+      setupActiveTurn({ currentBet: 0, timeBank: 5.6 });
+      useGameStore.setState({ currentBet: 10 });
+      render(<ActionBar send={mockSend} isHandInProgress={true} />);
+
+      expect(screen.getByTestId('call-button')).toHaveTextContent('Call 6s');
+      expect(screen.getByTestId('call-button').textContent).not.toMatch(/\d\.\d/);
+    });
   });
 
   describe('keyboard shortcuts', () => {

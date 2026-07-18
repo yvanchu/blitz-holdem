@@ -460,7 +460,9 @@ export default function ActionBar({ send, isHandInProgress }: ActionBarProps) {
             disabled={!isYourTurn || !canCall}
             data-testid="call-button"
             aria-label={
-              canCall ? `Call ${Math.min(toCall, yourPlayer?.timeBank ?? 0)} seconds` : 'Call'
+              canCall
+                ? `Call ${Math.round(Math.min(toCall, yourPlayer?.timeBank ?? 0))} seconds`
+                : 'Call'
             }
             className={`
               relative py-3.5 sm:py-4 rounded-lg font-semibold text-xs sm:text-base uppercase tracking-wide
@@ -473,7 +475,7 @@ export default function ActionBar({ send, isHandInProgress }: ActionBarProps) {
               }
             `}
           >
-            {canCall ? `Call ${Math.min(toCall, yourPlayer?.timeBank ?? 0)}s` : 'Call'}
+            {canCall ? `Call ${Math.round(Math.min(toCall, yourPlayer?.timeBank ?? 0))}s` : 'Call'}
             <span className="hidden sm:block absolute -top-2 -right-1 px-1.5 py-0.5 text-[10px] font-bold bg-gray-800 border border-gray-600 rounded text-gray-400">
               C
             </span>
