@@ -77,14 +77,14 @@
 - [ ] **UX**: Show hand number during play (e.g., "Hand #5")
 - [x] **UX**: Add ARIA labels to action buttons (accessibility requirement)
 - [ ] **UX**: Remove unused `GameOverOverlay` component (dead code, superseded by inline game-over state in Table)
-- [ ] **UX**: Show calculated values in bet presets (e.g., "33% (4s)" instead of just "33%")
+- [x] **UX**: Show calculated values in bet presets (e.g., "33% (4s)" instead of just "33%")
 - [ ] **UX**: Add lobby → game transition animation (dealing feel when host clicks Start)
 - [x] **UX**: Make empty community card slots more visible (currently `border-white/20` is nearly invisible on felt)
 - [x] **UX**: Winning cards use `ring-2 ring-yellow-400` + `-translate-y-2` but UX spec calls for a "golden glow" pulse — add a subtle `animate-pulse` or `shadow-yellow-400/50` glow effect to better match spec
 - [ ] **UX**: HomePage background is plain dark (`min-h-screen`) with no felt/branding — should match the felt green or have a cohesive transition into the table aesthetic
 - [ ] **UX**: Timer `animate-pulse` at ≤10s applies to the text, not the container — the pulsing text can feel jittery; consider pulsing the timer background/border instead for a smoother urgency indicator
 - [ ] **UX**: Auto All-In checkbox is a non-standard game control — UX doc doesn't account for it; it should have a confirmation state or undo mechanism since accidental toggle could be costly
-- [ ] **UX**: Bet preset percentages are pot-relative but pot context isn't shown alongside them — showing absolute values (e.g., "75% (12s)") would help quick decision making per existing todo
+- [x] **UX**: Bet preset percentages are pot-relative but pot context isn't shown alongside them — showing absolute values (e.g., "75% (12s)") would help quick decision making per existing todo
 - [x] Integration tests
 - [ ] Add sound effects (optional, mutable)
 - [x] Add hand history display
@@ -232,6 +232,31 @@ The `shouldShowCards` condition required `result.showdown` to be true, but volun
 ---
 
 ## Session Log
+
+### 2026-07-19 — Agent Dev Loop: show resulting bet size (seconds) on raise presets
+
+Baseline fast gate confirmed green before changes (typecheck PASS, lint clean, build PASS; tests
+common 47, server unit 28, server integration 60, client 203 on `main`).
+
+- **[UX] Bet-size presets now show the absolute cost in whole seconds under each percentage.**
+  The raise-panel presets (33% / 75% / Pot / 150% / All In) only displayed a pot-relative
+  percentage, forcing the player to open the input to learn what they were actually committing.
+  Per UX §5 (bet-sizing context / "What's the pot?") and §8 ("always show unit", "round to whole
+  seconds"), each button now renders the resulting **total** bet, e.g. `33%` over `3s`, `Pot` over
+  `10s`, `All In` over `100s`. The seconds are computed with the exact same clamp the click handler
+  uses (`min(maxTotalBet, max(minTotalBet, floor(target)))`), so the label always matches the value
+  the button sets. The seconds sub-label uses amber (`text-amber-300/80`), consistent with the
+  color language (§7 amber = betting/chips/pot), and `font-mono` + `normal-case` so digits are
+  tabular and the unit stays lowercase (`3s`, not `3S`).
+- **Tests:** added an `ActionBar.test.tsx` case ("should show the resulting total bet in whole
+  seconds on each preset") asserting the five presets render `3s / 7s / 10s / 15s / 100s` for the
+  standard fixture (pot 10, currentBet 0, minRaise 2, timeBank 100). Verified it failed first
+  (`Unable to find [data-testid="preset-33"]`) then passed after the change. Existing preset
+  assertions (`getByText('33%')`, `'75%'`, `'Pot'`, `'150%'`, `'All In'`) are preserved because the
+  percentage keeps its own span. Client suite 203 → 204; ActionBar 36 → 37.
+- **Verification:** full fast gate re-run green (typecheck PASS, lint clean, build PASS; common 47,
+  server unit 28, server integration 60, client 204). Reproduced the original symptom (presets with
+  no absolute value) via the stashed-implementation run, then confirmed the seconds now render.
 
 ### 2026-07-14 — Agent Dev Loop: stakes badge shows the seconds unit
 

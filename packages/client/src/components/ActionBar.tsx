@@ -238,6 +238,12 @@ export default function ActionBar({ send, isHandInProgress }: ActionBarProps) {
     setInputValue(String(clamped));
   };
 
+  // The resulting total bet (in whole seconds) a preset would set, after clamping.
+  // Shown on the buttons so players see the absolute cost, not just a pot percentage
+  // (UX §5 bet-sizing context, §8 "always show unit" / "round to whole seconds").
+  const presetTotal = (totalAmount: number) =>
+    Math.min(maxTotalBet, Math.max(minTotalBet, Math.floor(totalAmount)));
+
   return (
     <div
       data-testid="action-bar"
@@ -294,34 +300,54 @@ export default function ActionBar({ send, isHandInProgress }: ActionBarProps) {
                 {/* Preset buttons */}
                 <div className="grid grid-cols-5 gap-1.5 sm:gap-2">
                   <button
+                    data-testid="preset-33"
                     onClick={() => setPreset(currentBet + Math.floor(pot / 3))}
-                    className="px-1 py-2.5 sm:py-2 text-[11px] sm:text-xs bg-gray-700 hover:bg-gray-600 text-white rounded font-medium uppercase"
+                    className="flex flex-col items-center justify-center leading-tight px-1 py-2.5 sm:py-2 text-[11px] sm:text-xs bg-gray-700 hover:bg-gray-600 text-white rounded font-medium uppercase"
                   >
-                    33%
+                    <span>33%</span>
+                    <span className="text-[9px] sm:text-[10px] font-mono normal-case text-amber-300/80">
+                      {presetTotal(currentBet + Math.floor(pot / 3))}s
+                    </span>
                   </button>
                   <button
+                    data-testid="preset-75"
                     onClick={() => setPreset(currentBet + Math.floor((pot * 3) / 4))}
-                    className="px-1 py-2.5 sm:py-2 text-[11px] sm:text-xs bg-gray-700 hover:bg-gray-600 text-white rounded font-medium uppercase"
+                    className="flex flex-col items-center justify-center leading-tight px-1 py-2.5 sm:py-2 text-[11px] sm:text-xs bg-gray-700 hover:bg-gray-600 text-white rounded font-medium uppercase"
                   >
-                    75%
+                    <span>75%</span>
+                    <span className="text-[9px] sm:text-[10px] font-mono normal-case text-amber-300/80">
+                      {presetTotal(currentBet + Math.floor((pot * 3) / 4))}s
+                    </span>
                   </button>
                   <button
+                    data-testid="preset-pot"
                     onClick={() => setPreset(currentBet + pot)}
-                    className="px-1 py-2.5 sm:py-2 text-[11px] sm:text-xs bg-gray-700 hover:bg-gray-600 text-white rounded font-medium uppercase"
+                    className="flex flex-col items-center justify-center leading-tight px-1 py-2.5 sm:py-2 text-[11px] sm:text-xs bg-gray-700 hover:bg-gray-600 text-white rounded font-medium uppercase"
                   >
-                    Pot
+                    <span>Pot</span>
+                    <span className="text-[9px] sm:text-[10px] font-mono normal-case text-amber-300/80">
+                      {presetTotal(currentBet + pot)}s
+                    </span>
                   </button>
                   <button
+                    data-testid="preset-150"
                     onClick={() => setPreset(currentBet + Math.floor((pot * 3) / 2))}
-                    className="px-1 py-2.5 sm:py-2 text-[11px] sm:text-xs bg-gray-700 hover:bg-gray-600 text-white rounded font-medium uppercase"
+                    className="flex flex-col items-center justify-center leading-tight px-1 py-2.5 sm:py-2 text-[11px] sm:text-xs bg-gray-700 hover:bg-gray-600 text-white rounded font-medium uppercase"
                   >
-                    150%
+                    <span>150%</span>
+                    <span className="text-[9px] sm:text-[10px] font-mono normal-case text-amber-300/80">
+                      {presetTotal(currentBet + Math.floor((pot * 3) / 2))}s
+                    </span>
                   </button>
                   <button
+                    data-testid="preset-allin"
                     onClick={() => setPreset(maxTotalBet)}
-                    className="px-1 py-2.5 sm:py-2 text-[11px] sm:text-xs bg-gray-700 hover:bg-gray-600 text-white rounded font-medium uppercase"
+                    className="flex flex-col items-center justify-center leading-tight px-1 py-2.5 sm:py-2 text-[11px] sm:text-xs bg-gray-700 hover:bg-gray-600 text-white rounded font-medium uppercase"
                   >
-                    All In
+                    <span>All In</span>
+                    <span className="text-[9px] sm:text-[10px] font-mono normal-case text-amber-300/80">
+                      {presetTotal(maxTotalBet)}s
+                    </span>
                   </button>
                 </div>
 
