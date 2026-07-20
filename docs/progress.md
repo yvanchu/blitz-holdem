@@ -233,6 +233,35 @@ The `shouldShowCards` condition required `result.showdown` to be true, but volun
 
 ## Session Log
 
+### 2026-07-20 — Agent Dev Loop: clear stale bet chips on street change
+
+Baseline fast gate confirmed green before any change, run against `main` (typecheck PASS, lint
+clean, build PASS; tests common 47, server unit 28, server integration 60, client 203).
+
+- **[correctness/UX] Player bet chips no longer linger into the next street.** When a betting
+  round closes and a new street is dealt, the server's engine (`advanceStreet`) resets each
+  player's `currentBet` to 0 (the bets are swept into the pot). But the client's `STREET` and
+  `TURN` messages don't carry player state (only `street`/`communityCards`/`pot`/`currentBet`),
+  and the store's `setStreet` reset only the table-level `currentBet` — never the per-player
+  `currentBet`. As a result the previous street's bet chip stayed visible on each seat (visually
+  double-counting against the pot, which had already grown) for the whole ~1.2s street-deal pause
+  plus the next actor's decision time, until the first `ACTION_CONFIRM`/`PLAYERS_UPDATE` arrived.
+  `setStreet` now also resets each seat's `currentBet` to 0, mirroring the server's authoritative
+  state so the chips clear the instant the new board is shown. Matches docs/ux.md §"Bet Chips"
+  (a chip "shows [the] bet flowing to pot" — it should not persist after the sweep). Not covered
+  by any open dev-loop PR.
+- **Tests:** added `packages/client/src/store/__tests__/gameStore.test.ts` (new file, 5 cases)
+  pinning `setStreet`: it advances street/board, zeroes the table `currentBet`, zeroes each
+  player's `currentBet`, preserves other player fields and null seats, and yields `selectToCall`
+  0 for the acting player at the start of a new street. Client suite 203 → 208. No existing
+  assertions changed.
+- **Verification:** full fast gate re-run green (typecheck PASS, lint clean, build PASS; common 47,
+  server unit 28, server integration 60, client 208). The two new player-`currentBet` assertions
+  failed before the one-line store fix and pass after, reproducing and confirming the fix.
+- No standing decisions touched (button order Call|Raise|Check|Fold, fold placement, no street
+  indicators, no onboarding all unchanged); color language (UX §7) unaffected — display-only state
+  reset. Security checklist items remain deferred for human prioritization.
+
 ### 2026-07-14 — Agent Dev Loop: stakes badge shows the seconds unit
 
 Baseline fast gate confirmed green before touching anything, run against `main` (typecheck PASS,
