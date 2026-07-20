@@ -110,7 +110,20 @@ export const useGameStore = create<GameState>((set) => ({
       ],
     })),
 
-  setStreet: (street, communityCards) => set({ street, communityCards, currentBet: 0 }),
+  setStreet: (street, communityCards) =>
+    set((state) => ({
+      street,
+      communityCards,
+      currentBet: 0,
+      // A new street means the previous round's bets were swept into the pot, so each
+      // player's committed bet resets to 0. The STREET/TURN messages don't carry player
+      // state, so mirror the server's reset here or stale bet chips linger into the new
+      // street until the first action arrives.
+      players: [
+        state.players[0] ? { ...state.players[0], currentBet: 0 } : null,
+        state.players[1] ? { ...state.players[1], currentBet: 0 } : null,
+      ] as [PlayerPublic | null, PlayerPublic | null],
+    })),
 
   setActivePlayer: (index) => set({ activePlayerIndex: index }),
 
