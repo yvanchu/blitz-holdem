@@ -233,6 +233,33 @@ The `shouldShowCards` condition required `result.showdown` to be true, but volun
 
 ## Session Log
 
+### 2026-07-21 — Agent Dev Loop: clear the "your turn" glow when a hand ends
+
+Baseline fast gate confirmed green before touching anything, run against `main` (typecheck PASS,
+lint clean, build PASS; tests common 47, server unit 28, server integration 60, client 203). One
+integration test flaked on a cold-start 5s timeout on the first run and passed on re-run (60/60).
+
+- **[correctness/UX] `setResult` now clears `activePlayerIndex` at hand end.** The `RESULT`
+  message arrives right after the last actor's action, with no intervening `TURN(null)` or
+  `STREET` to reset the active seat, and the client's `setResult` only flipped
+  `isHandInProgress` to `false`. So after every hand the last player to act kept
+  `activePlayerIndex === their seat`, leaving their seat rendered "active" during the result
+  display — the yellow ring on `PlayerInfo` and the highlighted `Timer` background (the
+  "it's your turn" glow) lingered when it was nobody's turn. This contradicts docs/ux.md §6
+  ("My turn → glowing border on my seat"), which reserves that indicator for an actual turn.
+  `setResult` now also sets `activePlayerIndex: null`. Same stale-client-state family as the
+  bet-chip reset, but a distinct method (`setResult` vs `setStreet`).
+- **Tests:** added `store/__tests__/gameStore.setResult.test.ts` — sets a mid-hand state where
+  seat 0 is the active actor, calls `setResult`, and asserts `activePlayerIndex` is `null`,
+  `isHandInProgress` is `false`, and `selectIsYourTurn` is `false`. Verified it fails without the
+  fix (activePlayerIndex stayed `0`) and passes with it. Distinct filename avoids an add/add
+  clash with the in-flight `gameStore.test.ts`. Client suite 203 → 204.
+- **Verification:** full fast gate re-run green on the branch (typecheck PASS, lint clean, build
+  PASS; common 47, server unit 28, server integration 60, client 204). No color-language (UX §7)
+  or standing-decision changes (button order, fold placement, no street indicators, no
+  onboarding all untouched). Security checklist items remain deferred for human prioritization.
+
+
 ### 2026-07-14 — Agent Dev Loop: stakes badge shows the seconds unit
 
 Baseline fast gate confirmed green before touching anything, run against `main` (typecheck PASS,
