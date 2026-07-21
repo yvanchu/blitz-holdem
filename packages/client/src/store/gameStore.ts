@@ -128,7 +128,12 @@ export const useGameStore = create<GameState>((set) => ({
   setActivePlayer: (index) => set({ activePlayerIndex: index }),
 
   setResult: (result, revealedCards, communityCards) =>
-    set({ result, revealedCards, communityCards, isHandInProgress: false }),
+    // The hand is over, so nobody is to act. The RESULT message arrives after the
+    // last actor's TURN/ACTION without any TURN(null) or STREET in between, so clear
+    // activePlayerIndex here — otherwise the last actor's seat keeps the "your turn"
+    // glow (yellow ring + highlighted timer) during the result display (UX §6: the
+    // my-turn indicator must only show when it is actually someone's turn).
+    set({ result, revealedCards, communityCards, isHandInProgress: false, activePlayerIndex: null }),
 
   clearResult: () => set({ result: null, revealedCards: null }),
 
