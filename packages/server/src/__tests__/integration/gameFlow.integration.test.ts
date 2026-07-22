@@ -157,12 +157,16 @@ describe('Game Flow Integration', () => {
       const activeClient = turn.activePlayerIndex === player1.seatIndex ? player1 : player2;
 
       activeClient.clearMessages();
-      activeClient.action('raise', 5); // Raise to 5
+      activeClient.action('raise', 5); // Raise BY 5s on top of the 1s small blind → "raise to" 6s
 
       const actionConfirm = await activeClient.waitForMessage('ACTION_CONFIRM');
 
       expect(actionConfirm.action).toBe('raise');
-      expect(actionConfirm.amount).toBeGreaterThan(2); // More than BB
+      // The broadcast amount is the "raise to" total (used by the hand history), not the
+      // 5s increment. The active preflop player is the small blind (1s in), so total = 6s.
+      expect(actionConfirm.amount).toBe(6);
+      const raiser = actionConfirm.players.find((p) => p.id === activeClient.playerId);
+      expect(actionConfirm.amount).toBe(raiser?.currentBet);
     });
 
     it('should reject invalid actions with ERROR', async () => {
