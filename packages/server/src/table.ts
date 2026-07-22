@@ -182,8 +182,18 @@ export class TableController {
       // Sync player objects
       this.syncPlayers();
 
-      // Broadcast action
-      this.broadcastAction(playerId, actionType, amount ?? 0);
+      // Broadcast action. Report the "raise to" total for aggressive actions and the
+      // amount actually committed for a call, so the hand history reads correctly
+      // (e.g. a small blind of 1s raising by 5s shows "raises to 6 sec", not 5).
+      let broadcastAmount: number;
+      if (actionType === 'call') {
+        broadcastAmount = result.actorCommitted ?? amount ?? 0;
+      } else if (actionType === 'bet' || actionType === 'raise' || actionType === 'all-in') {
+        broadcastAmount = result.actorStreetTotal ?? amount ?? 0;
+      } else {
+        broadcastAmount = 0;
+      }
+      this.broadcastAction(playerId, actionType, broadcastAmount);
 
       // Check for hand end
       if (result.handResult) {
@@ -579,8 +589,10 @@ export class TableController {
         connected.player = updated;
       }
 
-      // Broadcast the timeout as an all-in action
-      this.broadcastAction(activePlayer.id, 'all-in', 0);
+      // Broadcast the timeout as an all-in action. Report their street total (the amount
+      // they are contesting) rather than the zero additional seconds committed, so the
+      // hand history is consistent with voluntary all-ins.
+      this.broadcastAction(activePlayer.id, 'all-in', Math.round(updated.currentBet));
 
       // Check if betting round is complete and advance
       this.checkAndAdvanceAfterTimeout();

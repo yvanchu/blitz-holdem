@@ -183,6 +183,11 @@ export interface ActionResult {
   state: TableState;
   deck: Card[];
   handResult?: HandResult;
+  // The acting player's total committed this street after the action ("raise to" amount).
+  // Captured before any street reset so it survives round completion.
+  actorStreetTotal?: number;
+  // The seconds the acting player committed with this single action (0 for check/fold).
+  actorCommitted?: number;
 }
 
 export function getValidActions(state: TableState): ActionType[] {
@@ -336,23 +341,35 @@ export function applyAction(state: TableState, action: Action, deck: Card[]): Ac
     lastActionTimestamp: Date.now(),
   };
 
+  // Capture the acting player's committed amounts before any street reset or hand end.
+  // actorStreetTotal is their total contribution this street (the "raise to" amount);
+  // actorCommitted is what they put in with this single action.
+  const actorStreetTotal = Math.round(updatedPlayer.currentBet);
+  const actorCommitted = Math.round(updatedPlayer.currentBet - player.currentBet);
+
   // Check for hand end (fold)
   if (action.type === 'fold') {
     const winnerId = playerIndex === 0 ? newState.players[1]!.id : newState.players[0]!.id;
-    return endHand(newState, winnerId, false);
+    const folded = endHand(newState, winnerId, false);
+    folded.actorStreetTotal = actorStreetTotal;
+    folded.actorCommitted = actorCommitted;
+    return folded;
   }
 
   // Check if betting round is complete
   if (isBettingRoundComplete(newState)) {
     // Server will handle pacing for all-in runouts
-    return advanceStreet(newState, deck);
+    const advanced = advanceStreet(newState, deck);
+    advanced.actorStreetTotal = actorStreetTotal;
+    advanced.actorCommitted = actorCommitted;
+    return advanced;
   }
 
   // Switch to next player
   const nextPlayerIndex: 0 | 1 = playerIndex === 0 ? 1 : 0;
   newState.activePlayerIndex = nextPlayerIndex;
 
-  return { state: newState, deck };
+  return { state: newState, deck, actorStreetTotal, actorCommitted };
 }
 
 function isBettingRoundComplete(state: TableState): boolean {

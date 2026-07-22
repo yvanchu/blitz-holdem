@@ -233,6 +233,33 @@ The `shouldShowCards` condition required `result.showdown` to be true, but volun
 
 ## Session Log
 
+### 2026-07-15 — Agent Dev Loop: hand-history "raises to X" shows the total, not the increment
+
+Baseline fast gate confirmed green before touching anything, run against `main` (typecheck PASS,
+lint clean, build PASS; tests common 50, server unit 28, server integration 60, client 203).
+
+- **[Correctness/bug] Hand history now reports the correct "raise to" amount.** The client sends a
+  raise as an *incremental* commit (`betAmount - yourCurrentBet`). The server rebroadcast that raw
+  increment in `ACTION_CONFIRM.amount`, and the client hand-history formatter renders it as
+  **"raises to {amount} sec"** — a *total*. So any raise where the actor already had chips in the
+  street (every pre-flop small-blind raise, plus all 3-bets/re-raises) was misreported: a SB with
+  1s raising by 5 showed "raises to 5 sec" when they actually raised **to 6**. The formatter and
+  `handHistoryStore` unit tests already assumed the total (`raises to 6 sec`, `amount: 6`),
+  confirming this was a server-only bug.
+- **Fix (engine + server, no client change):** `applyAction` now exposes the actor's
+  `actorStreetTotal` (post-action street total = the "raise to" value) and `actorCommitted` (seconds
+  put in by this single action), captured *before* any street reset so they survive round
+  completion. `table.ts` broadcasts `actorStreetTotal` for `bet`/`raise`/`all-in`, `actorCommitted`
+  for `call`, and 0 for `check`/`fold`. The timeout all-in path now broadcasts the timed-out
+  player's street total for consistency with voluntary all-ins.
+- **Behavior change (flag for reviewer):** `ACTION_CONFIRM.amount` semantics changed from "increment
+  committed" to "street total" for `bet`/`raise`/`all-in` (calls unchanged). Only the hand-history
+  text consumes this field; no color, layout, or standing-decision change.
+- **Tests:** added a `common` engine describe block pinning `actorStreetTotal`/`actorCommitted` for
+  pre-flop SB raise, call, and all-in (common 47 → 50); strengthened the gameFlow integration
+  "process raise action correctly" test to assert the exact raise-to total (6) equals the raiser's
+  broadcast `currentBet`.
+
 ### 2026-07-14 — Agent Dev Loop: stakes badge shows the seconds unit
 
 Baseline fast gate confirmed green before touching anything, run against `main` (typecheck PASS,

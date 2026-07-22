@@ -305,3 +305,61 @@ describe('Engine - Betting Round Completion', () => {
     expect(result.state.communityCards.length).toBe(3);
   });
 });
+
+describe('Engine - Actor committed amounts (hand-history "raise to")', () => {
+  it('reports the total street contribution as actorStreetTotal for a preflop SB raise', () => {
+    // SB (dealer) posts 1s and is first to act preflop. Raising by 5s should make the
+    // "raise to" total 6s, while the amount committed this action is 5s.
+    const { state, deck } = setupGame(100, 100);
+    const sbIndex = state.activePlayerIndex!;
+    const sb = state.players[sbIndex]!;
+    expect(sb.currentBet).toBe(1); // small blind already posted
+
+    const result = applyAction(
+      state,
+      { type: 'raise', amount: 5, playerId: sb.id, timestamp: Date.now() },
+      deck
+    );
+
+    // actorStreetTotal is the "raise to" value shown in the hand history.
+    expect(result.actorStreetTotal).toBe(6);
+    // actorCommitted is the seconds put in with this single action.
+    expect(result.actorCommitted).toBe(5);
+    // Sanity: it matches the player's post-action street contribution.
+    expect(result.state.players[sbIndex]!.currentBet).toBe(6);
+  });
+
+  it('reports actorCommitted equal to the amount called for a call', () => {
+    const { state, deck } = setupGame(100, 100);
+    const sbIndex = state.activePlayerIndex!;
+    const sb = state.players[sbIndex]!;
+    const toCall = state.currentBet - sb.currentBet; // 2 - 1 = 1
+
+    const result = applyAction(
+      state,
+      { type: 'call', amount: toCall, playerId: sb.id, timestamp: Date.now() },
+      deck
+    );
+
+    expect(result.actorCommitted).toBe(toCall);
+    // After completing the call, the street total the caller contributed equals the big blind.
+    expect(result.actorStreetTotal).toBe(2);
+  });
+
+  it('reports the full stack as actorStreetTotal for a preflop all-in', () => {
+    const { state, deck } = setupGame(50, 100);
+    const sbIndex = state.activePlayerIndex!;
+    const sb = state.players[sbIndex]!;
+    const stackBefore = sb.timeBank; // remaining after posting SB
+
+    const result = applyAction(
+      state,
+      { type: 'all-in', playerId: sb.id, timestamp: Date.now() },
+      deck
+    );
+
+    // Street total is their prior contribution plus everything they had left.
+    expect(result.actorStreetTotal).toBe(sb.currentBet + stackBefore);
+    expect(result.actorCommitted).toBe(stackBefore);
+  });
+});
