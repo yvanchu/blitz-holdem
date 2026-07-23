@@ -40,6 +40,40 @@ function getPositionLabel(seatIndex: 0 | 1, dealerSeat: number): string {
   return 'BB';
 }
 
+// A single OHH action entry (bet/raise/call/etc.) from a round.
+type OhhAction = CompletedHand['ohhData']['ohh']['rounds'][number]['actions'][number];
+
+// Turn a recorded action into its human-readable verb phrase. Shared by both the
+// plain-text and structured formatters so wording stays consistent. All-in actions
+// carry an `is_allin` flag regardless of whether they were a bet, raise, or call, so
+// the "(all-in)" marker is appended for every aggressive/calling action, not just raises.
+function formatActionVerb(action: OhhAction): string {
+  switch (action.action) {
+    case 'Post SB':
+      return `posts small blind ${action.amount} sec`;
+    case 'Post BB':
+      return `posts big blind ${action.amount} sec`;
+    case 'Fold':
+      return 'folds';
+    case 'Check':
+      return 'checks';
+    case 'Call': {
+      const base = action.amount ? `calls ${action.amount} sec` : 'calls';
+      return action.is_allin ? `${base} (all-in)` : base;
+    }
+    case 'Bet': {
+      const base = `bets ${action.amount} sec`;
+      return action.is_allin ? `${base} (all-in)` : base;
+    }
+    case 'Raise':
+      return action.is_allin
+        ? `raises to ${action.amount} sec (all-in)`
+        : `raises to ${action.amount} sec`;
+    default:
+      return action.action.toLowerCase();
+  }
+}
+
 // Format a hand for human-readable display
 export function formatHandHistory(hand: CompletedHand): string {
   const {
@@ -119,34 +153,7 @@ export function formatHandHistory(hand: CompletedHand): string {
       const isHero = player.seat - 1 === heroSeatIndex;
       const name = isHero ? 'Hero' : player.name;
 
-      let actionStr = '';
-      switch (action.action) {
-        case 'Post SB':
-          actionStr = `posts small blind ${action.amount} sec`;
-          break;
-        case 'Post BB':
-          actionStr = `posts big blind ${action.amount} sec`;
-          break;
-        case 'Fold':
-          actionStr = 'folds';
-          break;
-        case 'Check':
-          actionStr = 'checks';
-          break;
-        case 'Call':
-          actionStr = action.amount ? `calls ${action.amount} sec` : 'calls';
-          break;
-        case 'Bet':
-          actionStr = `bets ${action.amount} sec`;
-          break;
-        case 'Raise':
-          actionStr = action.is_allin
-            ? `raises to ${action.amount} sec (all-in)`
-            : `raises to ${action.amount} sec`;
-          break;
-        default:
-          actionStr = action.action.toLowerCase();
-      }
+      const actionStr = formatActionVerb(action);
 
       lines.push(`  ${name} ${actionStr}`);
     }
@@ -295,34 +302,7 @@ export function formatHandHistoryStructured(hand: CompletedHand): FormattedLine[
       const isHero = player.seat - 1 === heroSeatIndex;
       const name = isHero ? 'Hero' : player.name;
 
-      let actionStr = '';
-      switch (action.action) {
-        case 'Post SB':
-          actionStr = `posts small blind ${action.amount} sec`;
-          break;
-        case 'Post BB':
-          actionStr = `posts big blind ${action.amount} sec`;
-          break;
-        case 'Fold':
-          actionStr = 'folds';
-          break;
-        case 'Check':
-          actionStr = 'checks';
-          break;
-        case 'Call':
-          actionStr = action.amount ? `calls ${action.amount} sec` : 'calls';
-          break;
-        case 'Bet':
-          actionStr = `bets ${action.amount} sec`;
-          break;
-        case 'Raise':
-          actionStr = action.is_allin
-            ? `raises to ${action.amount} sec (all-in)`
-            : `raises to ${action.amount} sec`;
-          break;
-        default:
-          actionStr = action.action.toLowerCase();
-      }
+      const actionStr = formatActionVerb(action);
 
       lines.push({ type: 'action', text: `${name} ${actionStr}`, highlight: isHero });
     }

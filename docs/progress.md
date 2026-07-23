@@ -233,6 +233,35 @@ The `shouldShowCards` condition required `result.showdown` to be true, but volun
 
 ## Session Log
 
+### 2026-07-23 — Agent Dev Loop: hand history marks all-in bets and calls, not just raises
+
+Baseline fast gate confirmed green before touching anything (typecheck PASS, lint clean, build PASS;
+tests common 50, server unit 28, server integration 60, client 203).
+
+- **[Correctness/bug] Hand history now labels every all-in action, not only raises.** All-in actions
+  are recorded with an `is_allin` flag regardless of whether they were a bet, raise, or call
+  (`handHistoryStore.recordAction` sets `is_allin: actionPlayer.isAllIn`, and `useSocket` passes the
+  acting player's `isAllIn`). But `handHistoryFormatter` only appended the "(all-in)" marker in its
+  `Raise` branch — the `Call` and `Bet` branches ignored `is_allin`. So an **all-in call** (the most
+  common way a hand goes to an all-in showdown: villain shoves, hero calls off their stack) rendered as
+  a plain "calls 50 sec", hiding the material fact that the caller was all-in. Same gap for an all-in
+  `Bet`. This affected both the exported plain-text history and the on-screen structured view.
+- **Fix (client formatter only, no protocol/engine change):** extracted the duplicated action-to-text
+  switch (which existed verbatim in both `formatHandHistory` and `formatHandHistoryStructured`) into a
+  single shared `formatActionVerb(action)` helper, and made the `Call` and `Bet` cases append
+  "(all-in)" when `action.is_allin` is set — mirroring the existing `Raise` behavior. Non-all-in calls
+  and bets are unchanged.
+- **Behavior change (flag for reviewer):** hand-history text for all-in calls/bets now reads e.g.
+  "Hero calls 99 sec (all-in)" / "Villain bets 50 sec (all-in)" instead of omitting the marker. Purely
+  a history/label change — no gameplay, color, layout, or standing-decision impact.
+- **Tests:** added a `handHistoryFormatter.test.ts` case (text) asserting all-in bet + all-in call show
+  "(all-in)" while a non-all-in call does not, and a structured-output case asserting
+  "Hero calls 99 sec (all-in)". Existing non-all-in call/raise/bet assertions preserved. Client suite
+  203 → 205 (formatter 34 → 36).
+- **Verification:** full fast gate re-run green (typecheck PASS, lint clean, build PASS; common 50,
+  server unit 28, server integration 60, client 205). Security checklist items remain deferred for human
+  prioritization.
+
 ### 2026-07-14 — Agent Dev Loop: stakes badge shows the seconds unit
 
 Baseline fast gate confirmed green before touching anything, run against `main` (typecheck PASS,
