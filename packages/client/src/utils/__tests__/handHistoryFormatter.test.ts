@@ -212,6 +212,59 @@ describe('handHistoryFormatter', () => {
       expect(result).toContain('folds');
     });
 
+    it('should mark all-in bets and calls with (all-in)', () => {
+      const hand = createTestHand({
+        communityCards: [
+          { rank: 'A', suit: 's' },
+          { rank: 'K', suit: 'd' },
+          { rank: 'Q', suit: 'c' },
+        ],
+        ohhData: {
+          ohh: {
+            ...createTestHand().ohhData.ohh,
+            rounds: [
+              {
+                id: 1,
+                street: 'Preflop' as const,
+                actions: [
+                  { action_number: 1, player_id: 1, action: 'Post SB' as const, amount: 1 },
+                  { action_number: 2, player_id: 2, action: 'Post BB' as const, amount: 2 },
+                  { action_number: 3, player_id: 1, action: 'Call' as const, amount: 1 },
+                  { action_number: 4, player_id: 2, action: 'Check' as const },
+                ],
+              },
+              {
+                id: 2,
+                street: 'Flop' as const,
+                actions: [
+                  {
+                    action_number: 5,
+                    player_id: 2,
+                    action: 'Bet' as const,
+                    amount: 50,
+                    is_allin: true,
+                  },
+                  {
+                    action_number: 6,
+                    player_id: 1,
+                    action: 'Call' as const,
+                    amount: 50,
+                    is_allin: true,
+                  },
+                ],
+              },
+            ],
+          },
+        },
+      });
+      const result = formatHandHistory(hand);
+      expect(result).toContain('Villain bets 50 sec (all-in)');
+      expect(result).toContain('Hero calls 50 sec (all-in)');
+      // A non-all-in call must not be marked
+      expect(result).toContain('Hero calls 1 sec');
+      expect(result).not.toContain('calls 1 sec (all-in)');
+    });
+
     it('should show result section with winner', () => {
       const hand = createTestHand();
       const result = formatHandHistory(hand);
@@ -374,6 +427,47 @@ describe('handHistoryFormatter', () => {
       const result = formatHandHistoryStructured(hand);
       const heroActions = result.filter((line) => line.type === 'action' && line.highlight);
       expect(heroActions.length).toBeGreaterThan(0);
+    });
+
+    it('should mark all-in calls with (all-in) in structured output', () => {
+      const base = createTestHand();
+      const hand: CompletedHand = {
+        ...base,
+        ohhData: {
+          ohh: {
+            ...base.ohhData.ohh,
+            rounds: [
+              {
+                id: 1,
+                street: 'Preflop' as const,
+                actions: [
+                  { action_number: 1, player_id: 1, action: 'Post SB' as const, amount: 1 },
+                  { action_number: 2, player_id: 2, action: 'Post BB' as const, amount: 2 },
+                  {
+                    action_number: 3,
+                    player_id: 2,
+                    action: 'Raise' as const,
+                    amount: 100,
+                    is_allin: true,
+                  },
+                  {
+                    action_number: 4,
+                    player_id: 1,
+                    action: 'Call' as const,
+                    amount: 99,
+                    is_allin: true,
+                  },
+                ],
+              },
+            ],
+          },
+        },
+      };
+      const result = formatHandHistoryStructured(hand);
+      const callLine = result.find(
+        (line) => line.type === 'action' && line.text.includes('calls')
+      );
+      expect(callLine?.text).toBe('Hero calls 99 sec (all-in)');
     });
 
     it('should include cards in section lines when applicable', () => {
