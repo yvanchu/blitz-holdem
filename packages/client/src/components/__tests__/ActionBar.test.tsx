@@ -193,6 +193,20 @@ describe('ActionBar', () => {
       expect(screen.getByText('All In')).toBeInTheDocument();
     });
 
+    it('should show the calculated seconds value under each bet preset', () => {
+      // pot=10, currentBet=0, minRaise=2, toCall=0, timeBank=100
+      // => minTotalBet=2, maxTotalBet=100
+      setupActiveTurn({ timeBank: 100 });
+      render(<ActionBar send={mockSend} isHandInProgress={true} />);
+
+      fireEvent.click(screen.getByTestId('raise-button'));
+
+      // 33% -> floor(10/3)=3, 75% -> floor(30/4)=7, 150% -> floor(15)=15
+      expect(screen.getByText('3s')).toBeInTheDocument();
+      expect(screen.getByText('7s')).toBeInTheDocument();
+      expect(screen.getByText('15s')).toBeInTheDocument();
+    });
+
     it('should allow changing bet amount via input', () => {
       setupActiveTurn({ timeBank: 100 });
       render(<ActionBar send={mockSend} isHandInProgress={true} />);

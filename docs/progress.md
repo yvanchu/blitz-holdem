@@ -77,14 +77,14 @@
 - [ ] **UX**: Show hand number during play (e.g., "Hand #5")
 - [x] **UX**: Add ARIA labels to action buttons (accessibility requirement)
 - [ ] **UX**: Remove unused `GameOverOverlay` component (dead code, superseded by inline game-over state in Table)
-- [ ] **UX**: Show calculated values in bet presets (e.g., "33% (4s)" instead of just "33%")
+- [x] **UX**: Show calculated values in bet presets (e.g., "33% (4s)" instead of just "33%")
 - [ ] **UX**: Add lobby → game transition animation (dealing feel when host clicks Start)
 - [x] **UX**: Make empty community card slots more visible (currently `border-white/20` is nearly invisible on felt)
 - [x] **UX**: Winning cards use `ring-2 ring-yellow-400` + `-translate-y-2` but UX spec calls for a "golden glow" pulse — add a subtle `animate-pulse` or `shadow-yellow-400/50` glow effect to better match spec
 - [ ] **UX**: HomePage background is plain dark (`min-h-screen`) with no felt/branding — should match the felt green or have a cohesive transition into the table aesthetic
 - [ ] **UX**: Timer `animate-pulse` at ≤10s applies to the text, not the container — the pulsing text can feel jittery; consider pulsing the timer background/border instead for a smoother urgency indicator
 - [ ] **UX**: Auto All-In checkbox is a non-standard game control — UX doc doesn't account for it; it should have a confirmation state or undo mechanism since accidental toggle could be costly
-- [ ] **UX**: Bet preset percentages are pot-relative but pot context isn't shown alongside them — showing absolute values (e.g., "75% (12s)") would help quick decision making per existing todo
+- [x] **UX**: Bet preset percentages are pot-relative but pot context isn't shown alongside them — showing absolute values (e.g., "75% (12s)") would help quick decision making per existing todo
 - [x] Integration tests
 - [ ] Add sound effects (optional, mutable)
 - [x] Add hand history display
@@ -232,6 +232,36 @@ The `shouldShowCards` condition required `result.showdown` to be true, but volun
 ---
 
 ## Session Log
+
+### 2026-07-24 — Agent Dev Loop: bet presets show their calculated seconds value
+
+Baseline fast gate confirmed green before touching anything (typecheck PASS, lint clean, build PASS;
+tests common 47, server unit 28, server integration 60, client 203).
+
+- **[UX] Bet-preset buttons now show the concrete seconds amount they map to.** The raise-panel
+  presets (`33% / 75% / Pot / 150% / All In`) previously showed only the percentage label, so a player
+  couldn't see what a "75%" bet actually costs without moving the slider and reading the input. Each
+  button now renders a small second line with the resulting **total** bet in seconds (e.g. `33%` over
+  `3s`), clamped to the same valid `[minTotalBet, maxTotalBet]` range the click applies. This addresses
+  two standing backlog items ("Show calculated values in bet presets" and "Bet preset percentages …
+  pot context isn't shown alongside them") and aligns with docs/ux.md §5 ("What's the pot?" is a top
+  priority) and §8 ("always show unit — '45s' not '45'"; the sub-label uses `tabular-nums`).
+- **Implementation (client-only, no protocol/engine change):** refactored the five hand-written preset
+  buttons in `ActionBar.tsx` into a data-driven `betPresets` array and extracted the existing
+  clamp expression into a shared `clampTotal` helper (reused by both `setPreset` and the new sub-label),
+  removing duplication. The percentage/label text (`33%`, `Pot`, `All In`, …) is kept as its own text
+  node so existing component-test `getByText` assertions still pass; the seconds value is a separate
+  `normal-case` gray sub-label. No color-language change (buttons stay neutral gray — they're sizing
+  helpers, not actions); amber stays on the bet input / confirm button.
+- **Behavior change (flag for reviewer):** purely additive display — each preset button is now two
+  lines (percentage + seconds). Click behavior, amounts, and the resulting bet/raise are unchanged.
+- **Tests:** added an `ActionBar.test.tsx` case asserting the `3s / 7s / 15s` sub-labels for the
+  default `pot=10, currentBet=0, timeBank=100` setup (33% → floor(10/3)=3, 75% → floor(30/4)=7,
+  150% → floor(15)=15). Existing "should show preset buttons" assertions preserved. ActionBar 36 → 37,
+  client suite 203 → 204.
+- **Verification:** full fast gate re-run green (typecheck PASS, lint clean, build PASS; common 47,
+  server unit 28, server integration 60, client 204). Security checklist items remain deferred for human
+  prioritization; no standing decisions touched.
 
 ### 2026-07-14 — Agent Dev Loop: stakes badge shows the seconds unit
 
