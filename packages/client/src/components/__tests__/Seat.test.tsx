@@ -77,6 +77,68 @@ describe('Seat', () => {
     });
   });
 
+  describe('winner gain indicator', () => {
+    it('should show +Xs for the sole winner', () => {
+      const player = createPlayer({ id: 'p1', seatIndex: 0 as const });
+      useGameStore.setState({
+        result: {
+          winnerId: 'p1',
+          winnerHandRank: 'Flush',
+          potAwarded: 24,
+          showdown: true,
+        },
+      });
+      render(<Seat player={player} isDealer={false} position="bottom" />);
+      expect(screen.getByText('+24s')).toBeInTheDocument();
+    });
+
+    it('should not show a gain for the losing player', () => {
+      const player = createPlayer({ id: 'p2', seatIndex: 1 as const });
+      useGameStore.setState({
+        result: {
+          winnerId: 'p1',
+          winnerHandRank: 'Flush',
+          potAwarded: 24,
+          showdown: true,
+        },
+      });
+      render(<Seat player={player} isDealer={false} position="top" />);
+      expect(screen.queryByText(/^\+\d+s$/)).not.toBeInTheDocument();
+    });
+
+    it('should show each player their own share on a split pot', () => {
+      const splitResult = {
+        winnerId: 'p1',
+        winnerHandRank: 'Straight (split)',
+        potAwarded: 13,
+        showdown: true,
+        isSplit: true,
+        splitWinners: [
+          { playerId: 'p1', amount: 13 },
+          { playerId: 'p2', amount: 12 },
+        ],
+      };
+
+      useGameStore.setState({ result: splitResult });
+      const { unmount } = render(
+        <Seat player={createPlayer({ id: 'p1', seatIndex: 0 as const })} isDealer position="bottom" />
+      );
+      expect(screen.getByText('+13s')).toBeInTheDocument();
+      unmount();
+
+      // The non-primary split winner (only reachable via splitWinners, not winnerId)
+      useGameStore.setState({ result: splitResult });
+      render(
+        <Seat
+          player={createPlayer({ id: 'p2', seatIndex: 1 as const })}
+          isDealer={false}
+          position="top"
+        />
+      );
+      expect(screen.getByText('+12s')).toBeInTheDocument();
+    });
+  });
+
   describe('data attributes', () => {
     it('should have correct data-testid for position', () => {
       const player = createPlayer();

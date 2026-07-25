@@ -282,9 +282,23 @@ function PlayerInfo({
   player: PlayerPublic;
   isActive: boolean;
   isDealer: boolean;
-  result: { winnerId: string; potAwarded: number } | null;
+  result: {
+    winnerId: string;
+    potAwarded: number;
+    isSplit?: boolean;
+    splitWinners?: { playerId: string; amount: number }[];
+  } | null;
   wins?: number;
 }) {
+  // Amount this player won this hand. On a split pot both players win a share,
+  // so read each player's award from splitWinners rather than the single winnerId.
+  const playerGain =
+    result?.isSplit && result.splitWinners
+      ? result.splitWinners.find((w) => w.playerId === player.id)?.amount
+      : result?.winnerId === player.id
+        ? result.potAwarded
+        : undefined;
+
   return (
     <div
       data-testid="player-info"
@@ -309,9 +323,9 @@ function PlayerInfo({
       {/* Timer with gain indicator */}
       <div className="flex flex-shrink-0 items-center gap-1">
         <Timer timeBank={player.timeBank} isActive={isActive} isAllIn={player.isAllIn} />
-        {result && result.winnerId === player.id && (
+        {playerGain != null && playerGain > 0 && (
           <span className="text-green-400 font-bold text-xs sm:text-sm animate-pulse">
-            +{result.potAwarded}s
+            +{playerGain}s
           </span>
         )}
       </div>

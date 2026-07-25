@@ -233,6 +233,31 @@ The `shouldShowCards` condition required `result.showdown` to be true, but volun
 
 ## Session Log
 
+### 2026-07-25 — Agent Dev Loop: show the split-pot gain to both winners
+
+Baseline fast gate confirmed green on `main` before any change (typecheck PASS, lint clean, build
+PASS; tests common 47, server unit 28, server integration 60, client 203).
+
+- **[UX/correctness] Split-pot winner gain now shown to both players (contradicted docs/ux.md §6).**
+  The per-seat "+Xs" gain indicator in `Seat.tsx` was gated on `result.winnerId === player.id`. On a
+  **split pot** the engine sets `winnerId` to the primary/first player only (`p0.id`, for backwards
+  compatibility) and reports both shares via `isSplit` + `splitWinners`. As a result, on a tie only
+  the primary winner saw their `+Xs`; the second split winner — who also won a share — saw **no gain
+  indicator at all**, contradicting UX §6 ("Hand won → '+Xs' gain shown"). `PlayerInfo` now derives
+  each player's award from `splitWinners` when the pot is split (falling back to the single-winner
+  path otherwise), so both seats show their own share (e.g. `+13s` / `+12s` on an odd pot). Green
+  color and `animate-pulse` unchanged (UX §7: green = winning); no layout/behavior change to the
+  non-split path.
+- **Tests:** added a `winner gain indicator` block to `Seat.test.tsx` — sole winner shows `+Xs`,
+  loser shows none, and both split winners show their own share (the second reachable only via
+  `splitWinners`, which is exactly the path that was broken). Client suite 203 → 206. No existing
+  assertions changed.
+- **Verification:** full fast gate re-run green (typecheck PASS, lint clean, build PASS; common 47,
+  server unit 28, server integration 60, client 206). Confirmed the previously-empty second-winner
+  seat now renders its `+Xs` share.
+- No standing decisions touched (button order, fold placement, no street indicators, no onboarding
+  all unchanged). Security checklist items remain deferred for human prioritization.
+
 ### 2026-07-14 — Agent Dev Loop: stakes badge shows the seconds unit
 
 Baseline fast gate confirmed green before touching anything, run against `main` (typecheck PASS,
