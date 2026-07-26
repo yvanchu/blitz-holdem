@@ -77,14 +77,14 @@
 - [ ] **UX**: Show hand number during play (e.g., "Hand #5")
 - [x] **UX**: Add ARIA labels to action buttons (accessibility requirement)
 - [ ] **UX**: Remove unused `GameOverOverlay` component (dead code, superseded by inline game-over state in Table)
-- [ ] **UX**: Show calculated values in bet presets (e.g., "33% (4s)" instead of just "33%")
+- [x] **UX**: Show calculated values in bet presets (e.g., "33% (4s)" instead of just "33%")
 - [ ] **UX**: Add lobby → game transition animation (dealing feel when host clicks Start)
 - [x] **UX**: Make empty community card slots more visible (currently `border-white/20` is nearly invisible on felt)
 - [x] **UX**: Winning cards use `ring-2 ring-yellow-400` + `-translate-y-2` but UX spec calls for a "golden glow" pulse — add a subtle `animate-pulse` or `shadow-yellow-400/50` glow effect to better match spec
 - [ ] **UX**: HomePage background is plain dark (`min-h-screen`) with no felt/branding — should match the felt green or have a cohesive transition into the table aesthetic
 - [ ] **UX**: Timer `animate-pulse` at ≤10s applies to the text, not the container — the pulsing text can feel jittery; consider pulsing the timer background/border instead for a smoother urgency indicator
 - [ ] **UX**: Auto All-In checkbox is a non-standard game control — UX doc doesn't account for it; it should have a confirmation state or undo mechanism since accidental toggle could be costly
-- [ ] **UX**: Bet preset percentages are pot-relative but pot context isn't shown alongside them — showing absolute values (e.g., "75% (12s)") would help quick decision making per existing todo
+- [x] **UX**: Bet preset percentages are pot-relative but pot context isn't shown alongside them — showing absolute values (e.g., "75% (12s)") would help quick decision making per existing todo
 - [x] Integration tests
 - [ ] Add sound effects (optional, mutable)
 - [x] Add hand history display
@@ -232,6 +232,34 @@ The `shouldShowCards` condition required `result.showdown` to be true, but volun
 ---
 
 ## Session Log
+
+### 2026-07-26 — Agent Dev Loop: show absolute second-values in bet presets
+
+Baseline fast gate confirmed green on `main` before any change (typecheck PASS, lint clean, build
+PASS; tests common 47, server unit 28, server integration 60, client 203).
+
+- **[UX] Bet presets now show their absolute size in seconds under the percentage.** The raise
+  panel's five presets rendered only a label (`33%`, `75%`, `Pot`, `150%`, `All In`) with no
+  indication of how many seconds each actually bets — the percentages are pot-relative, but the pot
+  context was never shown alongside them, so a player had to click to discover the size. Each preset
+  button now renders the computed absolute value beneath its label (e.g. `33%` + `4s`, `Pot` + the
+  full pot, `All In` + the all-in total), matching the exact amount that lands in the bet input. This
+  directly serves UX §5 ("What's the pot?" is a top-priority question) and the standing backlog items
+  for pot-relative preset context. New `PresetSeconds` sub-component hides the hint when the value is
+  `0` (empty pot) to avoid a noisy `0s`.
+- **Color language (UX §7) respected:** the seconds hint is amber (`text-amber-300`), the betting/pot
+  color, and uses `tabular-nums` so the figures don't jump (UX §8). No action-button colors changed.
+- **Tests:** added two cases to `ActionBar.test.tsx` — one asserting each preset shows its computed
+  seconds (`3s`/`7s`/`10s`/`15s`/`100s` for pot 10, timebank 100) and one asserting no `0s` hint is
+  rendered on an empty pot. The existing preset test (`getByText('33%')` … `'All In'`) is preserved
+  unchanged — the percentage labels live in their own span, so those assertions still match. ActionBar
+  36 → 38, client suite 203 → 205.
+- **Verification:** full fast gate re-run green on the branch (typecheck PASS, lint clean, build PASS;
+  common 47, server unit 28, server integration 60, client 205). Confirmed each preset now renders its
+  seconds value and the previously label-only buttons show pot-relative context.
+- No standing decisions touched (button order `Call | Raise | Check | Fold`, fold placement, no street
+  indicators, no onboarding all unchanged). Security checklist items remain deferred for human
+  prioritization.
 
 ### 2026-07-14 — Agent Dev Loop: stakes badge shows the seconds unit
 

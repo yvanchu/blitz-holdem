@@ -17,6 +17,18 @@ interface ActionBarProps {
   isHandInProgress: boolean;
 }
 
+// Absolute bet size (in seconds) shown under a preset's percentage label.
+// Amber per the color language (UX §7: amber = betting/pot). Hidden when there
+// is nothing to show (e.g. an empty pot) to avoid a noisy "0s".
+function PresetSeconds({ value }: { value: number }) {
+  if (value <= 0) return null;
+  return (
+    <span className="mt-0.5 text-[9px] sm:text-[10px] font-normal normal-case leading-none text-amber-300 tabular-nums">
+      {value}s
+    </span>
+  );
+}
+
 export default function ActionBar({ send, isHandInProgress }: ActionBarProps) {
   const { minRaise, currentBet, pot, result, revealedCards, yourSeatIndex } = useGameStore();
   const yourPlayer = useGameStore(selectYourPlayer);
@@ -291,37 +303,42 @@ export default function ActionBar({ send, isHandInProgress }: ActionBarProps) {
 
               {/* Presets and slider */}
               <div className="flex-1 flex flex-col gap-2">
-                {/* Preset buttons */}
+                {/* Preset buttons — show the absolute seconds size alongside the % */}
                 <div className="grid grid-cols-5 gap-1.5 sm:gap-2">
                   <button
                     onClick={() => setPreset(currentBet + Math.floor(pot / 3))}
-                    className="px-1 py-2.5 sm:py-2 text-[11px] sm:text-xs bg-gray-700 hover:bg-gray-600 text-white rounded font-medium uppercase"
+                    className="flex flex-col items-center justify-center px-1 py-2 sm:py-1.5 bg-gray-700 hover:bg-gray-600 text-white rounded font-medium uppercase"
                   >
-                    33%
+                    <span className="text-[11px] sm:text-xs leading-none">33%</span>
+                    <PresetSeconds value={Math.floor(pot / 3)} />
                   </button>
                   <button
                     onClick={() => setPreset(currentBet + Math.floor((pot * 3) / 4))}
-                    className="px-1 py-2.5 sm:py-2 text-[11px] sm:text-xs bg-gray-700 hover:bg-gray-600 text-white rounded font-medium uppercase"
+                    className="flex flex-col items-center justify-center px-1 py-2 sm:py-1.5 bg-gray-700 hover:bg-gray-600 text-white rounded font-medium uppercase"
                   >
-                    75%
+                    <span className="text-[11px] sm:text-xs leading-none">75%</span>
+                    <PresetSeconds value={Math.floor((pot * 3) / 4)} />
                   </button>
                   <button
                     onClick={() => setPreset(currentBet + pot)}
-                    className="px-1 py-2.5 sm:py-2 text-[11px] sm:text-xs bg-gray-700 hover:bg-gray-600 text-white rounded font-medium uppercase"
+                    className="flex flex-col items-center justify-center px-1 py-2 sm:py-1.5 bg-gray-700 hover:bg-gray-600 text-white rounded font-medium uppercase"
                   >
-                    Pot
+                    <span className="text-[11px] sm:text-xs leading-none">Pot</span>
+                    <PresetSeconds value={pot} />
                   </button>
                   <button
                     onClick={() => setPreset(currentBet + Math.floor((pot * 3) / 2))}
-                    className="px-1 py-2.5 sm:py-2 text-[11px] sm:text-xs bg-gray-700 hover:bg-gray-600 text-white rounded font-medium uppercase"
+                    className="flex flex-col items-center justify-center px-1 py-2 sm:py-1.5 bg-gray-700 hover:bg-gray-600 text-white rounded font-medium uppercase"
                   >
-                    150%
+                    <span className="text-[11px] sm:text-xs leading-none">150%</span>
+                    <PresetSeconds value={Math.floor((pot * 3) / 2)} />
                   </button>
                   <button
                     onClick={() => setPreset(maxTotalBet)}
-                    className="px-1 py-2.5 sm:py-2 text-[11px] sm:text-xs bg-gray-700 hover:bg-gray-600 text-white rounded font-medium uppercase"
+                    className="flex flex-col items-center justify-center px-1 py-2 sm:py-1.5 bg-gray-700 hover:bg-gray-600 text-white rounded font-medium uppercase"
                   >
-                    All In
+                    <span className="text-[11px] sm:text-xs leading-none">All In</span>
+                    <PresetSeconds value={maxTotalBet} />
                   </button>
                 </div>
 

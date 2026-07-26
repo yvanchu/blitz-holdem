@@ -193,6 +193,34 @@ describe('ActionBar', () => {
       expect(screen.getByText('All In')).toBeInTheDocument();
     });
 
+    it('should show absolute second values under each preset', () => {
+      // pot=10, currentBet=0, timeBank=100 (from setupActiveTurn defaults)
+      setupActiveTurn({ timeBank: 100 });
+      render(<ActionBar send={mockSend} isHandInProgress={true} />);
+
+      fireEvent.click(screen.getByTestId('raise-button'));
+
+      // 33% -> floor(10/3)=3, 75% -> floor(30/4)=7, 150% -> floor(30/2)=15
+      expect(screen.getByText('3s')).toBeInTheDocument();
+      expect(screen.getByText('7s')).toBeInTheDocument();
+      expect(screen.getByText('15s')).toBeInTheDocument();
+      // Pot -> full pot (10s), All In -> currentBet + timeBank = 100s
+      expect(screen.getByText('Pot').closest('button')).toHaveTextContent('10s');
+      expect(screen.getByText('100s')).toBeInTheDocument();
+    });
+
+    it('should not render a seconds hint when the pot is empty', () => {
+      setupActiveTurn({ timeBank: 100 });
+      useGameStore.setState({ pot: 0, currentBet: 0 });
+      render(<ActionBar send={mockSend} isHandInProgress={true} />);
+
+      fireEvent.click(screen.getByTestId('raise-button'));
+
+      // Percentages still render, but no "0s" noise underneath them.
+      expect(screen.getByText('33%')).toBeInTheDocument();
+      expect(screen.queryByText('0s')).not.toBeInTheDocument();
+    });
+
     it('should allow changing bet amount via input', () => {
       setupActiveTurn({ timeBank: 100 });
       render(<ActionBar send={mockSend} isHandInProgress={true} />);
