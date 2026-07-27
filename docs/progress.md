@@ -233,6 +233,35 @@ The `shouldShowCards` condition required `result.showdown` to be true, but volun
 
 ## Session Log
 
+### 2026-07-27 — Agent Dev Loop: de-flake the server integration suite (file parallelism)
+
+Baseline fast gate run first: typecheck PASS, lint clean, build PASS, unit tests green (common 47,
+server unit 28, client 203) — but `pnpm --filter @bullet-poker/server run test:integration` was
+**intermittently red** (~1 run in 5). Failures were non-deterministic: different tests failed each
+time (`should preserve settings when new player joins after grace period`, `should allow game to
+continue with remaining player taking action`, `should end hand when all-in is called`), always as
+`Timeout waiting for message: …`, and one failing run took **268s** for a single file vs the usual
+~12s.
+
+- **[Bug/CI-stability] Root cause: the 4 integration files ran in parallel (vitest default), each
+  booting its own WebSocket server plus many real-timer clients.** Under CPU contention the tight
+  test-mode timings (`disconnectGracePeriod` 500ms, grace-period auto-fold windows, the 5s
+  `waitForMessage` timeout) blew past their budgets and stranded message waiters — pure timing
+  flakiness, not a product bug. Fix: run the integration files sequentially by adding
+  `--no-file-parallelism` to the server `test:integration` script.
+- **Result:** 6/6 sequential runs green *and* ~10x faster (≈11–12s vs the flaky 100–268s parallel
+  runs), because the servers stop thrashing each other for the CPU.
+- **Tests:** no new test file — the fix *is* verified by the existing 60-test integration suite now
+  passing deterministically. Pinning intermittent timeout flakiness with a bespoke test isn't
+  practical; the reliability is the observable proof (repeated green runs).
+- **Scope note:** the fast gate and this change target `test:integration`. CI's `pnpm test` uses the
+  server `test` script, which already excludes `integration/`, so CI is unaffected. `test:all` (not
+  in the fast gate) still runs integration in parallel — left as a follow-up to keep this PR to one
+  concern.
+- **Verification:** full fast gate re-run green (typecheck PASS, lint clean, build PASS; common 47,
+  server unit 28, server integration 60, client 203). No product/behavior, layout, or color change;
+  standing decisions and UX §7 color language untouched. Security checklist items remain deferred.
+
 ### 2026-07-14 — Agent Dev Loop: stakes badge shows the seconds unit
 
 Baseline fast gate confirmed green before touching anything, run against `main` (typecheck PASS,

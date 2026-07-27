@@ -11,7 +11,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run --passWithNoTests --dir src/__tests__ --exclude '**/integration/**'",
     "test:watch": "vitest",
-    "test:integration": "vitest run --dir src/__tests__/integration",
+    "test:integration": "vitest run --dir src/__tests__/integration --no-file-parallelism",
     "test:all": "vitest run"
   },
   "dependencies": {
