@@ -344,9 +344,10 @@ describe('Game Flow Integration', () => {
       activeClient.action('all-in');
       await sleep(200);
 
-      // Second player calls/goes all-in
+      // Second player calls the all-in. (Facing an all-in opponent, only
+      // call/fold are legal — re-shoving is no longer offered by the engine.)
       otherClient.clearMessages();
-      otherClient.action('all-in');
+      otherClient.action('call');
 
       // Server runs out the hand with configurable delays (100ms in test mode)
       // preflop -> flop -> turn -> river -> showdown
