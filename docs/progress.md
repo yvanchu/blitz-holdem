@@ -233,6 +233,39 @@ The `shouldShowCards` condition required `result.showdown` to be true, but volun
 
 ## Session Log
 
+### 2026-07-28 — Agent Dev Loop: facing an all-in, only Call/Fold are offered
+
+Baseline fast gate confirmed green on `main` before any change (typecheck PASS, lint clean, build
+PASS; tests common 47, server unit 28, server integration 60, client 203).
+
+- **[Bug/correctness] `getValidActions` no longer offers bet/raise/all-in once the opponent is
+  already all-in.** In heads-up, when the opponent is all-in they have nothing left to cover a
+  raise, so the only legal responses are check/call and fold (standard table-stakes rule, PRD
+  §"Mechanical Constraints"). Previously the engine still returned `raise`/`all-in`, so a player
+  could "raise" or "re-shove" against an all-in opponent; the excess was committed to the pot and
+  then silently handed back by `refundUncalledBet` during the runout — a meaningless, confusing,
+  non-standard action (and the UI rendered a live Raise button for it). Now only `fold` + `call`
+  are returned (a short stack still calls all-in via `call`, which caps to the remaining bank).
+- **Server-authoritative:** `getValidActions` both drives the client's enabled buttons *and*
+  validates incoming actions (`table.ts`), so this closes the action off end-to-end. The client
+  already gated its Raise/all-in controls and its auto-all-in fallback on `validActions`, so no
+  client change was needed — the auto-all-in path already falls back to `call` when `all-in` is
+  absent.
+- **Tests:** added an engine unit test pinning that, when the active player faces an all-in
+  opponent (deep enough to otherwise afford a raise), the valid actions are exactly `fold`/`call`
+  with no `bet`/`raise`/`all-in`. Updated two existing tests that expressed "second player
+  calls/goes all-in" by *re-shoving* (`all-in`) to instead `call` the all-in — the corrected,
+  now-legal action, which yields the same both-all-in showdown (engine "both all-in runs out cards"
+  and the gameFlow integration "should handle all-in action"). Their showdown assertions are
+  preserved. Common suite 47 → 48.
+- **Scope/decisions:** engine-only rule correction; no protocol, layout, or color change. This
+  tightens *game-action legality* (poker rules), not auth/validation of untrusted input — the
+  SECURITY checklist items (Zod message validation, reconnect tokens, payload caps, etc.) remain
+  deferred for human prioritization. Standing decisions (button order, fold placement, no street
+  indicators, no onboarding) untouched; UX §7 color language unaffected.
+- **Verification:** full fast gate re-run green on the branch (typecheck PASS, lint clean, build
+  PASS; common 48, server unit 28, server integration 60, client 203).
+
 ### 2026-07-14 — Agent Dev Loop: stakes badge shows the seconds unit
 
 Baseline fast gate confirmed green before touching anything, run against `main` (typecheck PASS,

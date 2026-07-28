@@ -195,6 +195,16 @@ export function getValidActions(state: TableState): ActionType[] {
     return [];
   }
 
+  // In heads-up, once the opponent is all-in no further aggression is possible:
+  // they have nothing left to cover a raise, so the only legal responses are
+  // check/call and fold (standard table-stakes rule). Offering bet/raise/all-in
+  // here would let a player commit seconds that are immediately refunded as an
+  // uncalled bet — a meaningless, non-standard action. A short call can still be
+  // made via 'call', which caps to the player's remaining time bank.
+  const opponentIndex: 0 | 1 = state.activePlayerIndex === 0 ? 1 : 0;
+  const opponent = state.players[opponentIndex];
+  const opponentAllIn = !!opponent && opponent.isAllIn;
+
   const toCall = state.currentBet - player.currentBet;
   const actions: ActionType[] = ['fold'];
 
@@ -208,11 +218,11 @@ export function getValidActions(state: TableState): ActionType[] {
     actions.push('call');
   }
 
-  if (canAfford(player, toCall + state.minRaise)) {
+  if (!opponentAllIn && canAfford(player, toCall + state.minRaise)) {
     actions.push(state.currentBet === 0 ? 'bet' : 'raise');
   }
 
-  if (player.timeBank > 0) {
+  if (!opponentAllIn && player.timeBank > 0) {
     actions.push('all-in');
   }
 

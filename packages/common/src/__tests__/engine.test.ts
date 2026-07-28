@@ -131,7 +131,9 @@ describe('Engine - Effective Stack Limiting', () => {
         deck
       );
 
-      // If hand didn't end, second player calls
+      // If hand didn't end, second player calls the all-in (facing an all-in,
+      // only call/fold are legal — with an equal stack the call is itself an
+      // all-in and the hand runs out to showdown).
       if (result.state.isHandInProgress && result.state.activePlayerIndex !== null) {
         const nextIndex = result.state.activePlayerIndex;
         const nextPlayer = result.state.players[nextIndex]!;
@@ -139,7 +141,8 @@ describe('Engine - Effective Stack Limiting', () => {
         result = applyAction(
           result.state,
           {
-            type: 'all-in',
+            type: 'call',
+            amount: result.state.currentBet - nextPlayer.currentBet,
             playerId: nextPlayer.id,
             timestamp: Date.now(),
           },
@@ -220,6 +223,38 @@ describe('Engine - Valid Actions', () => {
       const actions = getValidActions(currentState);
       expect(actions).toContain('check');
     }
+  });
+
+  it('should only offer call/fold when the opponent is already all-in', () => {
+    // Active player is the SB/dealer (seat 0). Give them the short stack so their
+    // all-in commits their whole bank, then hand action to the deep opponent.
+    const { state, deck } = setupGame(40, 100);
+
+    const activeIndex = state.activePlayerIndex!;
+    const activePlayer = state.players[activeIndex]!;
+
+    // Active player shoves all-in
+    const result = applyAction(
+      state,
+      { type: 'all-in', playerId: activePlayer.id, timestamp: Date.now() },
+      deck
+    );
+
+    // The betting round is not complete: the deep opponent still has to respond.
+    expect(result.state.isHandInProgress).toBe(true);
+    expect(result.state.activePlayerIndex).not.toBeNull();
+
+    const opponentIndex = result.state.activePlayerIndex!;
+    expect(opponentIndex).not.toBe(activeIndex);
+    expect(result.state.players[opponentIndex]!.isAllIn).toBe(false);
+
+    // Facing an all-in opponent, the deep player (who could otherwise afford a
+    // raise) may only call or fold — no bet/raise/all-in, per table stakes.
+    const actions = getValidActions(result.state);
+    expect(actions).toEqual(expect.arrayContaining(['fold', 'call']));
+    expect(actions).not.toContain('raise');
+    expect(actions).not.toContain('bet');
+    expect(actions).not.toContain('all-in');
   });
 });
 
