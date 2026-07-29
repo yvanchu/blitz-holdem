@@ -81,8 +81,14 @@ export default function SettingsModal({ isOpen, onClose, send }: SettingsModalPr
                   const val = parseInt(e.target.value) || 1;
                   setSmallBlind(val);
                   // Auto-adjust big blind if needed
-                  if (bigBlind < val) {
-                    setBigBlind(val * 2);
+                  const nextBigBlind = bigBlind < val ? val * 2 : bigBlind;
+                  if (nextBigBlind !== bigBlind) {
+                    setBigBlind(nextBigBlind);
+                  }
+                  // Keep time bank at or above its (blind-derived) minimum so the
+                  // displayed value never contradicts the stated minimum / Save value
+                  if (timeBank < nextBigBlind * 10) {
+                    setTimeBank(nextBigBlind * 10);
                   }
                 }}
                 className="flex-1 px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white text-center focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -102,6 +108,11 @@ export default function SettingsModal({ isOpen, onClose, send }: SettingsModalPr
                 onChange={(e) => {
                   const val = Math.max(smallBlind, parseInt(e.target.value) || smallBlind);
                   setBigBlind(val);
+                  // Keep time bank at or above its (blind-derived) minimum so the
+                  // displayed value never contradicts the stated minimum / Save value
+                  if (timeBank < val * 10) {
+                    setTimeBank(val * 10);
+                  }
                 }}
                 className="flex-1 px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white text-center focus:outline-none focus:ring-2 focus:ring-blue-500"
               />

@@ -105,6 +105,38 @@ describe('SettingsModal', () => {
       // Big blind should auto-adjust to 2x small blind
       expect(bigBlindInput).toHaveValue(10);
     });
+
+    it('should raise time bank to the new minimum when big blind increases past it', () => {
+      // Defaults: small 1, big 2, time bank 300 (min = 20)
+      render(<SettingsModal isOpen={true} onClose={mockOnClose} send={mockSend} />);
+
+      const bigBlindInput = screen.getAllByRole('spinbutton')[1]!;
+      const timeBankInput = screen.getAllByRole('spinbutton')[2]!;
+
+      expect(timeBankInput).toHaveValue(300);
+
+      // Big blind = 40 -> new minimum time bank = 400, which exceeds current 300
+      fireEvent.change(bigBlindInput, { target: { value: '40' } });
+
+      // Time bank field should be bumped to the new minimum so it never displays a
+      // value below the stated minimum (and matches what Save would send)
+      expect(timeBankInput).toHaveValue(400);
+    });
+
+    it('should raise time bank when small blind auto-bumps big blind past the minimum', () => {
+      // Defaults: small 1, big 2, time bank 300
+      render(<SettingsModal isOpen={true} onClose={mockOnClose} send={mockSend} />);
+
+      const smallBlindInput = screen.getAllByRole('spinbutton')[0]!;
+      const bigBlindInput = screen.getAllByRole('spinbutton')[1]!;
+      const timeBankInput = screen.getAllByRole('spinbutton')[2]!;
+
+      // Small blind = 25 -> big blind auto-adjusts to 50 -> min time bank = 500
+      fireEvent.change(smallBlindInput, { target: { value: '25' } });
+
+      expect(bigBlindInput).toHaveValue(50);
+      expect(timeBankInput).toHaveValue(500);
+    });
   });
 
   describe('save functionality', () => {

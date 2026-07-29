@@ -233,6 +233,35 @@ The `shouldShowCards` condition required `result.showdown` to be true, but volun
 
 ## Session Log
 
+### 2026-07-29 — Agent Dev Loop: keep Time Bank consistent with its blind-derived minimum
+
+Baseline fast gate confirmed green on `main` before any change (typecheck PASS, lint clean, build
+PASS; tests common 47, server unit 28, server integration 60, client 203).
+
+- **[Bug/correctness] SettingsModal no longer displays a Starting Time Bank below its own stated
+  minimum.** The Time Bank field advertises a dynamic minimum of `bigBlind * 10` (both via the
+  input's `min` attribute and the "Minimum: N seconds (10 big blinds)" helper), and `handleSave`
+  enforces it with `Math.max(bigBlind * 10, timeBank)`. But raising the Big Blind — directly, or by
+  raising the Small Blind, which auto-bumps the Big Blind to `2×` — did **not** re-clamp the local
+  `timeBank`. The field then showed a value *below* the minimum it was simultaneously displaying,
+  and Save silently rewrote it to a different (higher) number than the user saw — not WYSIWYG. Now,
+  whenever a blind change raises `bigBlind * 10` above the current `timeBank`, the Time Bank is
+  bumped up to the new minimum in the same `onChange`, so the field always agrees with the stated
+  minimum and with what Save sends.
+- **Tests:** added two `SettingsModal.test.tsx` cases — (1) setting Big Blind to 40 (min 400) with
+  the default 300 time bank bumps the Time Bank field to 400; (2) setting Small Blind to 25
+  auto-adjusts Big Blind to 50 and bumps the Time Bank field to 500. Both were confirmed to **fail**
+  against the pre-fix code and pass after. All existing SettingsModal assertions preserved (the
+  downward-clamp-on-Save tests are unaffected because the Time Bank input already clamps up on its
+  own change). Client suite 203 → 205.
+- **Scope/decisions:** client-only, single component; no protocol, layout, or color change (UX §7
+  color language untouched — no colored actions involved). This is a UI validation/consistency fix,
+  not auth/input validation of untrusted messages — the SECURITY checklist items (Zod validation,
+  settings upper bounds, etc.) remain deferred for human prioritization. Standing decisions (button
+  order, fold placement, no street indicators, no onboarding) untouched.
+- **Verification:** full fast gate re-run green on the branch (typecheck PASS, lint clean, build
+  PASS; common 47, server unit 28, server integration 60, client 205).
+
 ### 2026-07-14 — Agent Dev Loop: stakes badge shows the seconds unit
 
 Baseline fast gate confirmed green before touching anything, run against `main` (typecheck PASS,
