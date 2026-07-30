@@ -239,9 +239,18 @@ describe('Seat', () => {
       // The bet chip shows "Xs" for current bet - should not be present
       // Note: Timer also shows time in "Xs" format, so we look for the specific bet chip styling
       const betChips = screen.queryAllByText(/^\d+s$/);
-      // Filter to only those in yellow chip container (bet chips)
-      const yellowChips = betChips.filter((el) => el.closest('.bg-yellow-500') !== null);
-      expect(yellowChips).toHaveLength(0);
+      // Filter to only those in the amber chip container (bet chips, UX §7: amber = chips)
+      const amberChips = betChips.filter((el) => el.closest('.bg-amber-500') !== null);
+      expect(amberChips).toHaveLength(0);
+    });
+
+    it('should render the bet chip in amber (UX §7 color for chips)', () => {
+      const player = createPlayer({ currentBet: 10 });
+      render(<Seat player={player} isDealer={false} position="bottom" />);
+      const chip = screen.getByText('10s').closest('.bg-amber-500');
+      expect(chip).not.toBeNull();
+      // Must not use yellow (the winning/gold color) for a betting chip.
+      expect(screen.getByText('10s').closest('.bg-yellow-500')).toBeNull();
     });
 
     it('should round bet to nearest integer', () => {
