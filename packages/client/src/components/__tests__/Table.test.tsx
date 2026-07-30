@@ -152,6 +152,14 @@ describe('Table', () => {
       expect(screen.getByTestId('pot-value')).toHaveTextContent('10');
     });
 
+    it('should render the pot value in amber (UX §7 color for pot)', () => {
+      render(<Table send={mockSend} />);
+      const potValue = screen.getByTestId('pot-value');
+      expect(potValue).toHaveClass('text-amber-400');
+      // Must not use yellow (the winning/gold color) for the pot.
+      expect(potValue).not.toHaveClass('text-yellow-400');
+    });
+
     it('should display community cards container', () => {
       render(<Table send={mockSend} />);
       expect(screen.getByTestId('community-cards')).toBeInTheDocument();

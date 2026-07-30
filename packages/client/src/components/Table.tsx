@@ -238,7 +238,7 @@ export default function Table({ send }: TableProps) {
               <span className="text-gray-400 text-xs sm:text-sm">Pot: </span>
               <span
                 data-testid="pot-value"
-                className="text-yellow-400 font-mono tracking-wider tabular-nums font-bold text-sm sm:text-lg"
+                className="text-amber-400 font-mono tracking-wider tabular-nums font-bold text-sm sm:text-lg"
               >
                 {Math.round(pot)}s
               </span>

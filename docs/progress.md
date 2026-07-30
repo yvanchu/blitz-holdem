@@ -233,6 +233,36 @@ The `shouldShowCards` condition required `result.showdown` to be true, but volun
 
 ## Session Log
 
+### 2026-07-30 — Agent Dev Loop: pot and bet chips use the §7 amber color, not yellow
+
+Baseline fast gate confirmed green on `main` before any change (typecheck PASS, lint clean, build
+PASS; tests common 47, server unit 28, server integration 60, client 203).
+
+- **[UX/color-language] The pot and the bet chips now render in amber (`#F59E0B`) instead of
+  yellow, per `docs/ux.md` §7.** §7 "Consistent Color Language" maps **amber = betting/neutral
+  (Raise, Bet, pot, chips)**, and the Raise/Bet button, slider accent, and bet input already use
+  amber. But the two on-table "money" elements were the holdouts: the pot value (`Table.tsx`) used
+  `text-yellow-400` and the per-seat bet chip (`Seat.tsx`) used `bg-yellow-500`. Yellow is the app's
+  *winning/gold* accent (winning-card ring, "You Win", `+Xs` gain), so using it for the pot/chips
+  blurred the language — money-in-play now correctly shares the amber betting color, and gold stays
+  reserved for winning. No layout, size, or copy change; the chip keeps black text on amber (same
+  contrast as before).
+- **Tests:** added two component tests pinning the color — (1) `Table.test.tsx`: `pot-value` has
+  `text-amber-400` and not `text-yellow-400`; (2) `Seat.test.tsx`: a seat with `currentBet > 0`
+  renders its `Xs` chip inside a `.bg-amber-500` container and not `.bg-yellow-500`. Both fail
+  against the pre-change (yellow) markup and pass after. Deliberately updated the existing
+  "should not display bet chip when currentBet = 0" test, which located the chip via
+  `.bg-yellow-500`, to `.bg-amber-500` so it keeps targeting the chip container (assertion intent
+  unchanged). Client suite 203 → 205.
+- **Scope/decisions:** client-only, two presentational components; no protocol, engine, layout, or
+  behavior change. Winning/gold highlights (cards, "You Win", gain badge) intentionally left yellow.
+  Standing decisions (button order `Call | Raise | Check | Fold`, fold placement, no street
+  indicators, no onboarding) untouched. SECURITY checklist items remain deferred for human
+  prioritization.
+- **Verification:** full fast gate re-run green on the branch (typecheck PASS, lint clean, build
+  PASS; common 47, server unit 28, server integration 60, client 205). Confirmed pot renders
+  `text-amber-400` and the bet chip `bg-amber-500`; no `yellow` remains on either.
+
 ### 2026-07-14 — Agent Dev Loop: stakes badge shows the seconds unit
 
 Baseline fast gate confirmed green before touching anything, run against `main` (typecheck PASS,
