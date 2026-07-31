@@ -233,6 +233,33 @@ The `shouldShowCards` condition required `result.showdown` to be true, but volun
 
 ## Session Log
 
+### 2026-07-31 — Agent Dev Loop: keyboard access + dialog semantics for Hand History modal
+
+Baseline fast gate confirmed green on `main` before any change (typecheck PASS, lint clean, build
+PASS; tests common 47, server unit 28, server integration 60, client 203). The two intermittent
+integration failures seen when the suite races the common suite are the known file-parallelism
+flake already tracked by an open PR — integration is 60/60 when run on its own.
+
+- **[A11y/UX] The Hand History modal is now keyboard-operable.** `HandHistoryModal` was a
+  full-screen overlay with no keyboard affordances: it could only be dismissed by clicking the ✕,
+  and hands could only be browsed with the on-screen arrows. It also lacked dialog semantics, so
+  assistive tech didn't announce it as a modal. Added a `keydown` listener (active only while the
+  modal is open, cleaned up on close/unmount): **Escape** closes it, **←/→** step to the
+  previous/next completed hand (respecting the existing first/last bounds). The dialog container now
+  carries `role="dialog"`, `aria-modal="true"`, and `aria-labelledby` pointing at the visible
+  "Hand History" title. Aligns with PRD §80 (accessibility, focus states) and UX §Accessibility.
+- **No visual/behavioral change** to the rendered content, colors, layout, or the game itself — the
+  modal looks identical; it just gained keyboard controls and screen-reader labelling. Color
+  language (UX §7) untouched; no standing decisions affected (button order, fold placement, no
+  street indicators, no onboarding all unchanged).
+- **Tests:** new `HandHistoryModal.test.tsx` (6 cases) pins the behavior — dialog a11y attributes,
+  Escape-to-close, arrow navigation, first/last bounds, and listener cleanup on unmount. Client
+  suite 203 → 209; all other suites unchanged.
+- **Verification:** full fast gate re-run green (typecheck PASS, lint clean, build PASS; common 47,
+  server unit 28, server integration 60, client 209). Confirmed pre-change the modal had no key
+  handler/role (Escape was a no-op); post-change the new Escape/arrow tests pass. Security checklist
+  items remain deferred for human prioritization.
+
 ### 2026-07-14 — Agent Dev Loop: stakes badge shows the seconds unit
 
 Baseline fast gate confirmed green before touching anything, run against `main` (typecheck PASS,
