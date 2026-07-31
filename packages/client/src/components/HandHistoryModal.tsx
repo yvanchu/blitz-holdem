@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useHandHistoryStore } from '../store/handHistoryStore';
 import {
   formatHandHistoryStructured,
@@ -44,6 +44,25 @@ export function HandHistoryModal() {
 
   const [copied, setCopied] = useState(false);
 
+  // Keyboard support: Escape to close, ArrowLeft/Right to browse hands.
+  useEffect(() => {
+    if (!isModalOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        closeModal();
+      } else if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        navigatePrev();
+      } else if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        navigateNext();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isModalOpen, closeModal, navigatePrev, navigateNext]);
+
   if (!isModalOpen) return null;
 
   const currentHand = viewingIndex >= 0 ? completedHands[viewingIndex] : null;
@@ -70,10 +89,17 @@ export function HandHistoryModal() {
 
   return (
     <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4">
-      <div className="bg-zinc-900 rounded-xl w-full max-w-lg max-h-[90vh] flex flex-col border border-zinc-700 shadow-2xl">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="hand-history-title"
+        className="bg-zinc-900 rounded-xl w-full max-w-lg max-h-[90vh] flex flex-col border border-zinc-700 shadow-2xl"
+      >
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-zinc-700">
-          <h2 className="text-xl font-bold text-white">Hand History</h2>
+          <h2 id="hand-history-title" className="text-xl font-bold text-white">
+            Hand History
+          </h2>
           <button
             onClick={closeModal}
             className="text-zinc-400 hover:text-white transition-colors p-1"
