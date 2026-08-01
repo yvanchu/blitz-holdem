@@ -107,6 +107,11 @@ describe('Table', () => {
       expect(screen.getByTestId('settings-button')).toBeInTheDocument();
     });
 
+    it('should not show the hand number in the lobby', () => {
+      render(<Table send={mockSend} />);
+      expect(screen.queryByTestId('hand-number')).not.toBeInTheDocument();
+    });
+
     it('should open settings modal when settings button clicked', () => {
       render(<Table send={mockSend} />);
 
@@ -155,6 +160,19 @@ describe('Table', () => {
     it('should display community cards container', () => {
       render(<Table send={mockSend} />);
       expect(screen.getByTestId('community-cards')).toBeInTheDocument();
+    });
+
+    it('should display the current hand number', () => {
+      render(<Table send={mockSend} />);
+      const handNumber = screen.getByTestId('hand-number');
+      expect(handNumber).toBeInTheDocument();
+      expect(handNumber).toHaveTextContent('Hand #1');
+    });
+
+    it('should update the hand number as hands advance', () => {
+      useGameStore.setState({ handNumber: 7 });
+      render(<Table send={mockSend} />);
+      expect(screen.getByTestId('hand-number')).toHaveTextContent('Hand #7');
     });
 
     it('should display community cards on flop', () => {

@@ -74,7 +74,7 @@
 - [ ] **SECURITY**: Replace `console.log` with structured logger, redact sensitive fields in prod
 - [ ] **SECURITY**: Add `helmet` middleware for HTTP security headers
 - [ ] **SECURITY**: Set `express.json({ limit: '1kb' })` to cap request body size
-- [ ] **UX**: Show hand number during play (e.g., "Hand #5")
+- [x] **UX**: Show hand number during play (e.g., "Hand #5")
 - [x] **UX**: Add ARIA labels to action buttons (accessibility requirement)
 - [ ] **UX**: Remove unused `GameOverOverlay` component (dead code, superseded by inline game-over state in Table)
 - [ ] **UX**: Show calculated values in bet presets (e.g., "33% (4s)" instead of just "33%")
@@ -232,6 +232,31 @@ The `shouldShowCards` condition required `result.showdown` to be true, but volun
 ---
 
 ## Session Log
+
+### 2026-08-01 — Agent Dev Loop: show the current hand number during play
+
+Baseline fast gate confirmed green on `main` before any change (typecheck PASS, lint clean, build
+PASS; tests common 47, server unit 28, server integration 60, client 203).
+
+- **[UX] The table now shows a subtle "Hand #N" indicator during play.** Implements the standing
+  backlog item "Show hand number during play" (Pre-Release Checklist → Nice to Have). The server
+  already tracks `handNumber` and the client already had it in `gameStore`/`Table`, but it was only
+  used internally (lobby detection) and never surfaced. Added a small, gray, `tabular-nums`
+  `Hand #{handNumber}` label above the community cards in the in-progress/showdown view. Aligns with
+  UX §5 (information hierarchy — "what's happening?") and §6 (state communication); kept
+  deliberately tertiary (small + muted) so it never competes with cards, timers, or the pot.
+- **No behavioral change to the game.** Purely additive display. It renders only during an active
+  hand/showdown (`handNumber ≥ 1`) and is absent in the lobby (`handNumber === 0`). Color language
+  (UX §7) untouched — the label is neutral gray, not a colored action. No standing decisions
+  affected (button order, fold placement, no street-transition indicators, no onboarding all
+  unchanged) — a per-hand counter is not a street indicator.
+- **Tests:** `Table.test.tsx` gains 3 cases — renders `Hand #1` in-game, updates to `Hand #7`, and
+  is absent in the lobby. All existing Table assertions (pot, community cards, seats, session wins)
+  preserved. Client suite 203 → 206; all other suites unchanged.
+- **Verification:** full fast gate re-run green (typecheck PASS, lint clean, build PASS; common 47,
+  server unit 28, server integration 60, client 206). Confirmed pre-change there was no
+  `hand-number` element; post-change the new tests pass. Security checklist items remain deferred
+  for human prioritization.
 
 ### 2026-07-14 — Agent Dev Loop: stakes badge shows the seconds unit
 

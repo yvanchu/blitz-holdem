@@ -210,6 +210,14 @@ export default function Table({ send }: TableProps) {
         ) : (
           /* Game in progress - show community cards and pot */
           <>
+            {/* Hand number - subtle informational indicator (UX §5/§6) */}
+            <div
+              data-testid="hand-number"
+              className="text-gray-400 text-xs font-medium tabular-nums"
+            >
+              Hand #{handNumber}
+            </div>
+
             {/* Community cards - responsive width */}
             <div data-testid="community-cards" className="flex gap-1 sm:gap-2 justify-center">
               {/* Always render 5 slots, show cards or placeholders */}
