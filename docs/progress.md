@@ -233,6 +233,32 @@ The `shouldShowCards` condition required `result.showdown` to be true, but volun
 
 ## Session Log
 
+### 2026-08-02 — Agent Dev Loop: bet chip uses monospace tabular figures (UX §8)
+
+Baseline fast gate confirmed green before touching anything, run against `main` (typecheck PASS,
+lint clean, build PASS; tests common 47, server unit 28, server integration 60, client 204).
+
+- **[UX/consistency] The per-seat bet chip amount now uses monospace tabular figures (UX §8).**
+  UX §8 "Typography Rules" says **"Numbers: Monospace (for timers, pot, bets)"** and **"Use
+  tabular/monospace figures so numbers don't jump around."** Every other on-table number already
+  complied — the pot value (`Table.tsx`), the timer (`Timer.tsx`), and the time-bank chip
+  (`Seat.tsx`) all carry `font-mono tabular-nums` — but the bet chip (`Seat.tsx` `BetChip`) was the
+  lone holdout, rendering its `Xs` amount in the proportional UI font. That let the chip shift width
+  as the bet changed digit count/shape mid-hand. Added `font-mono tabular-nums` to the chip so its
+  figures are fixed-width, matching the rest of the money displays. Purely a typography change — no
+  color, size, layout, or copy change (chip keeps its existing background and black text; color
+  language UX §7 untouched, and the yellow→amber color migration remains PR #29's separate concern).
+- **Tests:** added one `Seat.test.tsx` case pinning that a seat with `currentBet > 0` renders its
+  `Xs` chip with `font-mono` and `tabular-nums`. It fails against the pre-change markup and passes
+  after. All existing bet-chip assertions (chip shown when bet > 0, hidden at 0, rounds to whole
+  seconds) are preserved. Client suite 203 → 204.
+- **Verification:** full fast gate re-run green on the branch (typecheck PASS, lint clean, build
+  PASS; common 47, server unit 28, server integration 60, client 204). The reconnection integration
+  test flaked once then passed on re-run (known flake, tracked by PRs #3/#26); a client-only
+  typography change cannot affect server behavior.
+- No standing decisions touched (button order, fold placement, no street indicators, no onboarding
+  all unchanged). Security checklist items remain deferred for human prioritization.
+
 ### 2026-07-14 — Agent Dev Loop: stakes badge shows the seconds unit
 
 Baseline fast gate confirmed green before touching anything, run against `main` (typecheck PASS,

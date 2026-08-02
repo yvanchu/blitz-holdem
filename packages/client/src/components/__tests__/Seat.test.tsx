@@ -182,6 +182,17 @@ describe('Seat', () => {
       render(<Seat player={player} isDealer={false} position="bottom" />);
       expect(screen.getByText('6s')).toBeInTheDocument();
     });
+
+    it('should render the bet chip amount with monospace tabular figures (UX §8)', () => {
+      // UX §8: numbers (timers, pot, bets) use monospace/tabular figures so the
+      // digits don't jump around as the bet changes during a hand. The pot, timer,
+      // and time-bank chip already do this; the bet chip must match.
+      const player = createPlayer({ currentBet: 10 });
+      render(<Seat player={player} isDealer={false} position="bottom" />);
+      const chip = screen.getByText('10s');
+      expect(chip).toHaveClass('font-mono');
+      expect(chip).toHaveClass('tabular-nums');
+    });
   });
 
   describe('folded state', () => {

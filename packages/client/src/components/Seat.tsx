@@ -148,7 +148,7 @@ export default function Seat({
   const BetChip = () =>
     (
       <div
-        className={`my-1 flex min-w-[54px] sm:min-w-[66px] items-center justify-center gap-1 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full bg-yellow-500 text-black text-xs sm:text-sm font-bold shadow-lg ${
+        className={`my-1 flex min-w-[54px] sm:min-w-[66px] items-center justify-center gap-1 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full bg-yellow-500 text-black text-xs sm:text-sm font-mono font-bold tabular-nums shadow-lg ${
           player.currentBet > 0 ? '' : 'invisible'
         }`}
         aria-hidden={player.currentBet > 0 ? undefined : true}
