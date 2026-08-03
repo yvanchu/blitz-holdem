@@ -40,6 +40,27 @@ function getPositionLabel(seatIndex: 0 | 1, dealerSeat: number): string {
   return 'BB';
 }
 
+// The engine uses the sentinel 'fold' as HandResult.winnerHandRank when a hand ends
+// without a showdown (the opponent folded). It is not a real poker hand rank, so it
+// must never be rendered as "wins X with fold".
+const FOLD_RANK = 'fold';
+
+function isShowdownRank(rank: string | null | undefined): rank is string {
+  return !!rank && rank.toLowerCase() !== FOLD_RANK;
+}
+
+function isFoldWin(rank: string | null | undefined): boolean {
+  return !!rank && rank.toLowerCase() === FOLD_RANK;
+}
+
+// Build the winner line suffix: " with <rank>" for showdowns, " (opponent folded)"
+// for fold wins, and nothing when the rank is unknown.
+function winnerLineSuffix(rank: string | null | undefined): string {
+  if (isShowdownRank(rank)) return ` with ${rank}`;
+  if (isFoldWin(rank)) return ' (opponent folded)';
+  return '';
+}
+
 // Format a hand for human-readable display
 export function formatHandHistory(hand: CompletedHand): string {
   const {
@@ -189,11 +210,7 @@ export function formatHandHistory(hand: CompletedHand): string {
     const winnerIsHero = winnerPlayer ? winnerPlayer.seat - 1 === heroSeatIndex : false;
     const winnerName = winnerIsHero ? 'Hero' : winnerPlayer?.name || 'Unknown';
 
-    if (winnerHandRank) {
-      lines.push(`  ${winnerName} wins ${potAwarded} sec with ${winnerHandRank}`);
-    } else {
-      lines.push(`  ${winnerName} wins ${potAwarded} sec`);
-    }
+    lines.push(`  ${winnerName} wins ${potAwarded} sec${winnerLineSuffix(winnerHandRank)}`);
   }
 
   lines.push(`  Pot: ${totalPot} sec`);
@@ -371,19 +388,11 @@ export function formatHandHistoryStructured(hand: CompletedHand): FormattedLine[
     const winnerIsHero2 = winnerPlayer2 ? winnerPlayer2.seat - 1 === heroSeatIndex : false;
     const winnerName2 = winnerIsHero2 ? 'Hero' : winnerPlayer2?.name || 'Unknown';
 
-    if (winnerHandRank) {
-      lines.push({
-        type: 'result',
-        text: `${winnerName2} wins ${potAwarded} sec with ${winnerHandRank}`,
-        highlight: winnerIsHero2,
-      });
-    } else {
-      lines.push({
-        type: 'result',
-        text: `${winnerName2} wins ${potAwarded} sec`,
-        highlight: winnerIsHero2,
-      });
-    }
+    lines.push({
+      type: 'result',
+      text: `${winnerName2} wins ${potAwarded} sec${winnerLineSuffix(winnerHandRank)}`,
+      highlight: winnerIsHero2,
+    });
   }
 
   lines.push({ type: 'result', text: `Pot: ${totalPot2} sec` });

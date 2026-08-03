@@ -226,6 +226,15 @@ describe('handHistoryFormatter', () => {
       expect(result).toContain('wins 8 sec with Two Pair');
     });
 
+    it('should render a fold win as "opponent folded", not "with fold"', () => {
+      // The engine sets winnerHandRank to the sentinel 'fold' when a hand ends
+      // without a showdown. It is not a real hand rank.
+      const hand = createTestHand({ winnerHandRank: 'fold' });
+      const result = formatHandHistory(hand);
+      expect(result).toContain('wins 8 sec (opponent folded)');
+      expect(result).not.toContain('with fold');
+    });
+
     it('should show opponent cards when revealed', () => {
       const hand = createTestHand({
         opponentHoleCards: [
@@ -391,6 +400,16 @@ describe('handHistoryFormatter', () => {
       );
       // Villain wins, so hero actions should not be highlighted for winner
       expect(winnerLine?.text).toContain('Villain');
+    });
+
+    it('should render a fold win as "opponent folded", not "with fold"', () => {
+      const hand: CompletedHand = { ...createTestHand(), winnerHandRank: 'fold' };
+      const result = formatHandHistoryStructured(hand);
+      const winnerLine = result.find(
+        (line) => line.type === 'result' && line.text.includes('wins')
+      );
+      expect(winnerLine?.text).toContain('wins 3 sec (opponent folded)');
+      expect(winnerLine?.text).not.toContain('with fold');
     });
   });
 

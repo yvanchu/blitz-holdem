@@ -233,6 +233,37 @@ The `shouldShowCards` condition required `result.showdown` to be true, but volun
 
 ## Session Log
 
+### 2026-08-03 — Agent Dev Loop: hand-history fold wins no longer say "with fold"
+
+Baseline fast gate confirmed green before touching anything, run against `main` (typecheck PASS,
+lint clean, build PASS; tests common 47, server unit 28, server integration 60, client 203). The
+server integration suite is intermittently flaky (1 failure in ~1/4 runs) — a known issue already
+being addressed in separate PRs (de-flake by file parallelism / lazy seat reclaim), so it was left
+untouched here; all commands pass on a clean run.
+
+- **[correctness/UX] Fold wins in the hand history no longer render "wins X sec with fold".** When
+  a hand ends without a showdown, the engine sets `HandResult.winnerHandRank` to the sentinel
+  string `'fold'` (the default in `endHand`). Both hand-history formatters
+  (`formatHandHistory` + `formatHandHistoryStructured`) did a naive `if (winnerHandRank)` and so
+  rendered the sentinel as if it were a real poker hand rank — e.g. **"Villain wins 3 sec with
+  fold"**. This is nonsensical ("fold" is not a hand) and contradicts `docs/rules.md` §2 (a fold
+  ends the hand with no showdown). The formatters now recognise the `'fold'` sentinel and render
+  **"wins X sec (opponent folded)"** instead, which also explains why no hand rank is shown. Real
+  showdown ranks ("Two Pair", etc.) and split-pot lines are unchanged; the `null` rank case still
+  renders a bare "wins X sec".
+- **Tests:** the bug was previously invisible because the formatter tests only exercised
+  `winnerHandRank: null` and real ranks, never the actual `'fold'` sentinel the engine emits. Added
+  two pinning tests (one per formatter) asserting a `'fold'` rank produces "(opponent folded)" and
+  never "with fold". Client suite 203 → 205. No existing assertions changed.
+- **Verification:** full fast gate re-run green on the branch (typecheck PASS, lint clean, build
+  PASS; common 47, server unit 28, server integration 60, client 205). Reproduced the original
+  symptom via the new structured-formatter test (was "Villain wins 3 sec with fold", now
+  "Villain wins 3 sec (opponent folded)").
+- No standing decisions touched (button order, fold placement, no street indicators, no onboarding
+  all unchanged); color language (UX §7) unaffected — text-only change to a log line. Security
+  checklist items remain deferred for human prioritization.
+
+
 ### 2026-07-14 — Agent Dev Loop: stakes badge shows the seconds unit
 
 Baseline fast gate confirmed green before touching anything, run against `main` (typecheck PASS,
