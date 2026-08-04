@@ -233,6 +233,35 @@ The `shouldShowCards` condition required `result.showdown` to be true, but volun
 
 ## Session Log
 
+### 2026-08-04 — Agent Dev Loop: amber (not yellow) for the Auto All-In control
+
+Baseline fast gate confirmed green before touching anything, run against `main` (typecheck PASS,
+lint clean, build PASS; tests common 47, server unit 28, server integration 60, client 203).
+
+- **[UX/color-language] Auto All-In toggle now uses amber, not yellow (UX §7).** The Auto All-In
+  control in `ActionBar.tsx` was the last betting control still rendered in Tailwind `yellow-500`
+  (`border-yellow-500 bg-yellow-500/20 text-yellow-400`, `accent-yellow-500`, and the hint's
+  `text-yellow-500/80`) while every sibling betting control — the raise/bet button, the confirm
+  path (including its own all-in branch), the bet-amount box, and the slider — already uses
+  `amber-500`. Going all-in is a betting action, which UX §7 assigns to **amber `#F59E0B`**
+  (`amber-500` maps to that exact hex; `yellow-500` is `#EAB308`, off-spec). Switched all three
+  yellow references on the control to their amber equivalents. Purely a color-token change — no
+  behavior, layout, testid, size, or copy change. Follows the same yellow→amber correction already
+  applied to the raise slider and the hand-strength badge, and complements (does not overlap) the
+  open pot/bet-chip amber PR (#29), which touches `Table.tsx`/`Seat.tsx` only.
+- **Tests:** added one `ActionBar.test.tsx` case that toggles Auto All-In on and asserts the active
+  label carries `border-amber-500 / bg-amber-500/20 / text-amber-400` and no longer contains the
+  old `yellow-500`/`yellow-400` classes. All existing ActionBar assertions preserved; client suite
+  203 → 204.
+- **Verification:** full fast gate re-run green on the branch (typecheck PASS, lint clean, build
+  PASS; common 47, server unit 28, server integration 60, client 204). Confirmed no `yellow-`
+  classes remain anywhere in `ActionBar.tsx`.
+- No standing decisions touched (button order Call|Raise|Check|Fold, fold corner placement, no
+  street-transition indicators, no how-to-play onboarding all unchanged). Winning-gold
+  (`ring-yellow-400`, pot gain) and the timer active-turn highlight were intentionally left alone,
+  as was the pot/chip amber work owned by the open PR. Security checklist items remain deferred for
+  human prioritization.
+
 ### 2026-07-14 — Agent Dev Loop: stakes badge shows the seconds unit
 
 Baseline fast gate confirmed green before touching anything, run against `main` (typecheck PASS,

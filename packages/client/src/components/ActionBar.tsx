@@ -406,7 +406,7 @@ export default function ActionBar({ send, isHandInProgress }: ActionBarProps) {
                   px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg border-2 transition-all
                   ${
                     autoAllIn
-                      ? 'border-yellow-500 bg-yellow-500/20 text-yellow-400'
+                      ? 'border-amber-500 bg-amber-500/20 text-amber-400'
                       : 'border-gray-600 text-gray-400 hover:border-gray-500'
                   }
               `}
@@ -415,12 +415,12 @@ export default function ActionBar({ send, isHandInProgress }: ActionBarProps) {
                 type="checkbox"
                 checked={autoAllIn}
                 onChange={(e) => setAutoAllIn(e.target.checked)}
-                className="w-4 h-4 accent-yellow-500"
+                className="w-4 h-4 accent-amber-500"
               />
               <span className="text-xs sm:text-sm font-medium">
                 Auto All-In
                 <span
-                  className={`ml-2 text-xs text-yellow-500/80 hidden sm:inline ${
+                  className={`ml-2 text-xs text-amber-500/80 hidden sm:inline ${
                     autoAllIn ? '' : 'invisible'
                   }`}
                 >
