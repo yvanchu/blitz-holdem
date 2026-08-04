@@ -366,6 +366,27 @@ describe('ActionBar', () => {
       expect(checkbox).not.toBeChecked();
     });
 
+    it('should use amber (not yellow) for the active auto all-in control per UX color language', () => {
+      setupActiveTurn();
+      render(<ActionBar send={mockSend} isHandInProgress={true} />);
+
+      const checkbox = screen.getByRole('checkbox');
+      // The label wraps the checkbox and carries the state color classes
+      const label = checkbox.closest('label');
+      expect(label).not.toBeNull();
+
+      // Activate auto all-in
+      fireEvent.keyDown(window, { key: 'a' });
+      expect(checkbox).toBeChecked();
+
+      // Going all-in is a betting action → amber (#F59E0B), never yellow
+      expect(label).toHaveClass('border-amber-500');
+      expect(label).toHaveClass('bg-amber-500/20');
+      expect(label).toHaveClass('text-amber-400');
+      expect(label?.className).not.toContain('border-yellow-500');
+      expect(label?.className).not.toContain('text-yellow-400');
+    });
+
     it('should not trigger shortcuts when typing in input (except enter)', () => {
       setupActiveTurn();
       render(<ActionBar send={mockSend} isHandInProgress={true} />);
