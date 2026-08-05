@@ -266,6 +266,27 @@ describe('ActionBar', () => {
         screen.getByRole('button', { name: 'Increase bet by 1 second' })
       ).toBeInTheDocument();
     });
+
+    it('should label the confirm button "All In" when the amount reaches the max', () => {
+      // currentBet 0 → this is a bet; maxTotalBet = yourCurrentBet(0) + timeBank(100) = 100
+      setupActiveTurn({ timeBank: 100 });
+      render(<ActionBar send={mockSend} isHandInProgress={true} />);
+
+      fireEvent.click(screen.getByTestId('raise-button')); // open panel
+
+      // Drive the amount up to the entire time bank (an all-in)
+      fireEvent.change(screen.getByTestId('bet-input'), { target: { value: '100' } });
+
+      const confirm = screen.getByTestId('raise-button');
+      // Warns the player they are committing everything, not a normal bet/raise
+      expect(confirm).toHaveTextContent('All In 100s');
+      expect(confirm).not.toHaveTextContent('Bet 100s');
+      expect(confirm).toHaveAttribute('aria-label', 'All In');
+
+      // ...and confirming actually commits an all-in
+      fireEvent.click(confirm);
+      expect(mockSend).toHaveBeenCalledWith({ type: 'ACTION', action: 'all-in', amount: 100 });
+    });
   });
 
   describe('call amount display', () => {

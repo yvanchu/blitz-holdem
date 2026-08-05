@@ -213,6 +213,10 @@ export default function ActionBar({ send, isHandInProgress }: ActionBarProps) {
     isHandInProgress && (validActions.includes('bet') || validActions.includes('raise'));
   const canFold = isHandInProgress && validActions.includes('fold');
   const isBet = currentBet === 0; // True if this is a bet, false if it's a raise
+  // At/over max the confirm submits an all-in (commits the entire time bank).
+  // Surface that on the button so it isn't mistaken for a normal bet/raise (UX §3, §6).
+  const isAllInRaise = betAmount >= maxTotalBet;
+  const raiseActionLabel = isAllInRaise ? 'All In' : isBet ? 'Bet' : 'Raise';
   const isRaisePanelOpen = showRaisePanel && canRaise;
 
   // Handle input change for exact amount - clamp to max if too high, allow low values for red indicator
@@ -500,7 +504,7 @@ export default function ActionBar({ send, isHandInProgress }: ActionBarProps) {
             }}
             disabled={!isYourTurn || !canRaise || (showRaisePanel && isRaiseTooSmall)}
             data-testid="raise-button"
-            aria-label={isBet ? 'Bet' : 'Raise'}
+            aria-label={showRaisePanel ? raiseActionLabel : isBet ? 'Bet' : 'Raise'}
             className={`
               relative py-3.5 sm:py-4 rounded-lg font-semibold text-xs sm:text-base uppercase tracking-wide
               border-2 transition-all
@@ -516,7 +520,7 @@ export default function ActionBar({ send, isHandInProgress }: ActionBarProps) {
               }
             `}
           >
-            {showRaisePanel ? `${isBet ? 'Bet' : 'Raise'} ${betAmount}s` : isBet ? 'Bet' : 'Raise'}
+            {showRaisePanel ? `${raiseActionLabel} ${betAmount}s` : isBet ? 'Bet' : 'Raise'}
             <span className="hidden sm:block absolute -top-2 -right-1 px-1.5 py-0.5 text-[10px] font-bold bg-gray-800 border border-gray-600 rounded text-gray-400">
               R
             </span>
