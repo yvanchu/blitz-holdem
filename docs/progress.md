@@ -233,6 +233,36 @@ The `shouldShowCards` condition required `result.showdown` to be true, but volun
 
 ## Session Log
 
+### 2026-08-05 — Agent Dev Loop: confirm button warns "All In" at max bet
+
+Baseline fast gate confirmed green before touching anything, run against `main` (typecheck PASS,
+lint clean, build PASS; tests common 47, server unit 28, server integration 60, client 203).
+
+- **[UX/correctness] Raise-panel confirm button now reads "All In" when the amount is the whole
+  time bank (UX §3 "Prevent Costly Mistakes", §6 all-in state).** In `ActionBar.tsx` the confirm
+  button already _submits_ an all-in whenever `betAmount >= maxTotalBet` (dragging the slider or the
+  "All In" preset to the top, or typing a number ≥ your bank) — but the label kept saying
+  `Bet 100s` / `Raise 100s`, giving no signal that the click commits your **entire** time bank.
+  That contradicts §3 (a misclick can cost the whole pot; the UI must make the stakes obvious) and
+  §6 (all-in is a distinct, called-out state). Added a derived `isAllInRaise = betAmount >= maxTotalBet`
+  and a `raiseActionLabel` so the open-panel button now shows `All In 100s` and exposes
+  `aria-label="All In"` in that state. Pure label/aria change — the action sent is unchanged
+  (still `all-in` with the same delta), and the collapsed (panel-closed) button still reads
+  `Bet` / `Raise` as before.
+- **Tests:** added one `ActionBar.test.tsx` case that opens the panel, sets the amount to the full
+  bank, and asserts the confirm button reads `All In 100s` (and no longer `Bet 100s`), carries
+  `aria-label="All In"`, and that clicking it dispatches `{ action: 'all-in', amount: 100 }`. All
+  existing assertions preserved (the "Bet"/"Raise" collapsed-label tests use a closed panel and are
+  unaffected; the `getByText('All In')` preset-button assertion still matches only the preset, since
+  the confirm button's text is `All In 100s`). Client suite 203 → 204.
+- **Verification:** full fast gate re-run green on the branch (typecheck PASS, lint clean, build
+  PASS; common 47, server unit 28, server integration 60, client 204). Reproduced the original
+  symptom via the new test's negative assertion (`not.toHaveTextContent('Bet 100s')`).
+- No standing decisions touched (button order Call|Raise|Check|Fold, fold corner placement, no
+  street-transition indicators, no how-to-play onboarding all unchanged). Color language (UX §7)
+  unaffected — the button keeps its amber styling. Security checklist items remain deferred for human
+  prioritization.
+
 ### 2026-07-14 — Agent Dev Loop: stakes badge shows the seconds unit
 
 Baseline fast gate confirmed green before touching anything, run against `main` (typecheck PASS,
