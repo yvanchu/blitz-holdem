@@ -138,4 +138,38 @@ describe('Card', () => {
       expect(card).not.toHaveClass('ring-2');
     });
   });
+
+  describe('accessibility', () => {
+    it('should label a face-down card for screen readers', () => {
+      render(<Card />);
+      const card = screen.getByTestId('card');
+      expect(card).toHaveAttribute('role', 'img');
+      expect(card).toHaveAttribute('aria-label', 'Face-down card');
+    });
+
+    it('should give face cards a spoken name (Ace of spades)', () => {
+      render(<Card card={{ rank: 'A', suit: 's' }} />);
+      expect(screen.getByRole('img')).toHaveAccessibleName('Ace of spades');
+    });
+
+    it('should spell out ten and suit (10 of hearts)', () => {
+      render(<Card card={{ rank: 'T', suit: 'h' }} />);
+      expect(screen.getByRole('img')).toHaveAccessibleName('10 of hearts');
+    });
+
+    it('should label numeric cards (7 of clubs)', () => {
+      render(<Card card={{ rank: '7', suit: 'c' }} />);
+      expect(screen.getByRole('img')).toHaveAccessibleName('7 of clubs');
+    });
+
+    it('should announce the winning state in the label, not by color alone', () => {
+      render(<Card card={{ rank: 'K', suit: 'd' }} highlight={true} />);
+      expect(screen.getByRole('img')).toHaveAccessibleName('King of diamonds, winning card');
+    });
+
+    it('should not tag a non-winning card as winning', () => {
+      render(<Card card={{ rank: 'K', suit: 'd' }} highlight={false} />);
+      expect(screen.getByRole('img')).toHaveAccessibleName('King of diamonds');
+    });
+  });
 });

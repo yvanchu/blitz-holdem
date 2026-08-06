@@ -233,6 +233,33 @@ The `shouldShowCards` condition required `result.showdown` to be true, but volun
 
 ## Session Log
 
+### 2026-08-06 — Agent Dev Loop: accessible labels for playing cards
+
+Baseline fast gate confirmed green before touching anything, run against `main` (typecheck PASS,
+lint clean, build PASS; tests common 47, server unit 28, server integration 60, client 203).
+
+- **[UX/accessibility] Cards now expose a screen-reader name (`Card.tsx`).** Every card rendered as a
+  bare stack of a rank glyph and a Unicode suit symbol (`♥ ♦ ♣ ♠`) with no accessible name, so
+  assistive tech announced nothing usable — and the winning hand was signalled **only** by the golden
+  ring/glow, which violates docs/ux.md §Accessibility ("Color is never the only indicator"). Each card
+  is now `role="img"` with a spoken `aria-label`: face-up cards read e.g. `"Ace of spades"` /
+  `"10 of hearts"` / `"7 of clubs"`, face-down cards read `"Face-down card"`, and a winning card folds
+  the state into the name (`"King of diamonds, winning card"`). The decorative rank/suit spans are
+  marked `aria-hidden`. This follows the project's established a11y direction (action buttons already
+  carry ARIA labels). **No visual change** — colors (`text-red-600`/`text-gray-900`), sizes
+  (`w-[44px]`/`w-[48px]`), the golden highlight ring, and all `data-*` testids are untouched.
+- **Tests:** added 6 assertions to `Card.test.tsx` (26 total) pinning the accessible names for face
+  cards, ten, numeric cards, the face-down back, and the winning-card suffix (plus a negative case).
+  All existing Card assertions (colors, sizes, symbols, highlight ring, `data-card-*`) preserved.
+  Client suite 203 → 209.
+- **Verification:** full fast gate re-run green on the branch (typecheck PASS, lint clean, build PASS;
+  common 47, server unit 28, server integration 60, client 209). Confirmed the original symptom is
+  gone: `getByRole('img')` now resolves a card with a meaningful accessible name where before there
+  was none.
+- No standing decisions touched (button order, fold placement, no street indicators, no onboarding all
+  unchanged); color language (UX §7) unaffected. Security checklist items remain deferred for human
+  prioritization.
+
 ### 2026-07-14 — Agent Dev Loop: stakes badge shows the seconds unit
 
 Baseline fast gate confirmed green before touching anything, run against `main` (typecheck PASS,
