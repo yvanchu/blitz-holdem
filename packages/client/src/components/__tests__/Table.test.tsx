@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import Table from '../Table';
 import { useGameStore } from '../../store/gameStore';
 import type { PlayerPublic, Card } from '@bullet-poker/common';
@@ -118,6 +118,21 @@ describe('Table', () => {
       fireEvent.click(screen.getByTestId('settings-button'));
 
       expect(screen.getByTestId('settings-modal')).toBeInTheDocument();
+    });
+
+    it('should close the settings modal if a hand starts while it is open', () => {
+      // Anti-pattern guard (docs/ux.md): no modal dialogs during gameplay.
+      render(<Table send={mockSend} />);
+
+      fireEvent.click(screen.getByTestId('settings-button'));
+      expect(screen.getByTestId('settings-modal')).toBeInTheDocument();
+
+      // A hand begins (e.g. host starts the game / server broadcasts hand start).
+      act(() => {
+        useGameStore.setState({ isHandInProgress: true, handNumber: 1 });
+      });
+
+      expect(screen.queryByTestId('settings-modal')).not.toBeInTheDocument();
     });
 
     it('should show start game button when both players ready', () => {
