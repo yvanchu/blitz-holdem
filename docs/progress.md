@@ -66,7 +66,7 @@
 - [x] **UX**: Hand strength badge uses `bg-red-500` for all hand ranks — red implies danger/loss (UX §7), should use a neutral color like gray or cyan since it's informational
 - [ ] **UX**: Card sizes are smaller than spec on mobile — UX spec says 40–60px wide mobile, current small cards are 36px (`w-[36px]`); normal cards are 40px which is the bare minimum
 - [x] **UX**: Stakes display only visible to joiner (`isJoiner && settings`) — both players should see current blinds/stakes for clarity (UX §5: "What's the pot?" is #5 priority)
-- [ ] **UX**: SettingsModal opens during gameplay (via ⚙️ button in game-over/lobby) — modal is a `fixed inset-0 z-50` overlay; ensure settings button is never reachable during active hand (UX §Anti-patterns: "No modal dialogs during gameplay")
+- [x] **UX**: SettingsModal opens during gameplay (via ⚙️ button in game-over/lobby) — modal is a `fixed inset-0 z-50` overlay; ensure settings button is never reachable during active hand (UX §Anti-patterns: "No modal dialogs during gameplay")
 
 ### Nice to Have (Post-Launch)
 
@@ -232,6 +232,35 @@ The `shouldShowCards` condition required `result.showdown` to be true, but volun
 ---
 
 ## Session Log
+
+### 2026-08-07 — Agent Dev Loop: never show the Settings modal during a hand
+
+Baseline fast gate confirmed green before touching anything, run against `main` (typecheck PASS,
+lint clean, build PASS; tests common 47, server unit 28, server integration 60, client 203).
+
+- **[UX/anti-pattern] The Settings modal can no longer be visible during an active hand (`Table.tsx`).**
+  docs/ux.md §Anti-patterns is explicit: **"No modal dialogs during gameplay."** The Settings modal is a
+  full-screen `fixed inset-0 z-50` overlay whose open/closed state (`showSettings`) was local component
+  state, decoupled from the game phase — nothing guaranteed it was closed once a hand began. The render
+  is now gated (`isOpen={showSettings && !isHandInProgress}`) and an effect proactively closes it when
+  `isHandInProgress` flips true, so the documented invariant ("the board is never obscured by a dialog
+  mid-hand") is enforced regardless of how a hand starts. This is a **defensive/hardening** fix: the ⚙️
+  button only renders in the lobby and game-over screens today, so the overlay is not trivially reachable
+  during play, but the guard removes the latent coupling and protects against future regressions (e.g. a
+  new keyboard/Start shortcut, or settings surfaced elsewhere). **No visual change** to the modal, the
+  buttons, colors, sizes, or any `data-testid`; the modal still opens and closes exactly as before in the
+  lobby / game-over states.
+- **Tests:** added 1 test to `Table.test.tsx` (15 total) — open the Settings modal in the lobby, flip the
+  store to `isHandInProgress: true`, and assert the modal is gone. This pins the fix (the old
+  `isOpen={showSettings}` code would keep the modal mounted). All existing Table assertions (settings
+  button + modal open in lobby, pot/community-cards, start button, showdown, session wins) preserved.
+  Client suite 203 → 204.
+- **Verification:** full fast gate re-run green on the branch (typecheck PASS, lint clean, build PASS;
+  common 47, server unit 28, server integration 60, client 204). Reproduced the original symptom via the
+  new test (modal persisting into a hand) and confirmed it no longer occurs.
+- No standing decisions touched (button order, fold placement, no street indicators, no onboarding all
+  unchanged); color language (UX §7) unaffected. Security checklist items remain deferred for human
+  prioritization.
 
 ### 2026-07-14 — Agent Dev Loop: stakes badge shows the seconds unit
 

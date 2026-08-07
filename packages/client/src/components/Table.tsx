@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useGameStore, selectYourPlayer, selectOpponentPlayer } from '../store/gameStore';
 import Seat from './Seat';
 import CardComponent from './Card';
@@ -35,6 +35,15 @@ export default function Table({ send }: TableProps) {
 
   const [showSettings, setShowSettings] = useState(false);
   const [copied, setCopied] = useState(false);
+
+  // Enforce the "No modal dialogs during gameplay" rule (docs/ux.md §Anti-patterns):
+  // the Settings modal must never be visible once a hand is underway. If a hand
+  // starts while it happens to be open, close it.
+  useEffect(() => {
+    if (isHandInProgress) {
+      setShowSettings(false);
+    }
+  }, [isHandInProgress]);
 
   const opponentSeatIndex = yourSeatIndex === 0 ? 1 : 0;
   const winningCards = result?.winningCards;
@@ -269,8 +278,12 @@ export default function Table({ send }: TableProps) {
         />
       </div>
 
-      {/* Settings Modal */}
-      <SettingsModal isOpen={showSettings} onClose={() => setShowSettings(false)} send={send} />
+      {/* Settings Modal — never shown during an active hand (docs/ux.md §Anti-patterns) */}
+      <SettingsModal
+        isOpen={showSettings && !isHandInProgress}
+        onClose={() => setShowSettings(false)}
+        send={send}
+      />
     </div>
   );
 }
