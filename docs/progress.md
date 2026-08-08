@@ -233,6 +233,34 @@ The `shouldShowCards` condition required `result.showdown` to be true, but volun
 
 ## Session Log
 
+### 2026-08-08 — Agent Dev Loop: tabular figures on the live bet controls (UX §8)
+
+Baseline fast gate confirmed green before touching anything, run against `main` (typecheck PASS,
+lint clean, build PASS; tests common 47, server unit 28, server integration 60, client 203).
+
+- **[UX] The action-bar numbers that change in real time now use tabular figures (`ActionBar.tsx`).**
+  docs/ux.md §8 requires **"Use tabular/monospace figures so numbers don't jump around."** The on-table
+  pot and bet chips already do this, but the raise panel's big bet-amount input and the Call / Raise
+  button amounts did not — so dragging the raise slider made the large 2xl number reflow its width on
+  almost every step, and the Call/Raise labels shifted as the amount changed. The bet input now carries
+  `tabular-nums`, and the changing amounts on the Call and Raise buttons are wrapped in a
+  `tabular-nums` span. Purely a typography/stability change: no value, color, size, `data-testid`, or
+  behavior change (the amounts, actions sent, and clamping are all identical; letters are unaffected
+  since `tabular-nums` only fixes digit advance widths). Consistent with the prior "layout stability
+  (less jitter)" work in this log.
+- **Tests:** added 2 tests to `ActionBar.test.tsx` (38 total) — (1) the Call amount span has class
+  `tabular-nums` and lives inside the call button; (2) opening the raise panel, the `bet-input` has
+  `tabular-nums` and the raise button's amount span is tabular. Existing assertions preserved: the
+  Call/Raise buttons still render `Call 10s` / `Call 5s` / `Bet` / `Raise` text content unchanged
+  (numbers are now in a nested span, so `toHaveTextContent` still matches). Client suite 203 → 205.
+- **Verification:** full fast gate re-run green on the branch (typecheck PASS, lint clean, build PASS;
+  common 47, server unit 28, server integration 60, client 205). Reproduced the original symptom via
+  the new tests (changing numbers previously rendered without tabular figures) and confirmed they now
+  use `tabular-nums`.
+- No standing decisions touched (button order, fold placement, no street indicators, no onboarding all
+  unchanged); color language (UX §7) unaffected. Security checklist items remain deferred for human
+  prioritization.
+
 ### 2026-07-14 — Agent Dev Loop: stakes badge shows the seconds unit
 
 Baseline fast gate confirmed green before touching anything, run against `main` (typecheck PASS,
