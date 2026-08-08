@@ -304,7 +304,7 @@ export default function ActionBar({ send, isHandInProgress }: ActionBarProps) {
                       setBetAmount(num);
                     }
                   }}
-                  className="w-20 sm:w-24 bg-transparent text-white text-2xl sm:text-3xl font-bold text-center outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                  className="w-20 sm:w-24 bg-transparent text-white text-2xl sm:text-3xl font-bold text-center tabular-nums outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                 />
               </div>
             </div>
@@ -479,7 +479,16 @@ export default function ActionBar({ send, isHandInProgress }: ActionBarProps) {
               }
             `}
           >
-            {canCall ? `Call ${Math.round(Math.min(toCall, yourPlayer?.timeBank ?? 0))}s` : 'Call'}
+            {canCall ? (
+              <>
+                Call{' '}
+                <span className="tabular-nums">
+                  {Math.round(Math.min(toCall, yourPlayer?.timeBank ?? 0))}s
+                </span>
+              </>
+            ) : (
+              'Call'
+            )}
             <span className="hidden sm:block absolute -top-2 -right-1 px-1.5 py-0.5 text-[10px] font-bold bg-gray-800 border border-gray-600 rounded text-gray-400">
               C
             </span>
@@ -520,7 +529,15 @@ export default function ActionBar({ send, isHandInProgress }: ActionBarProps) {
               }
             `}
           >
-            {showRaisePanel ? `${raiseActionLabel} ${betAmount}s` : isBet ? 'Bet' : 'Raise'}
+            {showRaisePanel ? (
+              <>
+                {raiseActionLabel} <span className="tabular-nums">{betAmount}s</span>
+              </>
+            ) : isBet ? (
+              'Bet'
+            ) : (
+              'Raise'
+            )}
             <span className="hidden sm:block absolute -top-2 -right-1 px-1.5 py-0.5 text-[10px] font-bold bg-gray-800 border border-gray-600 rounded text-gray-400">
               R
             </span>

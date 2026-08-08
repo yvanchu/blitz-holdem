@@ -318,6 +318,38 @@ describe('ActionBar', () => {
       expect(screen.getByTestId('call-button')).toHaveTextContent('Call 6s');
       expect(screen.getByTestId('call-button').textContent).not.toMatch(/\d\.\d/);
     });
+
+    it('should render the call amount with tabular figures (UX §8, no jitter)', () => {
+      setupActiveTurn({ currentBet: 0, timeBank: 100 });
+      useGameStore.setState({ currentBet: 10 });
+      render(<ActionBar send={mockSend} isHandInProgress={true} />);
+
+      // The changing number is wrapped in a tabular-nums span so its width
+      // does not jump as the value changes.
+      const amount = screen.getByText('10s');
+      expect(amount).toHaveClass('tabular-nums');
+      expect(screen.getByTestId('call-button')).toContainElement(amount);
+    });
+  });
+
+  describe('raise amount typography', () => {
+    it('should render the live bet input and raise-button amount with tabular figures (UX §8)', () => {
+      setupActiveTurn({ timeBank: 100 });
+      useGameStore.setState({ pot: 10 });
+      render(<ActionBar send={mockSend} isHandInProgress={true} />);
+
+      fireEvent.click(screen.getByTestId('raise-button'));
+
+      // The big, continuously-updating bet input uses tabular figures so its
+      // width does not reflow while dragging the slider.
+      expect(screen.getByTestId('bet-input')).toHaveClass('tabular-nums');
+
+      // The raise button's amount is likewise tabular.
+      const raiseButton = screen.getByTestId('raise-button');
+      const amountSpan = raiseButton.querySelector('.tabular-nums');
+      expect(amountSpan).not.toBeNull();
+      expect(amountSpan).toHaveTextContent(/^\d+s$/);
+    });
   });
 
   describe('keyboard shortcuts', () => {
