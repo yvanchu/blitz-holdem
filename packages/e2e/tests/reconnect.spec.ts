@@ -8,7 +8,7 @@
 
 import { test, expect, type Page, type BrowserContext } from '@playwright/test';
 
-const BASE_URL = 'http://localhost:5173';
+const BASE_URL = process.env.E2E_BASE_URL || 'http://localhost:5273';
 
 // Reconnection tests - testing browser refresh scenarios
 test.describe('Reconnection', () => {

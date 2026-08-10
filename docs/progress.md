@@ -233,6 +233,69 @@ The `shouldShowCards` condition required `result.showdown` to be true, but volun
 
 ## Session Log
 
+### 2026-07-16 — Agent Dev Loop: batch-integrate 28 reviewed PRs + isolate e2e ports
+
+The dev-loop backlog had grown to **37 open PRs (#2–#38)** with heavy feature duplication (four
+takes on bet presets, two on hand-number, two on split-pot). Rather than merge them ad hoc — which
+would have produced conflicting, superseding changes — the product owner reviewed them
+cluster-by-cluster and approved a single verdict: **merge 28, close 8.** All 28 were cherry-picked
+onto one integration branch (conflicts resolved by keeping the union of independent changes; each
+duplicate cluster resolved to its single best implementation), verified as one green gate, and
+landed together.
+
+- **Merged (28), by cluster:**
+  - **Amber color language / tabular figures (UX §7–§8):** #29 (pot + bet chips amber), #34 (Auto
+    All-In control amber), #32 (bet chip monospace tabular-nums), #38 (tabular figures on live bet
+    controls). Complementary, not competing — all four kept.
+  - **Correctness:** #17 (round Call partial all-in to whole seconds), #19 (clear stale bet chips on
+    street change), #20 (clear stale active-seat glow when a hand ends), #21 (only offer Call/Fold
+    when the opponent is already all-in — engine `getValidActions`), #27 (never offer bet/raise/all-in
+    against an all-in opponent, mirrored server-side).
+  - **Settings safety:** #28 (keep Time Bank field consistent with its blind-derived minimum), #37
+    (never show the Settings modal during an active hand).
+  - **Accessibility:** #15 (ARIA labels on raise-panel bet controls), #16 (keyboard-focus indicators
+    on action buttons), #30 (accessible labels on playing cards), #36 (keyboard access + dialog
+    semantics for the Hand History modal).
+  - **Hand history wording:** #22 (mark all-in bets/calls, not just raises), #33 (fold wins read
+    "opponent folded", not "with fold"). Both helpers kept — they format different lines.
+  - **Test flake fixes:** #3 + #26 (lazy seat reclamation + disable server integration file
+    parallelism — de-flakes the reconnection baseline).
+  - **Misc:** #14 (accessible card labels follow-up), #35 (confirm button warns "All In" when
+    betting the whole bank).
+  - **Singletons:** #12 (bet presets show absolute seconds — chosen over #7/#9/#18/#23/#25), #10 (fix
+    the `B` Bet/Raise keyboard shortcut no-op), #8 (show current hand number), #6 (remove dead
+    `GameOverOverlay`/`ResultOverlay` — verified zero imports), #11 (HomePage background matches the
+    table felt), #4 (show `+Xs` gain for both winners on split pots), #5 (live last-action indicator,
+    e.g. "Opponent raised to 12s") **plus a no-jump tweak**: the indicator lives in an always-present
+    fixed-height row so the table never shifts when it appears/disappears.
+
+- **Closed without merging (8):** #7, #9, #18, #23, #25 (superseded bet-preset takes; #25 also had a
+  display bug — it showed the raw pot fraction, not the clamped total its button actually sets), #31
+  (duplicate of #8), #24 (functionally identical to #4), #2 (superseded/messy). Each PR was closed
+  with a comment pointing at the landed commit or the winning duplicate.
+
+- **[Dev-loop reliability] Isolated the e2e stack onto dedicated ports so it can't silently reuse an
+  unrelated local server.** The Playwright `webServer` ran the app on the normal dev ports
+  (server 3001 / client 5173) with `reuseExistingServer: true` locally. On a machine already running
+  a *different* project on 3001, Playwright happily reused that foreign server; every test then failed
+  identically at `page.waitForURL` because `POST /api/rooms` was proxied to the wrong app ("Failed to
+  create table"). Fixed by giving the e2e run its own ports (server **3401** / client **5273**) and
+  making the wiring configurable: `packages/client/vite.config.ts` now reads `VITE_PORT` and
+  `VITE_PROXY_TARGET` (defaults unchanged), the client already honored `VITE_WS_URL`, and
+  `playwright.config.ts` sets all three via `webServer[].env` and publishes `E2E_BASE_URL` so the
+  specs and the `game` fixture navigate to the same client port. Normal `pnpm dev` is unaffected (the
+  env vars are only set by the e2e config); CI is unaffected (it already forces fresh servers). This
+  is a genuine dev-loop bug — the suite could pass or fail against a server that wasn't even the app.
+
+- **Verification (full gate, green):** typecheck PASS, lint clean, build PASS; unit/integration
+  **common 54, server unit 30, server integration 60, client 266**; **e2e 38/38** on the isolated
+  ports. (A temporary `docs/progress.md merge=ours` git attribute was used during integration to
+  auto-drop each PR's own progress-log append in favor of this single consolidated entry; it has been
+  removed.)
+- No standing decisions reversed (button order Call|Raise|Check|Fold, fold placement, no
+  street-transition indicators, no how-to-play onboarding all unchanged). Color language moved further
+  toward the amber spec (UX §7). Security checklist items remain deferred for human prioritization.
+
 ### 2026-07-15 — Agent Dev Loop: reconcile documented default time bank to shipped 300s
 
 Baseline fast gate confirmed green before touching anything, run against `main` (typecheck PASS,

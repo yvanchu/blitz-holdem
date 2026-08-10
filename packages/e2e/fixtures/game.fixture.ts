@@ -268,7 +268,7 @@ async function createGame(browser: Browser, baseURL: string): Promise<GameFixtur
  */
 export const test = base.extend<{ game: GameFixture }>({
   game: async ({ browser }, use) => {
-    const baseURL = 'http://localhost:5173';
+    const baseURL = process.env.E2E_BASE_URL || 'http://localhost:5273';
     const game = await createGame(browser, baseURL);
 
     await use(game);
