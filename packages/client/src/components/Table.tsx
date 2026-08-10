@@ -267,16 +267,22 @@ export default function Table({ send }: TableProps) {
               </span>
             </div>
 
-            {/* Last-action indicator (informational - neutral gray per color language) */}
-            {lastActionLabel && (
-              <div
-                data-testid="last-action"
-                aria-live="polite"
-                className="text-gray-400 text-xs sm:text-sm font-medium"
-              >
-                {lastActionLabel}
-              </div>
-            )}
+            {/* Last-action indicator (informational - neutral gray per color language).
+                The outer row always reserves its height so the layout never shifts as
+                the indicator appears/updates/clears (static-UX requirement). */}
+            <div
+              aria-live="polite"
+              className="flex h-5 sm:h-6 items-center justify-center overflow-hidden"
+            >
+              {lastActionLabel && (
+                <div
+                  data-testid="last-action"
+                  className="text-gray-400 text-xs sm:text-sm font-medium"
+                >
+                  {lastActionLabel}
+                </div>
+              )}
+            </div>
           </>
         )}
       </div>
